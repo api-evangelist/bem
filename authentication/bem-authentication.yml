@@ -1,0 +1,16 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/bem-openapi-original.yml
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+schemes:
+- name: API Key
+  type: apiKey
+  in: header
+  parameter: x-api-key
+  description: Authenticate using API Key in request header
+  sources:
+  - openapi/bem-openapi-original.yml
