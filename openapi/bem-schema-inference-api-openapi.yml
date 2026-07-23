@@ -1,0 +1,172 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Schema Inference API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Schema Inference
+  description: 'Infer JSON Schemas from uploaded documents using AI.
+
+
+    Upload a file (PDF, image, spreadsheet, email, etc.) and receive a general-purpose JSON Schema
+
+    that captures the document''s structure. The inferred schema can be used directly as the
+
+    `outputSchema` when creating Extract functions.
+
+
+    The schema is designed to be broadly applicable to documents of the same type, not just
+
+    the specific file uploaded.'
+paths:
+  /v3/infer-schema:
+    post:
+      operationId: v3-infer-schema
+      summary: Infer Schema from File
+      description: "**Analyze a file and infer a JSON Schema from its contents.**\n\nAccepts a file via multipart form upload and uses Gemini to analyze the document,\nreturning a description of its contents, an inferred JSON Schema capturing all\nextractable fields, and document classification metadata.\n\nThe returned schema is designed to be reusable across many similar documents of the\nsame type, not just the specific file uploaded. It can be used directly as the\n`outputSchema` when creating a Transform function.\n\nThe endpoint also detects whether the file contains multiple bundled documents\nand classifies the content nature (textual, visual, audio, video, or mixed).\n\n## Supported file types\n\nPDF, PNG, JPEG, HEIC, HEIF, WebP, CSV, XLS, XLSX, DOCX, JSON, HTML, XML, EML,\nplain text, WAV, MP3, M4A, MP4.\n\n## File size limit\n\nMaximum file size is **20 MB**.\n\n## Examples\n\nUsing curl:\n```bash\ncurl -X POST https://api.bem.ai/v3/infer-schema \\\n  -H \"x-api-key: YOUR_API_KEY\" \\\n  -F \"file=@invoice.pdf\"\n```\n\nUsing the Bem CLI:\n```bash\nbem infer-schema create --file @invoice.pdf\n```"
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferSchemaResponseV3'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Schema Inference
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InferSchemaMultipartFormData'
+            encoding:
+              file:
+                contentType: '*/*'
+components:
+  schemas:
+    InferSchemaMultipartFormData:
+      type: object
+      properties:
+        file:
+          description: The file to analyze and infer a JSON schema from.
+      required:
+      - file
+    InferSchemaResponseV3:
+      type: object
+      required:
+      - filename
+      - analysis
+      properties:
+        filename:
+          type: string
+          description: Original filename of the uploaded file.
+        analysis:
+          allOf:
+          - $ref: '#/components/schemas/InferSchemaAnalysis'
+          description: Full analysis result including description, schema, and document classification.
+      description: Response from the infer-schema endpoint.
+    DocumentTypeInfo:
+      type: object
+      required:
+      - name
+      - count
+      - description
+      properties:
+        name:
+          type: string
+          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
+        count:
+          type: integer
+          description: Number of instances of this document type in the file.
+        description:
+          type: string
+          description: Brief description of this document type.
+      description: Describes a distinct document type found in the file.
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
+    InferSchemaAnalysis:
+      type: object
+      required:
+      - fileName
+      - contentType
+      - sizeBytes
+      - fileType
+      - description
+      - isMultiDocument
+      - documentTypes
+      - contentNature
+      properties:
+        fileName:
+          type: string
+          description: Original filename of the uploaded file.
+          title: File Name
+        contentType:
+          type: string
+          description: MIME content type of the uploaded file.
+          title: Content Type
+        sizeBytes:
+          type: integer
+          description: Size of the uploaded file in bytes.
+          title: Size in Bytes
+        fileType:
+          type: string
+          description: High-level file category (e.g. "document", "image", "spreadsheet", "email").
+          title: File Type
+        description:
+          type: string
+          description: 2-3 sentence description of what the file contains.
+        schema:
+          type: object
+          unevaluatedProperties: {}
+          description: Inferred JSON Schema representing all extractable data fields.
+        isMultiDocument:
+          type: boolean
+          description: Whether the file contains multiple separate documents bundled together.
+        documentTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTypeInfo'
+          description: List of distinct document types found in the file with counts.
+        contentNature:
+          type: string
+          description: 'Classification of the primary content.
+
+            One of: `textual`, `visual`, `audio`, `video`, `mixed`.'
+      description: Analysis result returned by the infer-schema endpoint.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

@@ -1,0 +1,2184 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Function Accuracy API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Function Accuracy
+  description: "Monitor, evaluate, and iterate on the quality of every function in your\nenvironment. Function Accuracy bundles two complementary loops:\n\n## Evaluations (`/v3/eval`)\n\nTrigger and retrieve per-transformation evaluations. Evaluations run\nasynchronously and score each transformation's output against the\nfunction's schema for confidence, per-field hallucination detection,\nand relevance. Supported for `extract`, `transform`, `analyze`, and\n`join` events.\n\n1. **Trigger** — `POST /v3/eval` queues jobs for a batch of transformation IDs.\n2. **Poll** — `GET /v3/eval/results` returns the current state of each\n   requested ID, partitioned into `results`, `pending`, and `failed`.\n   Accepts either `eventIDs` (preferred) or `transformationIDs` as a\n   comma-separated query parameter, and always keys the response by\n   event KSUID.\n\nUp to 100 IDs may be submitted per request.\n\n## Metrics, review, regression (`/v3/functions/{metrics,review,regression,compare}`)\n\nRoll evaluation results and user corrections up into actionable\nfunction-level signal:\n\n- **`GET /v3/functions/metrics`** — aggregate accuracy, precision,\n  recall, F1, and confusion-matrix counts per function.\n- **`POST /v3/functions/review`** — sample-size estimation,\n  confidence-bucketed distribution, PR-AUC, and per-threshold\n  confidence intervals (Wald or Wilson) for picking review cutoffs.\n- **`POST /v3/functions/regression`** — replay corrected historical\n  inputs against a new function version, producing a labeled\n  regression dataset.\n- **`POST /v3/functions/regression/corrections`** — propagate\n  baseline corrections onto the regression dataset so it can be\n  scored.\n- **`POST /v3/functions/compare`** — compute aggregate and\n  field-level lift between any two versions, optionally scoped to\n  the regression dataset.\n\nAll five endpoints support `extract` end-to-end on both the vision\nand OCR paths, alongside the legacy `transform` / `analyze` / `join`\ntypes."
+paths:
+  /v3/eval:
+    post:
+      operationId: v3-trigger-transformation-evaluations
+      summary: Trigger Transformation Evaluations
+      description: '**Queue evaluation jobs for a batch of transformations.**
+
+
+        Evaluations run asynchronously and score each transformation''s output
+
+        against the function''s schema for confidence, hallucination detection,
+
+        and relevance. Transformations must belong to events of a supported
+
+        type: `extract`, `transform`, `analyze`, or `join`.
+
+
+        Returns immediately with a summary of queued vs. skipped transformations
+
+        and per-transformation errors. Poll `GET /v3/eval/results` to retrieve
+
+        results once evaluations complete.'
+      parameters: []
+      responses:
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriggerEvaluationsResponseV3'
+              examples:
+                One transformation rejected for unsupported event type:
+                  summary: One transformation rejected for unsupported event type
+                  value:
+                    queued: 1
+                    skipped: 0
+                    errors:
+                      tr_01HXCD...: 'unsupported event type for evaluation: split. Only ''analyze'', ''transform'', ''extract'', and ''join'' are supported'
+                Both transformations queued:
+                  summary: Both transformations queued
+                  value:
+                    queued: 2
+                    skipped: 0
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerEvaluationsRequestV3'
+            examples:
+              Queue evaluations for two transformations:
+                summary: Queue evaluations for two transformations
+                value:
+                  transformationIDs:
+                  - tr_01HXAB...
+                  - tr_01HXCD...
+                  evaluationVersion: 0.1.0-gemini
+  /v3/eval/results:
+    get:
+      operationId: v3-get-evaluation-results
+      summary: Get Evaluation Results
+      description: '**Fetch evaluation results for a batch of events.**
+
+
+        Pass either `eventIDs` (preferred — the externally-stable V3
+
+        identifier) or `transformationIDs` as a comma-separated query
+
+        parameter. Exactly one of the two must be provided. Up to 100 IDs per
+
+        request.
+
+
+        For each requested ID the response reports one of three states: a
+
+        completed `result`, still-`pending`, or `failed`. Results, pending,
+
+        and failed entries are all keyed by event KSUID regardless of which
+
+        input form was used.'
+      parameters:
+      - name: eventIDs
+        in: query
+        required: false
+        description: 'Comma-separated list of event KSUIDs to fetch results for. Between
+
+          1 and 100 IDs per request. Mutually exclusive with
+
+          `transformationIDs`.'
+        schema:
+          type: string
+        explode: false
+      - name: transformationIDs
+        in: query
+        required: false
+        description: 'Comma-separated list of transformation IDs to fetch results for.
+
+          Between 1 and 100 IDs per request. Mutually exclusive with
+
+          `eventIDs`. Prefer `eventIDs` for new integrations.'
+        schema:
+          type: string
+        explode: false
+      - name: evaluationVersion
+        in: query
+        required: false
+        description: Optional evaluation version filter.
+        schema:
+          type: string
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResultsResponseV3'
+              examples:
+                One completed, one still pending:
+                  summary: One completed, one still pending
+                  value:
+                    results:
+                      evt_01HXAB...:
+                        fieldMetrics:
+                          /invoice/number:
+                            confidenceScore: 0.97
+                            reasoning: Matches canonical invoice number in the source document.
+                            hallucination: false
+                            relevanceScore: 1
+                        overallConfidence: 0.97
+                        runtime: 3.42
+                        hasHallucinations: false
+                        evaluationVersion: 0.1.0-gemini
+                        createdAt: '2026-04-23T18:05:00Z'
+                    pending:
+                    - eventID: evt_01HXCD...
+                      createdAt: '2026-04-23T18:04:55Z'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+  /v3/eval/score:
+    post:
+      operationId: v3-eval-score-create
+      summary: Score Function Against (input, expected) Pairs
+      description: '**Score a function against a list of (input, expected) pairs.**
+
+
+        Submits a batch of `(input, expected)` pairs, runs the named function
+
+        over each input, and returns per-pair + aggregate accuracy metrics
+
+        comparing the function''s actual output to the provided expected JSON.
+
+
+        Scoring runs asynchronously. The response carries a `scoreRunID`;
+
+        poll `GET /v3/eval/score/{scoreRunID}` until `status` is one of
+
+        `completed`, `error`, or `cancelled`.
+
+
+        `matchConfig` controls comparator behavior:
+
+        - `numericTolerance`: relative tolerance for numeric fields (0 = exact)
+
+        - `stringMatch`: `exact` (default) or `fuzzy` (Levenshtein ratio)
+
+        - `arrayMatch`: `by-index` (default; only mode in P0)
+
+        - `ignorePaths`: JSON Pointer paths to skip, supports `*` wildcards'
+      parameters: []
+      responses:
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvalScoreCreateResponseV3'
+              examples:
+                Score one PDF against expected values:
+                  summary: Score one PDF against expected values
+                  value:
+                    scoreRunID: evalrun_2a8f...
+                    status: pending
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvalScoreRequestV3'
+  /v3/eval/score/{scoreRunID}:
+    get:
+      operationId: v3-eval-score-get
+      summary: Get Score Run
+      description: '**Get the status and per-pair results of a score run.**
+
+
+        Returns `aggregate` only once `status` reaches `completed`. `perPair`
+
+        is populated incrementally — each pair''s `fieldResults` appears as
+
+        its underlying function call terminates.'
+      parameters:
+      - name: scoreRunID
+        in: path
+        required: true
+        description: The `scoreRunID` returned by `POST /v3/eval/score`.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvalScoreRunResponseV3'
+              examples:
+                Completed run with a perfect score:
+                  summary: Completed run with a perfect score
+                  value:
+                    scoreRunID: evalrun_2a8f...
+                    status: completed
+                    functionName: invoice-extractor
+                    functionVersionNum: 3
+                    matchConfig:
+                      numericTolerance: 0.01
+                      stringMatch: exact
+                    progress:
+                      total: 1
+                      completed: 1
+                      failed: 0
+                    aggregate:
+                      precision: 1
+                      recall: 1
+                      f1: 1
+                      exactMatches: 2
+                      withinTolerance: 0
+                      fuzzyMatches: 0
+                      misses: 0
+                      extras: 0
+                      totalFieldsExpected: 2
+                      totalFieldsActual: 2
+                    perPair:
+                    - pairIndex: 0
+                      callID: call_xxx
+                      status: completed
+                      fieldResults:
+                      - path: /invoiceNumber
+                        match: exact
+                      - path: /total
+                        match: exact
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+  /v3/eval/score/{scoreRunID}/cancel:
+    post:
+      operationId: v3-eval-score-cancel
+      summary: Cancel Score Run
+      description: '**Cancel an in-flight score run.**
+
+
+        Transitions the run to `cancelled`. Function calls already in flight
+
+        are allowed to finish (best-effort cancellation via the job queue);
+
+        results from completed pairs may still appear in subsequent GETs.'
+      parameters:
+      - name: scoreRunID
+        in: path
+        required: true
+        description: The `scoreRunID` returned by `POST /v3/eval/score`.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvalScoreRunResponseV3'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+  /v3/functions/compare:
+    post:
+      operationId: v3-function-version-compare
+      summary: Compare Metrics Between Function Versions
+      description: '**Compare metrics between two function versions.**
+
+
+        Computes aggregate and field-level lift/regression between any two
+
+        versions of a function: accuracy, precision, recall, F1, and PR-AUC.
+
+        Field-level changes are returned only for fields whose lift exceeds
+
+        1% in either direction.
+
+
+        Supported for every function type that produces labeled
+
+        transformations: `extract`, `transform`, `analyze`, `join`. Pass
+
+        `isRegression: true` to compare only the regression dataset (rows
+
+        produced by `POST /v3/functions/regression`) — the canonical way to
+
+        judge a candidate version before promoting it.
+
+
+        Defaults: `baselineVersionNum = currentVersionNum - 1`,
+
+        `comparisonVersionNum = currentVersionNum`.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/functionVersionCompareResponse'
+              examples:
+                Function improved:
+                  summary: Function improved
+                  value:
+                    functionName: invoice-extractor
+                    baselineVersionNum: 2
+                    comparisonVersionNum: 3
+                    baselineTransformationCount: 100
+                    comparisonTransformationCount: 150
+                    aggregateComparison:
+                      accuracy:
+                        baselineValue: 0.85
+                        comparisonValue: 0.92
+                        difference: 0.07
+                        liftPercent: 8.24
+                      f1Score:
+                        baselineValue: 0.85
+                        comparisonValue: 0.92
+                        difference: 0.07
+                        liftPercent: 8.24
+                    fieldMetricsChanges: []
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/functionVersionCompareRequest'
+            examples:
+              Compare versions on the regression dataset only:
+                summary: Compare versions on the regression dataset only
+                value:
+                  functionName: invoice-extractor
+                  baselineVersionNum: 2
+                  comparisonVersionNum: 3
+                  isRegression: true
+              Compare two versions on labeled data:
+                summary: Compare two versions on labeled data
+                value:
+                  functionName: invoice-extractor
+                  baselineVersionNum: 2
+                  comparisonVersionNum: 3
+  /v3/functions/metrics:
+    get:
+      operationId: v3-get-function-metrics
+      summary: Get Function Metrics
+      description: '**Retrieve performance metrics for functions based on labeled transformation data.**
+
+
+        Calculates accuracy, precision, recall, F1, and the underlying confusion-matrix
+
+        counts for each matching function by comparing model outputs against user
+
+        corrections. Metrics are aggregated across every transformation the function
+
+        has produced, regardless of function type — `extract`, `transform`, `analyze`,
+
+        and `join` all populate the same `metrics` column on the transformation row,
+
+        so v3 surfaces all of them uniformly.
+
+
+        ## Filtering
+
+
+        Combine `functionIDs` / `functionNames` / `types` to narrow the result set.
+
+        `types` accepts `extract` alongside the legacy `transform` / `analyze` types
+
+        (which remain readable). Pagination is cursor-based.
+
+
+        ## Requirements
+
+
+        A function only shows non-zero metrics once at least one of its transformations
+
+        has been labeled — submit corrections via `POST /v3/events/{eventID}/feedback`.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+      - name: functionIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: functionNames
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: types
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionType'
+          minItems: 1
+        explode: false
+      - name: sortOrder
+        in: query
+        required: false
+        description: 'Sort direction over the result set (default `asc`). Pagination works
+
+          symmetrically in both directions via `startingAfter` / `endingBefore`.'
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+          default: asc
+      - name: startingAfter
+        in: query
+        required: false
+        description: Cursor — a `functionID` defining your place in the list.
+        schema:
+          type: string
+      - name: endingBefore
+        in: query
+        required: false
+        description: Cursor — a `functionID` defining your place in the list.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionMetricsResponse'
+              example:
+                functions:
+                - functionName: invoice-extractor
+                  totalLabeledResults: 54
+                  totalResults: 120
+                  metrics:
+                    accuracy: 0.7407
+                    precision: 0.9524
+                    recall: 0.7692
+                    f1Score: 0.8511
+                    tp: 40
+                    fp: 2
+                    tn: 0
+                    fn: 12
+                totalCount: 1
+      tags:
+      - Function Accuracy
+  /v3/functions/regression:
+    post:
+      operationId: v3-function-regression
+      summary: Run Function Regression Testing
+      description: '**Kick off a regression run between two versions of a function.**
+
+
+        Replays a sample of corrected historical inputs against the comparison
+
+        version, producing fresh transformations marked `isRegression: true`.
+
+        Each new run returns the workflow `callID`s you can monitor via
+
+        `GET /v3/calls/{callID}`.
+
+
+        Supported for every function type that produces correctable
+
+        transformations: `extract`, `transform`, `analyze`, `join`. For
+
+        `extract` specifically, the regression sample is dispatched through
+
+        the same OCR vs. vision path used at original call time (PDF, PNG,
+
+        JPEG, HEIC, HEIF, WebP go through the vision worker; everything else
+
+        goes through OCR → transform).
+
+
+        The comparison version must share a schema-compatible output shape
+
+        with the baseline; structural differences are reported as a 400 with
+
+        the offending field-level diffs.
+
+
+        ## Typical flow
+
+
+        1. `POST /v3/functions/regression` — queues calls, returns
+
+        `{ originalReferenceID, callID }` per sample.
+
+        2. Wait (poll `GET /v3/calls/{callID}` or subscribe to webhooks).
+
+        3. `POST /v3/functions/regression/corrections` to copy baseline
+
+        corrections onto the new regression transformations.
+
+        4. `POST /v3/functions/compare` to compare baseline vs comparison
+
+        metrics for the regression dataset.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/functionRegressionResponse'
+              examples:
+                Regression run queued:
+                  summary: Regression run queued
+                  description: Calls are processing asynchronously — poll the calls API or wait on webhooks.
+                  value:
+                    functionName: invoice-extractor
+                    result:
+                      functionName: invoice-extractor
+                      totalSamples: 50
+                      calls:
+                      - originalReferenceID: invoice-123
+                        callID: wc_2N6gH8ZKCmvb6BnFcGqhKJ98VzP
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/functionRegressionRequest'
+            examples:
+              Compare specific versions:
+                summary: Compare specific versions
+                value:
+                  functionName: invoice-extractor
+                  baselineVersionNum: 3
+                  comparisonVersionNum: 5
+                  sampleSize: 100
+                  onlyCorrectedData: true
+              Default regression (previous version → current version):
+                summary: Default regression (previous version → current version)
+                value:
+                  functionName: invoice-extractor
+                  sampleSize: 50
+  /v3/functions/regression/corrections:
+    post:
+      operationId: v3-apply-baseline-corrections
+      summary: Apply Baseline Corrections to Regression Transformations
+      description: '**Copy baseline corrections onto regression transformations.**
+
+
+        Looks up regression transformations created against the comparison
+
+        version (`isRegression: true`, `correctedJSON IS NULL`), finds the
+
+        matching baseline transformation by `referenceID`, and copies the
+
+        baseline''s `correctedJSON` onto the regression row via the same code
+
+        path used by `POST /v3/events/{eventID}/feedback`. The applied
+
+        corrections are immediately scored against the regression output,
+
+        populating the confusion-matrix metrics used by `function-review` and
+
+        `function-version-compare`.
+
+
+        Works for every function type that produces correctable
+
+        transformations, including `extract` on both the vision and OCR
+
+        paths. (Previously the vision path silently dropped `is_regression`
+
+        during the original regression run, so no rows matched the
+
+        predicate — that has been fixed.)
+
+
+        Returns counts plus the list of **event KSUIDs** whose underlying
+
+        regression transformation received a correction. Errors (e.g.
+
+        baseline transformation missing for a given `referenceID`) are
+
+        returned per-row in the `errors` map, keyed by event KSUID, rather
+
+        than aborting the whole call.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/applyBaselineCorrectionsResponseV3'
+              examples:
+                Partial application with per-row errors:
+                  summary: Partial application with per-row errors
+                  value:
+                    applied: 18
+                    appliedEventIDs:
+                    - evt_2N6gH8...
+                    - evt_2N6gH9...
+                    skipped: 2
+                    errors:
+                      evt_2N6gHB...: 'baseline transformation not found for reference ID: invoice-789'
+                All corrections applied:
+                  summary: All corrections applied
+                  value:
+                    applied: 25
+                    appliedEventIDs:
+                    - evt_2N6gH8...
+                    - evt_2N6gH9...
+                    - evt_2N6gHA...
+                    skipped: 0
+                    errors: {}
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/applyBaselineCorrectionsRequest'
+            examples:
+              Apply corrections from v3 onto v4 regression set:
+                summary: Apply corrections from v3 onto v4 regression set
+                value:
+                  functionName: invoice-extractor
+                  baselineVersionNum: 3
+                  comparisonVersionNum: 4
+  /v3/functions/review:
+    post:
+      operationId: v3-function-review
+      summary: Function Review
+      description: '**Estimate human review requirements for a function.**
+
+
+        Combines confusion-matrix metrics with the per-transformation evaluation
+
+        scores (confidence / hallucination / relevance produced by the eval service)
+
+        to compute:
+
+
+        - A confidence-bucketed distribution of the function''s outputs.
+
+        - Sample-size estimates at configurable margin-of-error and confidence
+
+        levels (Wald or Wilson intervals).
+
+        - A precision-recall AUC and a per-threshold matrix you can use to
+
+        pick a review cutoff.
+
+
+        Supported for every function type that produces transformations and feeds
+
+        the auto-evaluation pipeline: `extract`, `transform`, `analyze`, `join`.
+
+        Extract works on both vision (PDF/PNG/JPEG/HEIC/HEIF/WebP) and OCR-routed
+
+        inputs.
+
+
+        Pass `isRegression: true` to scope the review to transformations created
+
+        by a previous regression run (see `POST /v3/functions/regression`).'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionReviewResponse'
+              example:
+                functionName: invoice-extractor
+                functionVersionNum: 3
+                estimate:
+                  totalTransformations: 1000
+                  labeledTransformations: 200
+                  unlabeledTransformations: 800
+                  missingEvaluations: 50
+                  confidenceDistribution:
+                    high: 500
+                    medium: 350
+                    low: 150
+                  thresholdMatrix:
+                  - threshold: 0.8
+                    tp: 85
+                    fp: 12
+                    fn: 15
+                    tn: 88
+                    accuracyAboveThreshold:
+                      '95':
+                        ciLower: 0.8456
+                        mid: 0.875
+                        ciUpper: 0.9044
+                        currentSample: 120
+                        sampleNeeded: 30
+                metrics:
+                  fieldMetrics:
+                  - fieldPath: /invoice/number
+                    metrics:
+                      accuracy: 0.95
+                      precision: 0.98
+                      recall: 0.92
+                      f1Score: 0.95
+                      tp: 92
+                      fp: 2
+                      tn: 0
+                      fn: 8
+                  precisionRecallAuc: 0.8542
+                  aggregateMetrics:
+                    accuracy: 0.7407
+                    precision: 0.9524
+                    recall: 0.7692
+                    f1Score: 0.8511
+                    tp: 40
+                    fp: 2
+                    tn: 0
+                    fn: 12
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Function Accuracy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FunctionReviewRequest'
+            examples:
+              Review the regression dataset for a specific version:
+                summary: Review the regression dataset for a specific version
+                value:
+                  functionName: invoice-extractor
+                  functionVersionNum: 2
+                  isRegression: true
+                  marginOfError: 0.05
+              Full threshold analysis (default):
+                summary: Full threshold analysis (default)
+                value:
+                  functionName: invoice-extractor
+                  marginOfError: 0.05
+                  thresholdMin: 0.5
+                  thresholdMax: 1
+                  thresholdStep: 0.01
+components:
+  schemas:
+    EvaluationResultsResponseV3:
+      type: object
+      required:
+      - results
+      properties:
+        results:
+          type: object
+          unevaluatedProperties:
+            $ref: '#/components/schemas/EvaluationResultV3'
+          description: 'Completed evaluation results, keyed by event KSUID.
+
+
+            An event appears here only if its evaluation completed
+
+            successfully. Still-running evaluations appear in `pending`;
+
+            failed evaluations appear in `failed`.'
+        pending:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingEvaluationV3'
+          description: Events whose evaluation is still running.
+        failed:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailedEvaluationV3'
+          description: Events whose evaluation failed or was not found.
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Reserved map of event KSUID to error message for validation
+
+            failures on the request itself. Populated only in edge cases.'
+      description: 'Batched response containing the evaluation state for every requested
+
+        ID, partitioned into completed `results`, still-running `pending`, and
+
+        terminal `failed` groups. All identifiers in the response are event
+
+        KSUIDs regardless of whether the request used `eventIDs` or
+
+        `transformationIDs`.'
+    FieldMetrics:
+      type: object
+      required:
+      - fieldPath
+      properties:
+        fieldPath:
+          type: string
+          description: JSON path to the field
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+      description: Enhanced field metrics with comprehensive analytics
+    functionVersionCompareResponse:
+      type: object
+      required:
+      - functionName
+      - baselineVersionNum
+      - comparisonVersionNum
+      properties:
+        functionName:
+          type: string
+          description: Name of the compared function
+        baselineVersionNum:
+          type: integer
+          description: Baseline version number used for comparison
+        comparisonVersionNum:
+          type: integer
+          description: Comparison version number
+        baselineTransformationCount:
+          type: integer
+          description: Number of transformations used to calculate baseline metrics
+        comparisonTransformationCount:
+          type: integer
+          description: Number of transformations used to calculate comparison metrics
+        aggregateComparison:
+          $ref: '#/components/schemas/metricsComparison'
+        fieldMetricsChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/fieldMetricsComparison'
+          description: '**Field-level metrics that changed significantly**
+
+
+            Only includes fields where metrics changed by more than 1%.'
+        baselineMetrics:
+          $ref: '#/components/schemas/MetricsDetails'
+        comparisonMetrics:
+          $ref: '#/components/schemas/MetricsDetails'
+        message:
+          type: string
+          description: Optional message with additional details
+      description: '**Response containing metrics comparison between two function versions**
+
+
+        Shows absolute differences, lift percentages, and field-level changes.'
+    functionRegressionResult:
+      type: object
+      required:
+      - functionName
+      - totalSamples
+      properties:
+        functionName:
+          type: string
+          description: '**Name of the function being tested**
+
+
+            The function for which regression testing was initiated.'
+        calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/regressionFunctionCall'
+          description: '**Calls created for regression testing**
+
+
+            Each object contains the original reference ID and the new call ID created for testing.
+
+            Use these call IDs with standard call endpoints to monitor progress:
+
+
+            - `GET /v2/calls/{callID}` - Check individual status
+
+            - `GET /v2/calls?referenceIDs=regression-*` - List all regression calls'
+        totalSamples:
+          type: integer
+          minimum: 0
+          description: '**Total number of samples being tested**
+
+
+            This represents the number of historical transformations found with corrections
+
+            that will be retested with the latest function version.'
+      description: '**Detailed regression test results and tracking information**
+
+
+        Contains function call IDs for monitoring progress. When all function calls complete,
+
+        use the transformation endpoints to retrieve and analyze the actual results.'
+    EvalScoreRunResponseV3:
+      type: object
+      required:
+      - scoreRunID
+      - status
+      - functionName
+      - functionVersionNum
+      - matchConfig
+      - progress
+      - perPair
+      properties:
+        scoreRunID:
+          type: string
+        status:
+          $ref: '#/components/schemas/EvalScoreRunStatusV3'
+        functionName:
+          type: string
+        functionVersionNum:
+          type: integer
+        matchConfig:
+          $ref: '#/components/schemas/EvalMatchConfigV3'
+        progress:
+          $ref: '#/components/schemas/EvalScoreProgressV3'
+        aggregate:
+          allOf:
+          - $ref: '#/components/schemas/EvalScoreAggregateV3'
+          description: Populated only when `status == "completed"`.
+        perPair:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvalScorePairResultV3'
+          description: Per-pair results. `fieldResults` appears once a pair has been compared.
+      description: Full status payload returned by `GET /v3/eval/score/{scoreRunID}`.
+    fieldMetricsComparison:
+      type: object
+      required:
+      - fieldPath
+      - comparison
+      properties:
+        fieldPath:
+          type: string
+          description: JSON pointer path to the field
+        comparison:
+          $ref: '#/components/schemas/metricsComparison'
+      description: Comparison of field-level metrics
+    FunctionMetricsResponse:
+      type: object
+      required:
+      - functions
+      - totalCount
+      properties:
+        functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionMetrics'
+        totalCount:
+          type: integer
+          description: Total number of functions
+    EvalScoreRunStatusV3:
+      type: string
+      enum:
+      - pending
+      - initializing
+      - running
+      - completed
+      - error
+      - cancelled
+      description: Status values for an eval-score run.
+    FunctionReviewResponse:
+      type: object
+      required:
+      - functionName
+      - functionVersionNum
+      - estimate
+      properties:
+        functionName:
+          type: string
+          description: Name of the analyzed function
+        functionVersionNum:
+          type: integer
+          description: Version number of the function that was analyzed
+        estimate:
+          $ref: '#/components/schemas/ReviewEstimate'
+        metrics:
+          allOf:
+          - $ref: '#/components/schemas/MetricsDetails'
+          description: Detailed performance metrics and analysis
+      description: Response containing review requirements estimate
+    EvalMatchConfigV3:
+      type: object
+      properties:
+        numericTolerance:
+          type: number
+          format: double
+          description: 'Relative tolerance for numeric fields. `0` (default) means exact
+
+            equality; `0.01` means ±1%.'
+        stringMatch:
+          type: string
+          enum:
+          - exact
+          - fuzzy
+          description: '`exact` (default) or `fuzzy`.'
+        fuzzyThreshold:
+          type: number
+          format: double
+          description: 'Levenshtein-ratio threshold used when `stringMatch == "fuzzy"`.
+
+            Range `[0, 1]`. Default `0.85`.'
+        arrayMatch:
+          type: string
+          enum:
+          - by-index
+          description: P0 supports only `by-index`.
+        ignorePaths:
+          type: array
+          items:
+            type: string
+          description: 'JSON Pointer paths to skip during comparison. The asterisk character
+
+            matches arbitrary object keys / array indices.
+
+
+            Example values: /metadata, /lineItems with asterisk segment, etc.'
+      description: Comparator configuration. All fields optional; conservative defaults.
+    functionRegressionResponse:
+      type: object
+      required:
+      - functionName
+      - result
+      properties:
+        functionName:
+          type: string
+          description: '**Name of the function being tested**
+
+
+            Echoes back the function name from the request for confirmation.'
+        result:
+          $ref: '#/components/schemas/functionRegressionResult'
+      description: '**Response from initiating a regression test**
+
+
+        Contains the function call IDs created for async processing and tracking information.
+
+        Use the returned function call IDs to monitor progress and retrieve results.'
+    EvalScoreRequestV3:
+      type: object
+      required:
+      - functionName
+      - pairs
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to score. Must be of type extract, transform, or analyze.
+        functionVersionNum:
+          type: integer
+          description: 'Optional version number to score against. P0: only the function''s
+
+            current version is accepted; passing a different version returns 422.'
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvalScorePairV3'
+          description: Up to 1000 pairs per request.
+        matchConfig:
+          allOf:
+          - $ref: '#/components/schemas/EvalMatchConfigV3'
+          description: Comparator configuration. Defaults are conservative (exact equality).
+      description: 'Request body for `POST /v3/eval/score`. Submits a list of
+
+        `(input, expected)` pairs to score against the named function.'
+    FailedEvaluationV3:
+      type: object
+      required:
+      - eventID
+      - errorMessage
+      - createdAt
+      properties:
+        eventID:
+          type: string
+          description: Event KSUID.
+        errorMessage:
+          type: string
+          description: Human-readable failure reason.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp associated with the failure.
+      description: An event whose evaluation failed or was not found.
+    functionRegressionRequest:
+      type: object
+      required:
+      - functionName
+      properties:
+        functionName:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: '**Name of the function to test for regressions**
+
+
+            Must be an existing function with historical transformation data containing user corrections.
+
+            The function must be currently active and callable.'
+        baselineVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Function version number to use as baseline for comparison**
+
+
+            - Defaults to `currentVersionNum - 1` (previous version)
+
+            - Must be a valid, existing version number for the function
+
+            - Used to retrieve historical transformation data for comparison
+
+            - Cannot be the same as `comparisonVersionNum`'
+        comparisonVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Function version number to test against the baseline**
+
+
+            - Defaults to current version number (latest version)
+
+            - Must be a valid, existing version number for the function
+
+            - This version will be used to create new function calls for testing
+
+            - Cannot be the same as `baselineVersionNum`'
+        sampleSize:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: '**Number of historical samples to test**
+
+
+            - Defaults to 50 samples
+
+            - Minimum: 1, Maximum: 1000
+
+            - Only transformations with `correctedJSON` (user corrections) are eligible
+
+            - Actual sample size may be smaller if insufficient corrected data exists
+
+            - Larger samples provide more statistical confidence but take longer to process'
+          default: 50
+        onlyCorrectedData:
+          type: boolean
+          description: '**Whether to only test transformations with user corrections**
+
+
+            - Defaults to `true` (recommended)
+
+            - When `true`: Only uses transformations with `correctedJSON` as ground truth
+
+            - When `false`: May include transformations without corrections (less reliable)
+
+            - Corrected data provides the most accurate regression testing results'
+          default: true
+      description: '**Request parameters for function regression testing**
+
+
+        Configures which function to test, sample size, and version comparison settings.
+
+        All parameters except `functionName` are optional with sensible defaults.'
+    RateConfidenceInterval:
+      type: object
+      required:
+      - currentSample
+      - sampleNeeded
+      properties:
+        ciLower:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Lower bound of the confidence interval (null if insufficient sample size)
+        mid:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Point estimate (observed rate) at the center of the interval (null if insufficient sample size)
+        ciUpper:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Upper bound of the confidence interval (null if insufficient sample size)
+        currentSample:
+          type: integer
+          minimum: 0
+          description: Current number of samples/observations available
+        sampleNeeded:
+          type: integer
+          minimum: 0
+          description: Minimum number of samples needed for reliable confidence interval calculation
+      description: 'Confidence interval for a rate/proportion using Wald (normal approximation) method by default.
+
+
+        Wald confidence intervals use the normal approximation to the binomial distribution.
+
+        For extreme rates or small sample sizes, Wilson confidence intervals may be more appropriate.'
+    EvalScorePairStatusV3:
+      type: string
+      enum:
+      - pending
+      - running
+      - completed
+      - failed
+      description: Per-pair status.
+    regressionFunctionCall:
+      type: object
+      required:
+      - originalReferenceID
+      - callID
+      properties:
+        originalReferenceID:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: '**Original reference ID from historical transformation data**
+
+
+            This is the reference ID that was used when the historical transformation was originally created.
+
+            It provides traceability back to the original business context (e.g., invoice number, document ID).'
+        callID:
+          type: string
+          pattern: ^wc_[a-zA-Z0-9]+$
+          description: '**New call ID created for regression testing**
+
+
+            Use this ID with standard call endpoints:
+
+            - `GET /v2/calls/{callID}` - Check status and retrieve results
+
+            - The call will have reference ID matching the original transformation'
+      description: '**Call created for regression testing**
+
+
+        Links the original historical reference ID to the new call ID created for testing.
+
+        Use the call ID with standard call endpoints to monitor progress and retrieve results.'
+    EvalScoreFieldResultV3:
+      type: object
+      required:
+      - path
+      - match
+      properties:
+        path:
+          type: string
+          description: JSON Pointer to the leaf.
+        match:
+          type: string
+          enum:
+          - exact
+          - within_tolerance
+          - fuzzy_match
+          - miss
+          - extra
+          description: 'Classification:
+
+            - `exact`: both present and deep-equal
+
+            - `within_tolerance`: both numbers, within configured tolerance
+
+            - `fuzzy_match`: both strings, Levenshtein ratio above threshold
+
+            - `miss`: expected present, actual absent or different
+
+            - `extra`: actual present, expected absent'
+        expected: {}
+        actual: {}
+        delta:
+          type: number
+          format: double
+          description: Populated for numeric comparisons; `actual - expected`.
+      description: One leaf in `expected ∪ actual`.
+    EvalScoreCreateResponseV3:
+      type: object
+      required:
+      - scoreRunID
+      - status
+      properties:
+        scoreRunID:
+          type: string
+          description: Run identifier. Use with `GET /v3/eval/score/{scoreRunID}`.
+        status:
+          $ref: '#/components/schemas/EvalScoreRunStatusV3'
+      description: Returned by `POST /v3/eval/score`.
+    TriggerEvaluationsRequestV3:
+      type: object
+      required:
+      - transformationIDs
+      properties:
+        transformationIDs:
+          type: array
+          items:
+            type: string
+          description: Transformation IDs to evaluate. Up to 100 per request.
+        evaluationVersion:
+          type: string
+          description: 'Optional evaluation version (e.g. `0.1.0-gemini`). When omitted the
+
+            server''s default evaluation version is used.'
+      description: 'Request to queue evaluation jobs for a batch of transformations.
+
+
+        Evaluations assess a transformation''s output against the function''s
+
+        schema-defined ground truth signals (confidence, hallucination detection,
+
+        relevance). Each transformation must belong to an event of a supported
+
+        type: `extract`, `transform`, `analyze`, or `join`.'
+    EvalScoreProgressV3:
+      type: object
+      required:
+      - total
+      - completed
+      - failed
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        failed:
+          type: integer
+      description: Counts across all pairs.
+    metricComparison:
+      type: object
+      properties:
+        baselineValue:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Value in baseline version (null if not available)
+        comparisonValue:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Value in comparison version (null if not available)
+        difference:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Absolute difference (comparisonValue - baselineValue)
+        liftPercent:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: '**Percentage change from baseline to comparison**
+
+
+            Formula: ((comparisonValue - baselineValue) / baselineValue) * 100
+
+
+            - Positive values indicate improvement
+
+            - Negative values indicate regression'
+      description: Comparison of a single metric between two versions
+    FunctionReviewRequest:
+      type: object
+      required:
+      - functionName
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to analyze
+        functionVersionNum:
+          type: integer
+          minimum: 1
+          description: Optional function version number to analyze. If not provided, uses the latest/current version of the function.
+        evaluationVersion:
+          type: string
+          enum:
+          - 0.1.0-gemini
+          description: Optional evaluation version to filter evaluations by. Must be one of the supported versions. If not provided, defaults to "0.1.0-gemini".
+          default: 0.1.0-gemini
+        marginOfError:
+          type: number
+          format: float
+          minimum: 0.001
+          maximum: 0.1
+          description: Margin of error for statistical calculations
+          default: 0.05
+        thresholdMin:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Minimum confidence threshold to analyze
+          default: 0.5
+        thresholdMax:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Maximum confidence threshold to analyze
+          default: 1
+        thresholdStep:
+          type: number
+          format: float
+          minimum: 0.001
+          maximum: 0.1
+          description: Step size for threshold analysis (smaller = more granular)
+          default: 0.01
+        confidenceLevels:
+          type: array
+          items:
+            type: integer
+          description: 'Confidence levels for statistical analysis as integers representing percentages (e.g., [90, 95, 99] for 90%, 95%, 99%). IMPORTANT: Only integers are accepted, floats like 0.95 will be rejected.'
+          default:
+          - 95
+        confidenceMethod:
+          type: string
+          enum:
+          - wald
+          - wilson
+          description: 'Confidence interval calculation method (default "wald").
+
+
+            - "wald": Normal approximation method (faster, standard)
+
+            - "wilson": Wilson score interval (more robust for extreme rates)'
+          default: wald
+        isRegression:
+          type: boolean
+          description: Internal flag indicating if the request is from a regression test
+      description: Request for estimating review requirements for a function
+    functionVersionCompareRequest:
+      type: object
+      required:
+      - functionName
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to compare versions for
+        baselineVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Baseline version number for comparison**
+
+
+            If not provided, defaults to the previous version (current - 1).'
+        comparisonVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Comparison version number**
+
+
+            If not provided, defaults to the current version.'
+        isRegression:
+          type: boolean
+          description: '**Whether to compare regression test data only**
+
+
+            If true, only compares transformations marked as regression tests.'
+      description: '**Request to compare metrics between two function versions**
+
+
+        Compares metrics from two versions of a function to show lift or regression.'
+    TriggerEvaluationsResponseV3:
+      type: object
+      required:
+      - queued
+      - skipped
+      properties:
+        queued:
+          type: integer
+          description: Number of evaluation jobs newly queued.
+        skipped:
+          type: integer
+          description: 'Number of transformations skipped because an evaluation job was already
+
+            pending or already completed for them.'
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Map of transformation ID to human-readable error message for any
+
+            transformations that could not be queued (e.g. not found, unsupported
+
+            event type).'
+      description: 'Summary of the trigger call. Evaluations run asynchronously; use
+
+        `GET /v3/eval/results` to poll for results.'
+    MetricsDetails:
+      type: object
+      properties:
+        fieldMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldMetrics'
+          description: Enhanced field metrics with comprehensive analytics
+        precisionRecallAuc:
+          type: number
+          format: float
+          description: Area Under the Precision-Recall Curve
+        aggregateMetrics:
+          allOf:
+          - $ref: '#/components/schemas/Metrics'
+          description: Aggregate confusion matrix metrics across all fields
+      description: Detailed performance metrics and analysis
+    EvaluationResultV3:
+      type: object
+      required:
+      - fieldMetrics
+      - overallConfidence
+      - runtime
+      - hasHallucinations
+      - evaluationVersion
+      - createdAt
+      properties:
+        fieldMetrics:
+          type: object
+          unevaluatedProperties:
+            $ref: '#/components/schemas/FieldMetricV3'
+          description: Per-field evaluation metrics, keyed by JSON path to the field.
+        overallConfidence:
+          type: number
+          format: double
+          description: Aggregate confidence score across all fields (0.0 - 1.0).
+        runtime:
+          type: number
+          format: double
+          description: Total evaluation runtime in seconds.
+        hasHallucinations:
+          type: boolean
+          description: '`true` if at least one field was flagged as a hallucination by the
+
+            evaluator.'
+        evaluationVersion:
+          type: string
+          description: Evaluation version that produced this result.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp when the evaluation result was persisted.
+      description: A completed evaluation result for a single transformation.
+    metricsComparison:
+      type: object
+      properties:
+        accuracy:
+          $ref: '#/components/schemas/metricComparison'
+        precision:
+          $ref: '#/components/schemas/metricComparison'
+        recall:
+          $ref: '#/components/schemas/metricComparison'
+        f1Score:
+          $ref: '#/components/schemas/metricComparison'
+      description: Comparison of metrics between two versions
+    applyBaselineCorrectionsResponseV3:
+      type: object
+      required:
+      - applied
+      - appliedEventIDs
+      - skipped
+      - errors
+      properties:
+        applied:
+          type: integer
+          minimum: 0
+          description: Number of corrections that were applied successfully.
+        appliedEventIDs:
+          type: array
+          items:
+            type: string
+          description: 'Event KSUIDs whose underlying regression transformation had a
+
+            baseline correction copied onto it.'
+        skipped:
+          type: integer
+          minimum: 0
+          description: 'Number of regression transformations that were skipped — typically
+
+            because they already had a correction or did not have a usable
+
+            reference ID.'
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Map of event KSUID to error message for any regression rows where
+
+            the correction could not be applied (e.g. baseline transformation
+
+            not found for the row''s reference ID).'
+      description: 'V3 response from applying baseline corrections to regression
+
+        transformations. Identifiers are surfaced as event KSUIDs — the
+
+        externally-stable IDs used everywhere else in V3 — in place of the
+
+        internal transformation IDs returned by the V2 endpoint.'
+    FunctionType:
+      type: string
+      enum:
+      - transform
+      - extract
+      - route
+      - classify
+      - send
+      - split
+      - join
+      - analyze
+      - payload_shaping
+      - enrich
+      - parse
+      - render
+      description: The type of the function.
+    applyBaselineCorrectionsRequest:
+      type: object
+      required:
+      - functionName
+      - baselineVersionNum
+      - comparisonVersionNum
+      properties:
+        functionName:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: '**Name of the function to apply corrections for**
+
+
+            Must be an existing function with both baseline and regression transformation data.'
+        baselineVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Baseline version number (source of corrected data)**
+
+
+            The function version number that contains transformations with corrected JSON
+
+            that should be copied to regression transformations.'
+        comparisonVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Comparison version number (target for applying corrections)**
+
+
+            The function version number of regression transformations that should
+
+            receive the corrected JSON from the baseline version.'
+      description: '**Request to apply baseline corrections to regression transformations**
+
+
+        Specifies which function and versions to use for copying corrected JSON data
+
+        from baseline transformations to their corresponding regression transformations.'
+    EvalScorePairV3:
+      type: object
+      required:
+      - input
+      - expected
+      properties:
+        input:
+          allOf:
+          - $ref: '#/components/schemas/FileInput'
+          description: The file input to feed into the function.
+        expected:
+          description: 'Expected output for this input, as a JSON value. The comparator walks
+
+            `expected ∪ actual` and produces a per-leaf classification.'
+      description: One `(input, expected)` pair.
+    FunctionMetrics:
+      type: object
+      required:
+      - functionName
+      - totalLabeledResults
+      - totalResults
+      - metrics
+      properties:
+        functionName:
+          type: string
+          description: The function name
+        totalLabeledResults:
+          type: integer
+          description: Number of transformations that have been labeled/evaluated for metrics calculation
+        totalResults:
+          type: integer
+          description: Total number of results processed by the function
+        metrics:
+          type: object
+          properties:
+            accuracy:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            precision:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            recall:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            f1Score:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            tp:
+              type: integer
+            fp:
+              type: integer
+            tn:
+              type: integer
+            fn:
+              type: integer
+          required:
+          - accuracy
+          - precision
+          - recall
+          - f1Score
+          - tp
+          - fp
+          - tn
+          - fn
+          title: Metrics
+      title: Function Metrics
+    EvalScorePairResultV3:
+      type: object
+      required:
+      - pairIndex
+      - status
+      properties:
+        pairIndex:
+          type: integer
+        callID:
+          type: string
+          description: The function call that produced the actual output, if any.
+        status:
+          $ref: '#/components/schemas/EvalScorePairStatusV3'
+        fieldResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvalScoreFieldResultV3'
+          description: Per-leaf comparator output. Present only after the pair has been compared.
+        errorMessage:
+          type: string
+          description: Error message if the underlying function call failed.
+      description: Per-pair result.
+    InputType:
+      type: string
+      enum:
+      - csv
+      - docx
+      - email
+      - heic
+      - html
+      - jpeg
+      - json
+      - heif
+      - m4a
+      - mov
+      - mp3
+      - mp4
+      - pdf
+      - png
+      - text
+      - wav
+      - webp
+      - xls
+      - xlsx
+      - xml
+      description: The input type of the content you're sending for transformation.
+    FieldMetricV3:
+      type: object
+      required:
+      - confidenceScore
+      - reasoning
+      - hallucination
+      - relevanceScore
+      properties:
+        confidenceScore:
+          type: number
+          format: double
+          description: Confidence score for the extracted value (0.0 - 1.0).
+        reasoning:
+          type: string
+          description: Evaluator's natural-language reasoning for the assigned scores.
+        hallucination:
+          type: boolean
+          description: '`true` if this field was flagged as a hallucination.'
+        relevanceScore:
+          type: number
+          format: double
+          description: Relevance score for the extracted value (0.0 - 1.0).
+      description: Metrics for a single field inside a transformation's output.
+    PendingEvaluationV3:
+      type: object
+      required:
+      - eventID
+      - createdAt
+      properties:
+        eventID:
+          type: string
+          description: Event KSUID.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp when the evaluation was queued.
+      description: An event whose evaluation is still running.
+    Metrics:
+      type: object
+      properties:
+        accuracy:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Overall accuracy
+        precision:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Precision (TP / (TP + FP))
+        recall:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Recall (TP / (TP + FN))
+        f1Score:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: F1 Score (harmonic mean of precision and recall)
+        tp:
+          type: integer
+          description: True Positives
+        fp:
+          type: integer
+          description: False Positives
+        tn:
+          type: integer
+          description: True Negatives
+        fn:
+          type: integer
+          description: False Negatives
+      description: Comprehensive performance metrics
+    FileInput:
+      type: object
+      required:
+      - inputType
+      - inputContent
+      properties:
+        inputType:
+          allOf:
+          - $ref: '#/components/schemas/InputType'
+          description: 'The input type of the content you''re sending for transformation.
+
+
+            Must match the actual file format. See `InputType` for allowed values.'
+        inputContent:
+          type: string
+          contentEncoding: base64
+          description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
+      description: 'A single file input with base64-encoded content.
+
+
+        When using the Bem CLI, use `@path/to/file` in the `inputContent` field to
+
+        automatically read and base64-encode the file:
+
+        `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}'' --wait`'
+    ThresholdResult:
+      type: object
+      required:
+      - threshold
+      - tp
+      - fp
+      - fn
+      - tn
+      properties:
+        threshold:
+          type: number
+          format: float
+          description: Confidence threshold value
+        accuracyAboveThreshold:
+          type: object
+          properties:
+            '95':
+              $ref: '#/components/schemas/RateConfidenceInterval'
+          description: 'Accuracy confidence intervals for samples above threshold, by confidence level.
+
+            Keys are confidence levels as strings ("90", "95", "99").
+
+            Values contain statistical confidence intervals.'
+        precision:
+          type: object
+          properties:
+            '95':
+              $ref: '#/components/schemas/RateConfidenceInterval'
+          description: 'Precision confidence intervals by confidence level.
+
+            Keys are confidence levels as strings ("90", "95", "99").
+
+            Values contain statistical confidence intervals.'
+        recall:
+          type: object
+          properties:
+            '95':
+              $ref: '#/components/schemas/RateConfidenceInterval'
+          description: 'Recall confidence intervals by confidence level.
+
+            Keys are confidence levels as strings ("90", "95", "99").
+
+            Values contain statistical confidence intervals.'
+        falsePositiveRate:
+          type: object
+          properties:
+            '95':
+              $ref: '#/components/schemas/RateConfidenceInterval'
+          description: 'False Positive Rate confidence intervals by confidence level.
+
+            Keys are confidence levels as strings ("90", "95", "99").
+
+            Values contain statistical confidence intervals.'
+        falseDiscoveryRate:
+          type: object
+          properties:
+            '95':
+              $ref: '#/components/schemas/RateConfidenceInterval'
+          description: 'False Discovery Rate confidence intervals by confidence level.
+
+            Keys are confidence levels as strings ("90", "95", "99").
+
+            Values contain statistical confidence intervals.'
+        tp:
+          type: integer
+          description: True Positives
+        fp:
+          type: integer
+          description: False Positives
+        fn:
+          type: integer
+          description: False Negatives
+        tn:
+          type: integer
+          description: True Negatives
+      description: Results for a specific confidence threshold analysis
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
+    ReviewEstimate:
+      type: object
+      required:
+      - totalTransformations
+      - labeledTransformations
+      - unlabeledTransformations
+      - missingEvaluations
+      - confidenceDistribution
+      - thresholdMatrix
+      properties:
+        totalTransformations:
+          type: integer
+          description: Total number of transformations analyzed
+        labeledTransformations:
+          type: integer
+          description: Number of transformations already labeled
+        unlabeledTransformations:
+          type: integer
+          description: Number of transformations not yet labeled
+        missingEvaluations:
+          type: integer
+          description: Number of transformations without evaluation data
+        confidenceDistribution:
+          type: object
+          properties:
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+          description: Distribution of confidence levels
+        thresholdMatrix:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThresholdResult'
+          description: Statistical analysis across confidence thresholds
+      description: Detailed review requirements estimate
+    EvalScoreAggregateV3:
+      type: object
+      required:
+      - precision
+      - recall
+      - f1
+      - exactMatches
+      - withinTolerance
+      - fuzzyMatches
+      - misses
+      - extras
+      - totalFieldsExpected
+      - totalFieldsActual
+      properties:
+        precision:
+          type: number
+          format: double
+        recall:
+          type: number
+          format: double
+        f1:
+          type: number
+          format: double
+        exactMatches:
+          type: integer
+        withinTolerance:
+          type: integer
+        fuzzyMatches:
+          type: integer
+        misses:
+          type: integer
+        extras:
+          type: integer
+        totalFieldsExpected:
+          type: integer
+        totalFieldsActual:
+          type: integer
+      description: Aggregate accuracy metrics.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

@@ -1,0 +1,274 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Entity Bulk Seed API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Entity Bulk Seed
+  description: "Seed the knowledge graph with a batch of customer-authored canonical\nentities in one request — their types, descriptions, synonyms, and\nper-entity attributes.\n\n- **`POST /v3/entities/bulk`** creates or merges each entity into a single\n  bucket (the optional `bucket` reference, else the account+environment\n  default). For each row the entity's `type` is resolved or created in\n  your taxonomy, the entity is upserted on its normalized canonical, and\n  any `synonyms` are attached as `customer_defined`. An entity that\n  already exists is **merged** (`onConflict: \"merge\"`): synonyms are added\n  additively, a longer `description` replaces the old one, and\n  `attributes` are merged with new keys winning.\n- Small batches (fewer than 100 entities) process **synchronously** and\n  return `200` with a per-row `results` array and a `summary`.\n- Larger batches process **asynchronously**: the call returns `202` with a\n  `seedJobID` and a `statusURL`. Poll **`GET /v3/entities/seed/{id}`**\n  until `status` is `completed` (or `failed`); the completed response\n  includes the per-row `results`.\n\nEach row's outcome is one of `created`, `merged-with`, or `rejected` (with\na `reason`, e.g. an attribute key not declared in the type's schema)."
+paths:
+  /v3/entities/bulk:
+    post:
+      operationId: v3-bulk-seed-entities
+      summary: Bulk Seed Entities
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkSeedSyncResponseV3'
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkSeedAsyncResponseV3'
+      tags:
+      - Entity Bulk Seed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkSeedEntitiesRequestV3'
+            examples:
+              Seed a single entity (sync):
+                summary: Seed a single entity (sync)
+                value:
+                  entities:
+                  - canonical: Acme Corporation
+                    type: organization
+                    description: Industrial conglomerate
+                    synonyms:
+                    - ACME
+                    - Acme Corp
+                    attributes:
+                      headquarters: Springfield
+                  onConflict: merge
+  /v3/entities/seed/{id}:
+    get:
+      operationId: v3-get-seed-job
+      summary: Get Seed Job Status
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Seed job public ID (`esj_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedJobStatusResponseV3'
+      tags:
+      - Entity Bulk Seed
+components:
+  schemas:
+    SeedJobStatusResponseV3:
+      type: object
+      required:
+      - seedJobID
+      - status
+      - totalRows
+      - createdCount
+      - mergedCount
+      - rejectedCount
+      properties:
+        seedJobID:
+          type: string
+          description: Public ID (`esj_...`) of the seed job.
+        status:
+          type: string
+          enum:
+          - pending
+          - processing
+          - completed
+          - failed
+          description: Lifecycle state.
+        totalRows:
+          type: integer
+          format: int32
+          description: Total rows in the submitted batch.
+        createdCount:
+          type: integer
+          format: int32
+          description: Rows that created a new entity.
+        mergedCount:
+          type: integer
+          format: int32
+          description: Rows merged into an existing entity.
+        rejectedCount:
+          type: integer
+          format: int32
+          description: Rows rejected.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedRowResultV3'
+          description: Per-row outcomes. Present only once `status` is `completed`.
+        error:
+          type: string
+          description: Terminal error message when `status` is `failed`.
+      description: '`GET /v3/entities/seed/{id}` response.'
+    BulkSeedEntityInputV3:
+      type: object
+      required:
+      - canonical
+      - type
+      properties:
+        canonical:
+          type: string
+          description: 'The canonical (longest / most descriptive) surface form for the entity,
+
+            e.g. `Acme Corporation`. Required. Normalized (lowercased,
+
+            whitespace-folded) for the uniqueness key.'
+        type:
+          type: string
+          description: 'The entity type name, e.g. `instrument` or `organization`. Required.
+
+            Resolved against your taxonomy and created if it does not yet exist.'
+        description:
+          type: string
+          description: Optional free-form description of the entity.
+        synonyms:
+          type: array
+          items:
+            type: string
+          description: Optional additional surface forms to attach as `customer_defined` synonyms.
+        attributes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Optional per-entity structured attribute values, e.g.
+
+            `{ "manufacturer": "Acme", "dosageMg": 50 }`. When the entity''s type
+
+            declares an attribute schema, keys not present in that schema cause the row
+
+            to be rejected.'
+      description: One entity to seed in a `POST /v3/entities/bulk` batch.
+    BulkSeedAsyncResponseV3:
+      type: object
+      required:
+      - seedJobID
+      - status
+      - statusURL
+      properties:
+        seedJobID:
+          type: string
+          description: Public ID (`esj_...`) of the seed job to poll.
+        status:
+          type: string
+          description: Initial status, always `pending`.
+        statusURL:
+          type: string
+          description: Relative URL to poll for completion (`/v3/entities/seed/{id}`).
+      description: '`202` response for an asynchronously processed (large) batch.'
+    SeedRowResultV3:
+      type: object
+      required:
+      - canonical
+      - outcome
+      properties:
+        canonical:
+          type: string
+          description: The canonical name from the input row.
+        outcome:
+          type: string
+          enum:
+          - created
+          - merged-with
+          - rejected
+          description: 'What happened to this row: `created` (new entity), `merged-with` (matched
+
+            an existing entity), or `rejected` (see `reason`).'
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the created or merged entity. Absent when rejected.
+        reason:
+          type: string
+          description: Human-readable explanation when `outcome` is `rejected`.
+      description: The outcome of seeding one row.
+    SeedSummaryV3:
+      type: object
+      required:
+      - created
+      - merged
+      - rejected
+      properties:
+        created:
+          type: integer
+          format: int32
+          description: Number of rows that created a new entity.
+        merged:
+          type: integer
+          format: int32
+          description: Number of rows merged into an existing entity.
+        rejected:
+          type: integer
+          format: int32
+          description: Number of rows rejected.
+      description: Per-outcome tally across a batch.
+    BulkSeedEntitiesRequestV3:
+      type: object
+      required:
+      - entities
+      properties:
+        bucket:
+          type: string
+          description: 'Optional bucket public ID (`bkt_...`) to seed into. Omit to use the
+
+            account+environment default bucket.'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkSeedEntityInputV3'
+          description: The entities to seed. Must be non-empty.
+        onConflict:
+          type: string
+          enum:
+          - merge
+          description: 'Conflict strategy for an entity that already exists. Only `merge` is
+
+            supported and it is the default: synonyms are added additively, a longer
+
+            description replaces the old one, and attributes are merged with new keys
+
+            winning.'
+      description: Request body for `POST /v3/entities/bulk`.
+    BulkSeedSyncResponseV3:
+      type: object
+      required:
+      - results
+      - summary
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedRowResultV3'
+          description: Per-row outcomes, in request order.
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/SeedSummaryV3'
+          description: Aggregate counts.
+      description: '`200` response for a synchronously processed (small) batch.'
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

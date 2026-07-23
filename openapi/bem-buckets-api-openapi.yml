@@ -1,0 +1,247 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Buckets
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+paths:
+  /v3/buckets:
+    post:
+      operationId: v3-create-bucket
+      summary: Create a Bucket
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketV3'
+      tags:
+      - Buckets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BucketCreateRequestV3'
+            examples:
+              Create bucket:
+                summary: Create bucket
+                value:
+                  name: invoices
+                  description: Knowledge graph for invoice documents
+    get:
+      operationId: v3-list-buckets
+      summary: List Buckets
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of buckets to return (default 50, max 200).
+        schema:
+          type: integer
+          format: int32
+        explode: false
+      - name: startingAfter
+        in: query
+        required: false
+        description: 'Cursor: return buckets whose `bucketID` sorts after this value.'
+        schema:
+          type: string
+        explode: false
+      - name: endingBefore
+        in: query
+        required: false
+        description: 'Cursor: return buckets whose `bucketID` sorts before this value.'
+        schema:
+          type: string
+        explode: false
+      - name: nameSubstring
+        in: query
+        required: false
+        description: Case-insensitive substring match on the bucket name.
+        schema:
+          type: string
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketListResponseV3'
+      tags:
+      - Buckets
+  /v3/buckets/{bucketID}:
+    get:
+      operationId: v3-get-bucket
+      summary: Get a Bucket
+      parameters:
+      - name: bucketID
+        in: path
+        required: true
+        description: Bucket public ID (`bkt_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketV3'
+      tags:
+      - Buckets
+    patch:
+      operationId: v3-update-bucket
+      summary: Update a Bucket
+      parameters:
+      - name: bucketID
+        in: path
+        required: true
+        description: Bucket public ID (`bkt_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketV3'
+      tags:
+      - Buckets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BucketUpdateRequestV3'
+    delete:
+      operationId: v3-delete-bucket
+      summary: Delete a Bucket
+      parameters:
+      - name: bucketID
+        in: path
+        required: true
+        description: Bucket public ID (`bkt_...`).
+        schema:
+          type: string
+      - name: cascade
+        in: query
+        required: false
+        description: 'When `true`, delete the bucket even if it still contains entities
+
+          (the entities are removed along with it). When omitted or `false`, the
+
+          request is rejected with `409 Conflict` if the bucket is non-empty.
+
+
+          The default bucket can never be deleted regardless of this flag.'
+        schema:
+          type: boolean
+        explode: false
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+      - Buckets
+components:
+  schemas:
+    BucketListResponseV3:
+      type: object
+      required:
+      - buckets
+      - totalCount
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/BucketV3'
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of buckets matching the query, ignoring pagination.
+      description: Response body for listing buckets.
+    BucketUpdateRequestV3:
+      type: object
+      properties:
+        name:
+          type: string
+          description: New name.
+        description:
+          type: string
+          description: New description.
+      description: 'Request body to update a bucket. Only the fields present are changed; the
+
+        default bucket is renameable.'
+    BucketCreateRequestV3:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Bucket name. Required and unique within the account+environment.
+        description:
+          type: string
+          description: Optional description.
+      description: Request body to create a (non-default) bucket.
+    BucketV3:
+      type: object
+      required:
+      - bucketID
+      - name
+      - description
+      - isDefault
+      - createdAt
+      - updatedAt
+      properties:
+        bucketID:
+          type: string
+          description: Stable public identifier for the bucket (`bkt_...`).
+        name:
+          type: string
+          description: Human-facing bucket name. Unique within an account+environment.
+        description:
+          type: string
+          description: Optional human-facing note about the bucket.
+        isDefault:
+          type: boolean
+          description: Whether this is the account+environment's default bucket.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp (RFC 3339).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-update timestamp (RFC 3339).
+      description: 'A Bucket is a named partition of the knowledge graph within an
+
+        account+environment. Entities, mentions, and relations are scoped to a
+
+        bucket so a single account+environment can host multiple isolated graphs.
+
+
+        Every account+environment has exactly one default bucket. The default
+
+        bucket can be renamed but never deleted.'
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

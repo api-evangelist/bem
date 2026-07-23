@@ -1,0 +1,151 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Entity Synonyms API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Entity Synonyms
+  description: "Manage the human-readable surface forms (synonyms) attached to a canonical\nentity. Synonyms feed the matcher's exact-match path, so adding the right\nsynonyms improves cross-document entity resolution.\n\n- **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`\n  synonym. If the same normalized form already exists as an `extracted`\n  synonym, it is upgraded to `customer_defined` (so the matcher weights it\n  higher); an existing customer/SME synonym is returned unchanged.\n- **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a\n  synonym. Only `customer_defined` and `sme_approved` synonyms are\n  deletable; `extracted` synonyms are resolver-owned and the request is\n  rejected with `409 Conflict`.\n\nA merged-away entity id transparently resolves to its surviving canonical\nentity, so a synonym added to a stale id lands on the entity that persists."
+paths:
+  /v3/entities/{id}/synonyms:
+    post:
+      operationId: v3-add-entity-synonym
+      summary: Add a Synonym to an Entity
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity.
+        schema:
+          type: string
+      - name: bucket
+        in: query
+        required: false
+        description: 'Optional bucket public ID (`bkt_...`) to scope the entity lookup to one
+
+          bucket. Omit for the unscoped (all account+environment) view.'
+        schema:
+          type: string
+        explode: false
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitySynonymV3'
+      tags:
+      - Entity Synonyms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddEntitySynonymRequestV3'
+            examples:
+              Add a synonym:
+                summary: Add a synonym
+                value:
+                  text: ACME Corporation
+                  locale: en-US
+  /v3/entities/{id}/synonyms/{synonymID}:
+    delete:
+      operationId: v3-remove-entity-synonym
+      summary: Remove a Synonym from an Entity
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity.
+        schema:
+          type: string
+      - name: synonymID
+        in: path
+        required: true
+        description: Synonym public ID (`esn_...`).
+        schema:
+          type: string
+      - name: bucket
+        in: query
+        required: false
+        description: 'Optional bucket public ID (`bkt_...`) to scope the entity lookup to one
+
+          bucket. Omit for the unscoped (all account+environment) view.'
+        schema:
+          type: string
+        explode: false
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+      - Entity Synonyms
+components:
+  schemas:
+    EntitySynonymV3:
+      type: object
+      required:
+      - synonymID
+      - text
+      - normalizedText
+      - source
+      - createdAt
+      properties:
+        synonymID:
+          type: string
+          description: Stable public identifier for the synonym (`esn_...`).
+        text:
+          type: string
+          description: The human-readable synonym as authored.
+        normalizedText:
+          type: string
+          description: Lowercased, whitespace-folded form of `text`.
+        source:
+          type: string
+          enum:
+          - extracted
+          - customer_defined
+          - sme_approved
+          description: 'Provenance of the synonym. `customer_defined` and `sme_approved` synonyms
+
+            are deletable; `extracted` synonyms are resolver-owned and cannot be
+
+            deleted.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag, when one was supplied.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp of the synonym (RFC 3339).
+      description: One synonym attached to an entity.
+    AddEntitySynonymRequestV3:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
+
+            `ACME`). It is normalized (lowercased, whitespace-folded) for the
+
+            uniqueness key and the matcher''s exact-match path.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
+      description: Request body for `POST /v3/entities/{id}/synonyms`.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

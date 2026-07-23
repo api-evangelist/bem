@@ -1,0 +1,244 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Connectors API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Connectors
+  description: 'Connectors are integrations that trigger a Bem workflow from an external system.
+
+
+    A connector binds an inbound source — currently Box or a Paragon-managed integration such as
+
+    Google Drive — to a specific workflow (by `workflowName` or `workflowID`). When the source
+
+    observes a new file, Bem invokes the bound workflow against that file.
+
+
+    Use these endpoints to create, list, and remove connectors. The fields used at create time
+
+    depend on the connector `type`: Box connectors require Box credentials and a folder to watch,
+
+    while Paragon connectors carry a `paragonIntegration` identifier and an integration-specific
+
+    `paragonConfiguration` object (for example, `{ "folderId": "..." }` for Google Drive).'
+paths:
+  /v3/connectors:
+    post:
+      operationId: v3-create-connector
+      summary: Create a Connector
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorV3'
+      tags:
+      - Connectors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectorCreateRequestV3'
+            examples:
+              Create connector:
+                summary: Create connector
+                value:
+                  name: Box → Invoice workflow
+                  workflowID: wf_2N6gH8ZKCmvb6BnFcGqhKJ98VzP
+                  type: paragon
+                  paragonIntegration: googledrive
+                  paragonConfiguration:
+                    folderId: YOUR_GOOGLE_DRIVE_FOLDER_ID
+    get:
+      operationId: v3-list-connectors
+      summary: List Connectors
+      parameters:
+      - name: workflowID
+        in: query
+        required: false
+        description: 'Filter connectors by workflow API ID (e.g. `wf_...`).
+
+
+          If both `workflowID` and `workflowName` are provided, results must match both.'
+        schema:
+          type: string
+        explode: false
+      - name: workflowName
+        in: query
+        required: false
+        description: 'Filter connectors by workflow name (exact match).
+
+
+          If both `workflowID` and `workflowName` are provided, results must match both.'
+        schema:
+          type: string
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorListResponseV3'
+      tags:
+      - Connectors
+  /v3/connectors/{connectorID}:
+    delete:
+      operationId: v3-delete-connector
+      summary: Delete a Connector
+      parameters:
+      - name: connectorID
+        in: path
+        required: true
+        description: Connector API ID.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+      - Connectors
+components:
+  schemas:
+    ConnectorCreateRequestV3:
+      type: object
+      required:
+      - type
+      - name
+      properties:
+        type:
+          allOf:
+          - $ref: '#/components/schemas/ConnectorTypeV3'
+          description: The connector type.
+        name:
+          type: string
+          description: Human-friendly name for this connector.
+        workflowID:
+          type: string
+          description: 'One of `workflowID` or `workflowName` must be provided.
+
+
+            If both are provided, they must refer to the same workflow.'
+        workflowName:
+          type: string
+          description: 'One of `workflowID` or `workflowName` must be provided.
+
+
+            If both are provided, they must refer to the same workflow.'
+        boxClientID:
+          type: string
+          description: Box client ID (from your Box application).
+        boxClientSecret:
+          type: string
+          description: Box client secret (from your Box application).
+        boxEnterpriseID:
+          type: string
+          description: Box enterprise ID.
+        boxFolderID:
+          type: string
+          description: Box folder ID to watch for new uploads.
+        paragonIntegration:
+          type: string
+          description: Paragon integration, eg. "googledrive".
+        paragonConfiguration:
+          type: object
+          unevaluatedProperties: {}
+          description: Configuration specific to the type of integration.
+      description: Request body to create a connector.
+    ConnectorListResponseV3:
+      type: object
+      required:
+      - connectors
+      properties:
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectorV3'
+      description: Response body for listing connectors.
+    ConnectorV3:
+      type: object
+      required:
+      - type
+      - connectorID
+      - name
+      - workflowID
+      - workflowName
+      - boxClientID
+      - boxClientSecret
+      - boxEnterpriseID
+      - boxFolderID
+      - paragonSyncID
+      - paragonIntegration
+      - paragonConfiguration
+      properties:
+        type:
+          allOf:
+          - $ref: '#/components/schemas/ConnectorTypeV3'
+          description: The connector type.
+        connectorID:
+          type: string
+          description: Unique identifier for the connector.
+        name:
+          type: string
+          description: Human-friendly name for this connector.
+        workflowID:
+          type: string
+          description: Workflow API ID that will be triggered by this connector.
+        workflowName:
+          type: string
+          description: Workflow name that will be triggered by this connector.
+        boxClientID:
+          type: string
+          description: Box client ID (from your Box application).
+        boxClientSecret:
+          type: string
+          description: 'Box client secret (from your Box application).
+
+
+            Note: This value is sensitive and should be stored securely.'
+        boxEnterpriseID:
+          type: string
+          description: Box enterprise ID.
+        boxFolderID:
+          type: string
+          description: Box folder ID to watch for new uploads.
+        paragonSyncID:
+          type: string
+          description: Paragon sync ID.
+        paragonIntegration:
+          type: string
+          description: Paragon integration, eg. "googledrive".
+        paragonConfiguration:
+          type: object
+          unevaluatedProperties: {}
+          description: Configuration specific to the type of integration.
+      description: A Connector represents an integration that triggers a Bem workflow from an external system.
+    ConnectorTypeV3:
+      type: string
+      enum:
+      - box
+      - paragon
+      description: Connector type.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

@@ -1,0 +1,3301 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Functions API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Functions
+  description: 'Functions are the core building blocks of data transformation in Bem. Each function type serves a specific purpose:
+
+
+    - **Extract**: Extract structured JSON data from unstructured documents (PDFs, emails, images, spreadsheets), with optional layout-aware bounding-box extraction
+
+    - **Route**: Direct data to different processing paths based on conditions
+
+    - **Split**: Break multi-page documents into individual pages for parallel processing
+
+    - **Join**: Combine outputs from multiple function calls into a single result
+
+    - **Parse**: Render documents into a navigable structure of page-aware sections, named entities, and relationships — designed to be walked by an LLM agent via the [File System API](/api/v3/file-system) (`POST /v3/fs`). Two toggles, both `true` by default: `extractEntities` controls per-document entity and relationship extraction; `linkAcrossDocuments` merges entities into one canonical record per real-world thing across the environment, populating cross-document memory.
+
+    - **Payload Shaping**: Transform and restructure data using JMESPath expressions
+
+    - **Enrich**: Enhance data with semantic search against collections
+
+    - **Send**: Deliver workflow outputs to downstream destinations
+
+
+    Use these endpoints to create, update, list, and manage your functions.'
+paths:
+  /v3/functions:
+    post:
+      operationId: v3-create-function
+      summary: Create a Function
+      description: '**Create a function.**
+
+
+        The function `type` determines which configuration fields are
+
+        required — see the `CreateFunctionV3` discriminated union and
+
+        [Function types overview](/guide/function-types/overview) for the
+
+        per-type contract.
+
+
+        The response contains both `functionID` and `functionName`. Either is
+
+        a stable handle you can use elsewhere; most workflows reference
+
+        functions by `functionName` because it''s human-readable.
+
+
+        ## Naming rules
+
+
+        - `functionName` must be unique per environment.
+
+        - Allowed characters: letters, digits, hyphens, and underscores.
+
+        - Names cannot be reused after deletion within the same environment
+
+        for at least the retention window of the previous record.
+
+
+        The new function is created at `versionNum: 1`. Subsequent
+
+        `PATCH /v3/functions/{functionName}` calls produce new versions —
+
+        the version-1 configuration remains immutable and addressable.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionResponseV3'
+      tags:
+      - Functions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFunctionV3'
+    get:
+      operationId: v3-list-functions
+      summary: List Functions
+      description: '**List functions in the current environment.**
+
+
+        Returns each function''s current version. Combine filters freely —
+
+        they AND together.
+
+
+        ## Filtering
+
+
+        - `functionIDs` / `functionNames`: exact-match identity filters.
+
+        - `displayName`: case-insensitive substring match.
+
+        - `types`: one or more of `extract`, `classify`, `split`, `join`,
+
+        `enrich`, `payload_shaping`. Legacy `transform`, `analyze`, `route`,
+
+        and `send` types remain readable via this filter.
+
+        - `tags`: returns functions tagged with any of the supplied tags.
+
+        - `workflowIDs` / `workflowNames`: returns only functions referenced
+
+        by the named workflows. Useful for "what functions does this
+
+        workflow depend on?" lookups.
+
+
+        ## Pagination
+
+
+        Cursor-based with `startingAfter` and `endingBefore` (functionIDs).
+
+        Default limit 50, maximum 100.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+      - name: functionIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: functionNames
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: displayName
+        in: query
+        required: false
+        schema:
+          type: string
+        explode: false
+      - name: types
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionType'
+          minItems: 1
+        explode: false
+      - name: sortOrder
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+          default: asc
+      - name: startingAfter
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: endingBefore
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: workflowIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: workflowNames
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFunctionsResponseV3'
+      tags:
+      - Functions
+  /v3/functions/copy:
+    post:
+      operationId: v3-copy-function
+      summary: Copy a Function
+      description: '**Copy a function to a new name within the same environment.**
+
+
+        Forks the source function''s current configuration into a brand-new
+
+        function. The copy starts at `versionNum: 1` regardless of how many
+
+        versions the source has — version history is not carried over.
+
+
+        Useful for experimenting with schema or prompt changes against a
+
+        stable production function without disturbing existing callers.
+
+
+        The destination name must be unique in the environment. A copy does
+
+        not migrate workflows: existing workflow nodes continue to reference
+
+        the original function.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionResponseV3'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+      tags:
+      - Functions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FunctionCopyRequest'
+  /v3/functions/{functionName}:
+    delete:
+      operationId: v3-delete-function
+      summary: Delete a Function
+      description: '**Delete a function and every one of its versions.**
+
+
+        Permanent. Running and queued calls that reference this function
+
+        continue to completion against the version they captured at call
+
+        time, but no new calls can target it.
+
+
+        ## Before deleting
+
+
+        Workflow nodes that reference this function will fail at call time
+
+        after deletion. List workflows that reference it first:
+
+
+        ```
+
+        GET /v3/workflows?functionNames=my-function
+
+        ```
+
+
+        Update or remove those workflows, or create a replacement function
+
+        and re-point the workflow nodes, before deleting.'
+      parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+      - Functions
+    get:
+      operationId: v3-get-function
+      summary: Get a Function
+      description: '**Retrieve a function''s current version by name.**
+
+
+        Returns the function record with its `currentVersionNum` and the
+
+        configuration of that version. To inspect a historical version, use
+
+        `GET /v3/functions/{functionName}/versions/{versionNum}`.'
+      parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionResponseV3'
+      tags:
+      - Functions
+    patch:
+      operationId: v3-update-function
+      summary: Update a Function
+      description: '**Update a function. Updates create a new version.**
+
+
+        The previous version remains addressable and immutable. Workflow
+
+        nodes that pinned the function with a `versionNum` continue to use
+
+        the pinned version; nodes that reference the function by name with
+
+        no version automatically pick up the new version on their next call.
+
+
+        ## What you can change
+
+
+        Any field allowed by the function''s type. Most commonly:
+
+        `outputSchema` (for `extract`/`join`), `classifications` (for
+
+        `classify`), `displayName`, and `tags`.
+
+
+        ## Versioning behaviour
+
+
+        - Each successful update increments `currentVersionNum` by 1.
+
+        - `displayName`, `tags`, and `functionName` updates also create a
+
+        new version, so the version history is a complete record of every
+
+        change.
+
+        - To revert, fetch the previous version and re-submit its
+
+        configuration as a new update — versions themselves are immutable.'
+      parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema:
+          type: string
+          x-stainless-param: path_function_name
+        x-stainless-param: path_function_name
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionResponseV3'
+      tags:
+      - Functions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFunctionV3'
+  /v3/functions/{functionName}/versions:
+    get:
+      operationId: v3-list-function-versions
+      summary: List Function Versions
+      description: '**List every version of a function.**
+
+
+        Returns the full version history, newest-first. Each row captures
+
+        the configuration the function had between updates. Useful for
+
+        audits ("when did this schema change?") and for diffing two
+
+        versions before promoting an update to production.'
+      parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFunctionVersionsResponseV3'
+      tags:
+      - Functions
+  /v3/functions/{functionName}/versions/{versionNum}:
+    get:
+      operationId: v3-get-function-version
+      summary: Get a Function Version
+      description: '**Retrieve a specific historical version of a function.**
+
+
+        Versions are immutable. Use this endpoint to inspect what a function
+
+        looked like at the moment a particular call was made — every event
+
+        and transformation records the function version it ran against.'
+      parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: versionNum
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionVersionResponseV3'
+      tags:
+      - Functions
+components:
+  schemas:
+    EnrichFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - config
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - enrich
+        config:
+          $ref: '#/components/schemas/enrichConfig'
+      title: Enrich Function
+    ParseFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - parse
+        parseConfig:
+          $ref: '#/components/schemas/ParseConfig'
+        extraConfig:
+          $ref: '#/components/schemas/ParseExtraFunctionConfiguration'
+      title: Parse Function
+    FunctionCopyRequest:
+      type: object
+      required:
+      - sourceFunctionName
+      - targetFunctionName
+      properties:
+        sourceFunctionName:
+          type: string
+          description: Name of the function to copy from. Must be a valid existing function name.
+        targetFunctionName:
+          type: string
+          description: Name for the new copied function. Must be unique within the target environment.
+        targetDisplayName:
+          type: string
+          description: Optional display name for the copied function. If not provided, defaults to the source function's display name with " (Copy)" appended.
+        targetEnvironment:
+          type: string
+          description: Optional environment name to copy the function to. If not provided, the function will be copied within the same environment.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Optional array of tags for the copied function. If not provided, defaults to the source function's tags.
+      description: Request to copy an existing function with a new name and optional customizations.
+    FunctionVersionV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/TransformFunctionVersion'
+      - $ref: '#/components/schemas/ExtractFunctionVersion'
+      - $ref: '#/components/schemas/AnalyzeFunctionVersion'
+      - $ref: '#/components/schemas/ClassifyFunctionVersion'
+      - $ref: '#/components/schemas/SendFunctionVersion'
+      - $ref: '#/components/schemas/SplitFunctionVersion'
+      - $ref: '#/components/schemas/JoinFunctionVersion'
+      - $ref: '#/components/schemas/EnrichFunctionVersion'
+      - $ref: '#/components/schemas/PayloadShapingFunctionVersion'
+      - $ref: '#/components/schemas/ParseFunctionVersion'
+      - $ref: '#/components/schemas/RenderFunctionVersion'
+      discriminator:
+        propertyName: type
+        mapping:
+          transform: '#/components/schemas/TransformFunctionVersion'
+          extract: '#/components/schemas/ExtractFunctionVersion'
+          analyze: '#/components/schemas/AnalyzeFunctionVersion'
+          classify: '#/components/schemas/ClassifyFunctionVersion'
+          send: '#/components/schemas/SendFunctionVersion'
+          split: '#/components/schemas/SplitFunctionVersion'
+          join: '#/components/schemas/JoinFunctionVersion'
+          enrich: '#/components/schemas/EnrichFunctionVersion'
+          payload_shaping: '#/components/schemas/PayloadShapingFunctionVersion'
+          parse: '#/components/schemas/ParseFunctionVersion'
+          render: '#/components/schemas/RenderFunctionVersion'
+      description: 'V3 read-side union for function versions. Same shape as the shared
+
+        `FunctionVersion` union but with `classify` in place of `route`.'
+    PayloadShapingFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - shapingSchema
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - payload_shaping
+        shapingSchema:
+          type: string
+          description: 'JMESPath expression that defines how to transform and customize the input payload structure.
+
+            Payload shaping allows you to extract, reshape, and reorganize data from complex input payloads
+
+            into a simplified, standardized output format. Use JMESPath syntax to select specific fields,
+
+            perform calculations, and create new data structures tailored to your needs.'
+      description: 'A function that transforms and customizes input payloads using JMESPath expressions.
+
+        Payload shaping allows you to extract specific data, perform calculations, and reshape
+
+        complex input structures into simplified, standardized output formats tailored to your
+
+        downstream systems or business requirements.'
+      title: Payload Shaping Function
+    ListFunctionsResponseV3:
+      type: object
+      properties:
+        functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionV3'
+        totalCount:
+          type: integer
+          description: The total number of results available.
+    ClassificationList:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          isErrorFallback:
+            type: boolean
+          origin:
+            type: object
+            properties:
+              email:
+                type: object
+                properties:
+                  patterns:
+                    type: array
+                    items:
+                      type: string
+          regex:
+            type: object
+            properties:
+              patterns:
+                type: array
+                items:
+                  type: string
+          functionID:
+            type: string
+          functionName:
+            type: string
+        required:
+        - name
+      description: List of classifications a classify function can produce. Shares the underlying route list shape.
+    ParseConfig:
+      type: object
+      properties:
+        extractEntities:
+          type: boolean
+          description: 'When true, extract named entities (people, organizations, products,
+
+            studies, identifiers, etc.) and the relationships between them, and
+
+            dedupe by canonical name within the document. When false, only
+
+            `sections[]` is extracted; `entities[]` and `relationships[]` come
+
+            back empty in the parse output. Defaults to true.'
+        linkAcrossDocuments:
+          type: boolean
+          description: 'When true, link this document''s entities to entities seen in earlier
+
+            documents in this environment, building one canonical record per
+
+            real-world thing across the corpus. Visible in the Memory tab and
+
+            queryable via `POST /v3/fs` (op=find / open / xref). Doesn''t change
+
+            this call''s parse output. Requires `extractEntities=true`. Defaults
+
+            to true.'
+        schema:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Optional JSONSchema. When provided, each chunk performs schema-guided
+
+            extraction. When absent, chunks perform open-ended discovery and
+
+            return sections, entities, and relationships per the discovery
+
+            schema.'
+        defaultBucket:
+          type: string
+          description: 'Optional bucket NAME that parse-extracted entities land in when no
+
+            call-level bucket is supplied. Lower precedence than a call-level bucket,
+
+            higher than the account+environment default.'
+      description: 'Per-version configuration for a Parse function.
+
+
+        Parse renders document pages (PDF, image) via vision LLM and emits
+
+        structured JSON. The two toggles below independently control entity
+
+        extraction (a per-call output concern) and cross-document memory
+
+        linking (an environment-wide concern).'
+    FunctionAudit:
+      type: object
+      properties:
+        functionCreatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who created the function.
+        functionLastUpdatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who last updated the function.
+        versionCreatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who created the current version.
+    UpsertJoinFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - join
+        description:
+          type: string
+          description: Description of join function.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join to perform.
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+      title: Join Function
+    UpsertParseFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - parse
+        parseConfig:
+          $ref: '#/components/schemas/ParseConfig'
+        extraConfig:
+          $ref: '#/components/schemas/ParseExtraFunctionConfiguration'
+      title: Parse Function
+    RenderFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - render
+        renderConfig:
+          $ref: '#/components/schemas/RenderConfig'
+    PayloadShapingFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - shapingSchema
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - payload_shaping
+        shapingSchema:
+          type: string
+          description: 'JMESPath expression that defines how to transform and customize the input payload structure.
+
+            Payload shaping allows you to extract, reshape, and reorganize data from complex input payloads
+
+            into a simplified, standardized output format. Use JMESPath syntax to select specific fields,
+
+            perform calculations, and create new data structures tailored to your needs.'
+      description: 'A version of a payload shaping function that transforms and customizes input payloads using JMESPath expressions.
+
+        Payload shaping allows you to extract specific data, perform calculations, and reshape
+
+        complex input structures into simplified, standardized output formats tailored to your
+
+        downstream systems or business requirements.'
+    RenderConfig:
+      type: object
+      properties:
+        template:
+          allOf:
+          - $ref: '#/components/schemas/RenderTemplate'
+          description: 'The uploaded template: its filename, a short-lived presigned download URL,
+
+            and the placeholder/style contract derived from it. Absent on configs
+
+            created before template capture existed.'
+      description: 'Per-version configuration for a Render function.
+
+
+        Render emits a `.docx` from schema-typed JSON by composing the JSON into a
+
+        `.docx` template. The template document is stored server-side; this response
+
+        exposes only the contract derived from it. Schema validation runs internally
+
+        in the ML service against the bundled core schema; no customer-supplied
+
+        schema rides this surface.'
+      title: Render function configuration
+    CreateClassifyFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - classify
+        description:
+          type: string
+          description: Description of classifier. Can be used to provide additional context on classifier's purpose and expected inputs.
+        classifications:
+          $ref: '#/components/schemas/ClassificationList'
+      description: V3 wire form of the classify function create payload.
+      title: Classify Function
+    UpsertRenderFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - render
+        renderConfig:
+          $ref: '#/components/schemas/RenderConfigInput'
+      title: Render Function
+    JoinFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - description
+      - joinType
+      - outputSchemaName
+      - outputSchema
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - join
+        description:
+          type: string
+          description: Description of join function.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join to perform.
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+    UpsertEnrichFunction:
+      type: object
+      required:
+      - type
+      properties:
+        config:
+          $ref: '#/components/schemas/enrichConfig'
+        type:
+          type: string
+          enum:
+          - enrich
+    RenderTemplate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Original filename of the uploaded template (e.g. `contract.docx`), echoed
+
+            back for display. Absent on templates uploaded before the filename was
+
+            captured.'
+        downloadURL:
+          type: string
+          format: uri
+          description: 'Short-lived presigned URL to download the stored `.docx`. The private
+
+            storage location is never exposed.'
+        placeholders:
+          allOf:
+          - $ref: '#/components/schemas/RenderTemplatePlaceholders'
+          description: 'The placeholder contract derived from the template at create/update time.
+
+            Absent on configs created before create/update-time validation existed.'
+        styleIds:
+          type: array
+          items:
+            type: string
+          description: 'Paragraph/character style IDs the uploaded template defines and the
+
+            rendered output can reference. Derived from the template''s `styles.xml` at
+
+            create/update time.'
+        tableStyleIds:
+          type: array
+          items:
+            type: string
+          description: 'Style IDs whose type is table — the styles a `table` primitive''s required
+
+            `styleId` can name. Empty means the template defines no table style, so any
+
+            table primitive will fail at render.'
+        listKinds:
+          type: array
+          items:
+            type: string
+            enum:
+            - decimal
+            - bullet
+          description: 'Supported list kinds (`decimal`, `bullet`) the template''s `numbering.xml`
+
+            defines an `abstractNum` for. Empty means the template can hold no list, so
+
+            any list primitive will fail at render.'
+      title: Render template
+    ExtractFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - enableBoundingBoxes
+      - preCount
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - extract
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Applies to vision input types
+
+            (pdf, png, jpeg, heic, heif, webp) that dispatch through the analyze path.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency.'
+      description: 'A function that extracts structured JSON from documents and images.
+
+        Accepts a wide range of input types including PDFs, images, spreadsheets, emails, and more.'
+      title: Extract Function
+    UpsertPayloadShapingFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - payload_shaping
+        shapingSchema:
+          type: string
+          description: 'JMESPath expression that defines how to transform and customize the input payload structure.
+
+            Payload shaping allows you to extract, reshape, and reorganize data from complex input payloads
+
+            into a simplified, standardized output format. Use JMESPath syntax to select specific fields,
+
+            perform calculations, and create new data structures tailored to your needs.'
+      description: 'A function that transforms and customizes input payloads using JMESPath expressions.
+
+        Payload shaping allows you to extract specific data, perform calculations, and reshape
+
+        complex input structures into simplified, standardized output formats tailored to your
+
+        downstream systems or business requirements.'
+      title: Payload Shaping Function
+    RenderConfigInput:
+      type: object
+      required:
+      - template
+      properties:
+        template:
+          $ref: '#/components/schemas/RenderTemplateInput'
+      description: 'Request-side render configuration. Carries the template document as
+
+        base64-encoded `.docx` bytes: the server validates them, stores the template,
+
+        and derives the placeholder/style-id contract at create/update time, so
+
+        clients never submit `placeholders` or `styleIds`. The response shape
+
+        (`RenderConfig`) returns the derived contract.'
+      title: Render function configuration input
+    CreateParseFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - parse
+        parseConfig:
+          $ref: '#/components/schemas/ParseConfig'
+        extraConfig:
+          $ref: '#/components/schemas/ParseExtraFunctionConfiguration'
+      title: Parse Function
+    UpdateFunctionV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/UpsertExtractFunction'
+      - $ref: '#/components/schemas/UpsertClassifyFunction'
+      - $ref: '#/components/schemas/UpsertSendFunction'
+      - $ref: '#/components/schemas/UpsertSplitFunction'
+      - $ref: '#/components/schemas/UpsertJoinFunction'
+      - $ref: '#/components/schemas/UpsertPayloadShapingFunction'
+      - $ref: '#/components/schemas/UpsertEnrichFunction'
+      - $ref: '#/components/schemas/UpsertParseFunction'
+      - $ref: '#/components/schemas/UpsertRenderFunction'
+      discriminator:
+        propertyName: type
+        mapping:
+          extract: '#/components/schemas/UpsertExtractFunction'
+          classify: '#/components/schemas/UpsertClassifyFunction'
+          send: '#/components/schemas/UpsertSendFunction'
+          split: '#/components/schemas/UpsertSplitFunction'
+          join: '#/components/schemas/UpsertJoinFunction'
+          payload_shaping: '#/components/schemas/UpsertPayloadShapingFunction'
+          enrich: '#/components/schemas/UpsertEnrichFunction'
+          parse: '#/components/schemas/UpsertParseFunction'
+          render: '#/components/schemas/UpsertRenderFunction'
+    ClassifyFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - description
+      - classifications
+      - emailAddress
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - classify
+        description:
+          type: string
+          description: Description of classifier. Can be used to provide additional context on classifier's purpose and expected inputs.
+        classifications:
+          $ref: '#/components/schemas/ClassificationList'
+        emailAddress:
+          type: string
+          description: Email address automatically created by bem. You can forward emails with or without attachments, to be classified.
+    CreateEnrichFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        config:
+          $ref: '#/components/schemas/enrichConfig'
+        type:
+          type: string
+          enum:
+          - enrich
+      title: Enrich Function
+    CreateSendFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - send
+        destinationType:
+          allOf:
+          - $ref: '#/components/schemas/SendDestinationType'
+          description: Where the payload is delivered.
+        webhookUrl:
+          type: string
+          description: Webhook URL to POST the payload to. Required when destinationType is webhook.
+        webhookSigningEnabled:
+          type: boolean
+          description: 'Whether to sign webhook deliveries with an HMAC-SHA256 `bem-signature` header.
+
+            Defaults to `true` when omitted — signing is on by default for new send functions.
+
+            Set explicitly to `false` to disable.'
+        s3Bucket:
+          type: string
+          description: S3 bucket to upload the payload to. Required when destinationType is s3.
+        s3Prefix:
+          type: string
+          description: Optional S3 key prefix (folder path).
+        googleDriveFolderId:
+          type: string
+          description: Google Drive folder ID. Required when destinationType is google_drive. Managed via Paragon OAuth.
+      title: Send Function
+    CreateSplitFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        splitType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageSplitConfig:
+          type: object
+          properties:
+            nextFunctionID:
+              type: string
+            nextFunctionName:
+              type: string
+        semanticPageSplitConfig:
+          type: object
+          properties:
+            itemClasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SplitFunctionSemanticPageItemClass'
+        type:
+          type: string
+          enum:
+          - split
+      title: Split Function
+    SplitFunctionSemanticPageItemClass:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        nextFunctionID:
+          type: string
+          description: The unique ID of the function you want to use for this item class.
+        nextFunctionName:
+          type: string
+          description: The unique name of the function you want to use for this item class.
+    UpsertSplitFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        splitType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageSplitConfig:
+          type: object
+          properties:
+            nextFunctionID:
+              type: string
+            nextFunctionName:
+              type: string
+        semanticPageSplitConfig:
+          type: object
+          properties:
+            itemClasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SplitFunctionSemanticPageItemClass'
+        type:
+          type: string
+          enum:
+          - split
+      title: Split Function
+    CreateJoinFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - join
+        description:
+          type: string
+          description: Description of join function.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join to perform.
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+      title: Join Function
+    RenderFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - render
+        renderConfig:
+          $ref: '#/components/schemas/RenderConfig'
+      title: Render Function
+    enrichStep:
+      type: object
+      required:
+      - sourceField
+      - targetField
+      properties:
+        source:
+          type: string
+          enum:
+          - collection
+          - endpoint
+          description: 'Where to fetch enrichment data from (default: `"collection"`).
+
+
+            - `"collection"`: Vector/keyword search against a BEM collection. Requires `collectionName`.
+
+            - `"endpoint"`: HTTP call to a named endpoint defined in `enrichConfig.endpoints`. Requires `endpointName`.'
+          default: collection
+        sourceField:
+          type: string
+          description: 'JMESPath expression to extract source data.
+
+            Can extract a single value or an array. Each extracted value is looked up independently.'
+        collectionName:
+          type: string
+          description: 'Name of the collection to search against.
+
+            Required when `source` is `"collection"`. The collection must exist and contain items.
+
+            Supports hierarchical paths when used with `includeSubcollections`.'
+        endpointName:
+          type: string
+          description: 'Name of an endpoint defined in `enrichConfig.endpoints`.
+
+            Required when `source` is `"endpoint"`.'
+        targetField:
+          type: string
+          description: 'Field path where enriched results should be placed.
+
+            Use simple field names (e.g., "enriched_products").
+
+            Results are always injected as an array (list), regardless of topK value.'
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: 'Number of top matching results to return per query (default: 1).
+
+            Results are always returned as an array (list) and automatically sorted by cosine distance
+
+            (best match = lowest distance first).
+
+
+            - 1: Returns array with single best match: `[{...}]`
+
+            - >1: Returns array with multiple matches: `[{...}, {...}, ...]`'
+          default: 1
+        searchMode:
+          type: string
+          enum:
+          - semantic
+          - exact
+          - hybrid
+          description: 'Search mode to use for enrichment (default: "semantic").
+
+
+            **semantic**: Vector similarity search using dense embeddings. Best for finding conceptually similar items.
+
+            - Use for: Product descriptions, natural language content
+
+            - Example: "red sports car" matches "crimson convertible automobile"
+
+
+            **exact**: Exact keyword matching using PostgreSQL text search. Best for exact identifiers.
+
+            - Use for: SKU numbers, routing numbers, account IDs, exact tags
+
+            - Example: "SKU-12345" only matches items containing that exact text
+
+
+            **hybrid**: Combined search using 20% semantic + 80% sparse embeddings (keyword-based).
+
+            - Use for: Tags, categories, partial identifiers
+
+            - Example: Balances semantic meaning with exact keyword matching'
+          default: semantic
+        scoreThreshold:
+          type: number
+          minimum: 0
+          maximum: 2
+          description: 'Maximum cosine distance threshold for filtering results (default: 0.6).
+
+            Results with cosine distance above this threshold are excluded.
+
+
+            **Only applies to `semantic` and `hybrid` search modes.**
+
+            Exact search does not use cosine distance and ignores this setting.
+
+
+            Cosine distance ranges from 0.0 (identical) to 2.0 (opposite):
+
+            - 0.0 - 0.3: Very similar (strict threshold, high-quality matches only)
+
+            - 0.3 - 0.6: Reasonably similar (moderate threshold)
+
+            - 0.6 - 1.0: Loosely related (lenient threshold)
+
+            - > 1.0: Rarely useful — allows nearly unrelated results
+
+
+            For most semantic search use cases, good matches typically fall in the 0.2 - 0.5 range.'
+          default: 0.6
+        includeScore:
+          type: boolean
+          description: 'Whether to include cosine distance scores in results.
+
+            Cosine distance ranges from 0.0 (perfect match) to 2.0 (completely dissimilar).
+
+            Lower scores indicate better semantic similarity.
+
+
+            When enabled, each result includes a `cosine_distance` field (semantic mode)
+
+            or a `hybrid_score` field (hybrid mode).'
+        includeSubcollections:
+          type: boolean
+          description: 'When true, searches all collections under the hierarchical path.
+
+            For example, "customers" will match "customers", "customers.premium", etc.'
+      description: 'Single enrichment step configuration.
+
+
+        **Process Flow (collection source):**
+
+        1. Extract values from `sourceField` using JMESPath
+
+        2. Perform search against the specified collection (semantic, exact, or hybrid based on `searchMode`)
+
+        3. Return top K matches sorted by relevance (best match first)
+
+        4. Inject results into `targetField`
+
+
+        **Process Flow (endpoint source):**
+
+        1. Extract values from `sourceField` using JMESPath
+
+        2. Call the named endpoint once per extracted value, following pagination if
+
+        `nextPagePath`/`nextPageParam` are configured on the endpoint
+
+        3. Optionally apply LLM agent reasoning to rank candidates (`matchInstructions`),
+
+        batching across all fetched pages in groups of `maxCandidates`
+
+        4. Inject results into `targetField`
+
+
+        **Collection Search Modes** (`source: "collection"` only):
+
+        - `semantic` (default): Vector similarity search — best for natural language and conceptual matching
+
+        - `exact`: Exact keyword matching — best for SKU numbers, IDs, routing numbers
+
+        - `hybrid`: Combined semantic + keyword search — best for tags and categories
+
+
+        **Result Format (collection source):**
+
+        - Always an array sorted by relevance (best match first)
+
+        - Each element: `{ data, cosineDistance? }` or `{ data, hybridScore? }`
+
+
+        **Result Format (endpoint source, no matchInstructions):**
+
+        - Always an array; the raw fetched value is the single element
+
+
+        **Result Format (endpoint source, with matchInstructions):**
+
+        - Array of LLM-ranked matches: `[{ data, confidence, reasoning? }, ...]`
+
+        - Length capped by `enrichEndpoint.matchTopK` (default 1)'
+    UpsertExtractFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - extract
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        tabularChunkingEnabled:
+          type: boolean
+          description: 'Whether tabular chunking is enabled. When true, tables in CSV/Excel files are processed
+
+            in row batches rather than all at once.'
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Applies to vision input types
+
+            (pdf, png, jpeg, heic, heif, webp) that dispatch through the analyze path.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted. Enabling this automatically configures the function to use the bounding
+
+            box model. Disabling resets to the default.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency. Compatible with
+
+            `enableBoundingBoxes`.'
+      title: Extract Function
+    SendFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - destinationType
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - send
+        destinationType:
+          allOf:
+          - $ref: '#/components/schemas/SendDestinationType'
+          description: Where the payload is delivered.
+        webhookUrl:
+          type: string
+        webhookSigningEnabled:
+          type: boolean
+          description: Whether webhook deliveries are signed with an HMAC-SHA256 `bem-signature` header.
+        s3Bucket:
+          type: string
+        s3Prefix:
+          type: string
+        googleDriveFolderId:
+          type: string
+    CreateExtractFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - extract
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        tabularChunkingEnabled:
+          type: boolean
+          description: 'Whether tabular chunking is enabled. When true, tables in CSV/Excel files are processed
+
+            in row batches rather than all at once.'
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Applies to vision input types
+
+            (pdf, png, jpeg, heic, heif, webp) that dispatch through the analyze path.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted. Enabling this automatically configures the function to use the bounding
+
+            box model. Disabling resets to the default.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency. Compatible with
+
+            `enableBoundingBoxes`.'
+      title: Extract Function
+    ParseFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - parse
+        parseConfig:
+          $ref: '#/components/schemas/ParseConfig'
+        extraConfig:
+          $ref: '#/components/schemas/ParseExtraFunctionConfiguration'
+    FunctionV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/TransformFunction'
+      - $ref: '#/components/schemas/ExtractFunction'
+      - $ref: '#/components/schemas/AnalyzeFunction'
+      - $ref: '#/components/schemas/ClassifyFunction'
+      - $ref: '#/components/schemas/SendFunction'
+      - $ref: '#/components/schemas/SplitFunction'
+      - $ref: '#/components/schemas/JoinFunction'
+      - $ref: '#/components/schemas/PayloadShapingFunction'
+      - $ref: '#/components/schemas/EnrichFunction'
+      - $ref: '#/components/schemas/ParseFunction'
+      - $ref: '#/components/schemas/RenderFunction'
+      discriminator:
+        propertyName: type
+        mapping:
+          transform: '#/components/schemas/TransformFunction'
+          extract: '#/components/schemas/ExtractFunction'
+          analyze: '#/components/schemas/AnalyzeFunction'
+          classify: '#/components/schemas/ClassifyFunction'
+          send: '#/components/schemas/SendFunction'
+          split: '#/components/schemas/SplitFunction'
+          join: '#/components/schemas/JoinFunction'
+          payload_shaping: '#/components/schemas/PayloadShapingFunction'
+          enrich: '#/components/schemas/EnrichFunction'
+          parse: '#/components/schemas/ParseFunction'
+          render: '#/components/schemas/RenderFunction'
+      description: 'V3 read-side union. Same shape as the shared `Function` union but with
+
+        `classify` in place of `route`. Legacy `transform` and `analyze` functions
+
+        remain readable via V3.'
+    SendFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - destinationType
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - send
+        destinationType:
+          allOf:
+          - $ref: '#/components/schemas/SendDestinationType'
+          description: Where the payload is delivered.
+        webhookUrl:
+          type: string
+          description: Webhook URL to POST the payload to. Present when destinationType is webhook.
+        webhookSigningEnabled:
+          type: boolean
+          description: Whether webhook payloads are signed with an HMAC-SHA256 `bem-signature` header.
+        s3Bucket:
+          type: string
+          description: S3 bucket to upload the payload to. Present when destinationType is s3.
+        s3Prefix:
+          type: string
+          description: S3 key prefix (folder path). Optional, present when destinationType is s3.
+        googleDriveFolderId:
+          type: string
+          description: Google Drive folder ID. Present when destinationType is google_drive. Managed via Paragon OAuth.
+      description: 'A function that delivers workflow outputs to an external destination.
+
+        Send functions receive the output of an upstream workflow node and forward it
+
+        to a webhook, S3 bucket, or Google Drive folder.'
+      title: Send Function
+    UpsertSendFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - send
+        destinationType:
+          allOf:
+          - $ref: '#/components/schemas/SendDestinationType'
+          description: Where the payload is delivered.
+        webhookUrl:
+          type: string
+          description: Webhook URL to POST the payload to. Required when destinationType is webhook.
+        webhookSigningEnabled:
+          type: boolean
+          description: 'Whether to sign webhook deliveries with an HMAC-SHA256 `bem-signature` header.
+
+            Defaults to `true` when omitted — signing is on by default for new send functions.
+
+            Set explicitly to `false` to disable.'
+        s3Bucket:
+          type: string
+          description: S3 bucket to upload the payload to. Required when destinationType is s3.
+        s3Prefix:
+          type: string
+          description: Optional S3 key prefix (folder path).
+        googleDriveFolderId:
+          type: string
+          description: Google Drive folder ID. Required when destinationType is google_drive. Managed via Paragon OAuth.
+      title: Send Function
+    FunctionResponseV3:
+      type: object
+      required:
+      - function
+      properties:
+        function:
+          $ref: '#/components/schemas/FunctionV3'
+      description: 'Single-function response wrapper used by V3 function endpoints.
+
+        V3 wraps individual function responses in a `{"function": ...}` envelope
+
+        for consistency with other V3 resource endpoints.'
+    SplitFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - splitType
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - split
+        splitType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+          description: The method used to split pages.
+        printPageSplitConfig:
+          type: object
+          properties:
+            nextFunctionID:
+              type: string
+          description: Configuration for print page splitting.
+        semanticPageSplitConfig:
+          type: object
+          properties:
+            itemClasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SplitFunctionSemanticPageItemClass'
+          description: Configuration for semantic page splitting.
+      title: Split Function
+    CreateFunctionV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/CreateExtractFunction'
+      - $ref: '#/components/schemas/CreateClassifyFunction'
+      - $ref: '#/components/schemas/CreateSendFunction'
+      - $ref: '#/components/schemas/CreateSplitFunction'
+      - $ref: '#/components/schemas/CreateJoinFunction'
+      - $ref: '#/components/schemas/CreatePayloadShapingFunction'
+      - $ref: '#/components/schemas/CreateEnrichFunction'
+      - $ref: '#/components/schemas/CreateParseFunction'
+      - $ref: '#/components/schemas/CreateRenderFunction'
+      discriminator:
+        propertyName: type
+        mapping:
+          extract: '#/components/schemas/CreateExtractFunction'
+          classify: '#/components/schemas/CreateClassifyFunction'
+          send: '#/components/schemas/CreateSendFunction'
+          split: '#/components/schemas/CreateSplitFunction'
+          join: '#/components/schemas/CreateJoinFunction'
+          payload_shaping: '#/components/schemas/CreatePayloadShapingFunction'
+          enrich: '#/components/schemas/CreateEnrichFunction'
+          parse: '#/components/schemas/CreateParseFunction'
+          render: '#/components/schemas/CreateRenderFunction'
+    ExtractFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - tabularChunkingEnabled
+      - enableBoundingBoxes
+      - preCount
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - extract
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        tabularChunkingEnabled:
+          type: boolean
+          description: 'Whether tabular chunking is enabled. When true, tables in CSV/Excel files are processed
+
+            in row batches rather than all at once.'
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Applies to vision input types
+
+            (pdf, png, jpeg, heic, heif, webp) that dispatch through the analyze path.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency.'
+    enrichEndpoint:
+      type: object
+      required:
+      - name
+      - url
+      - method
+      properties:
+        name:
+          type: string
+          description: Unique name for this endpoint, referenced by enrichStep.endpointName.
+        url:
+          type: string
+          description: Full URL of the endpoint (must be http:// or https://).
+        method:
+          type: string
+          enum:
+          - GET
+          - POST
+          description: HTTP method to use.
+        headers:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Additional HTTP headers to include in every request (e.g. `Authorization: Bearer <token>`).'
+        queryParam:
+          type: string
+          description: 'Query parameter name used to pass the extracted source value.
+
+            **Required for GET endpoints.** The value is URL-encoded and appended as `?{queryParam}={sourceValue}`.
+
+
+            Example: `queryParam: "q"` → `GET /products?q=blue+widget`'
+        bodyTemplate:
+          type: string
+          description: 'JSON body template for POST requests.
+
+            **Required for POST endpoints.** Must contain the `{value}` placeholder, which is replaced
+
+            with the extracted source value at runtime.
+
+
+            Example: `bodyTemplate: "{\"query\": \"{value}\", \"limit\": 10}"`'
+        responsePath:
+          type: string
+          description: 'JMESPath expression applied to the response body to extract the enrichment value.
+
+            Omit to use the entire response body as the result.
+
+
+            **For agent reasoning:** use a wildcard projection (e.g. `items[*]` or `results[*].data`)
+
+            so the endpoint''s list of candidates is flattened into an array before being passed to the LLM.
+
+            A non-wildcard path (e.g. `data.product`) extracts a single value treated as one candidate.
+
+
+            **Response size:** the platform reads at most 50 MB of the response body before decoding,
+
+            regardless of the Content-Length header.'
+        matchInstructions:
+          type: string
+          description: 'Natural-language instructions for LLM agent reasoning.
+
+
+            When set, the candidates fetched from the endpoint are passed to an LLM with these
+
+            instructions, which selects the best match(es) and returns them with confidence scores.
+
+            Each injected result has the shape `{ data, confidence, reasoning? }`.
+
+
+            When omitted, the raw fetched value is injected without any LLM involvement.'
+        matchTopK:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: 'Maximum number of ranked matches to return per source value when `matchInstructions`
+
+            is set (default: 1). Ignored when `matchInstructions` is empty.'
+          default: 1
+        maxCandidates:
+          type: integer
+          minimum: 1
+          description: 'LLM batch size during agent reasoning (default: 50). All candidates — across all
+
+            fetched pages — are scored in batches of this size. Smaller values reduce per-call
+
+            token usage; larger values mean fewer LLM calls. Ignored when `matchInstructions`
+
+            is empty.'
+          default: 50
+        nextPagePath:
+          type: string
+          description: 'JMESPath expression applied to each raw response to extract the cursor or token
+
+            for the next page (e.g. `"nextCursor"`, `"pagination.nextToken"`). An absent,
+
+            null, or empty-string result stops pagination. Both string and numeric values are
+
+            supported — numbers are converted to their decimal string representation before
+
+            being forwarded as a query parameter.
+
+
+            Must be set together with `nextPageParam`.
+
+
+            **Supported pagination styles:**
+
+            - **Cursor/token-based** — server returns an opaque token in the response body
+
+            (e.g. `{"nextCursor": "abc123"}`). Set `nextPagePath: "nextCursor"` and the
+
+            platform forwards it verbatim on the next request.
+
+            - **Server-computed offset/page** — server echoes back the next offset or page
+
+            number in the response body (e.g. `{"nextOffset": 50}` or `{"nextPage": 2}`).
+
+            Set `nextPagePath: "nextOffset"` and the platform forwards the value as-is.
+
+
+            **Not supported:**
+
+            - **Client-computed offset** — APIs where the client must compute `offset += limit`
+
+            itself (e.g. `?offset=0&limit=50` with no next-offset in the response). Workaround:
+
+            ask the API provider to return the next offset in the response body, or bake a
+
+            fixed page size into the URL and use a server-side cursor instead.
+
+            - **Client-computed page number** — APIs where the client increments `?page=N`
+
+            itself with no next-page value in the response. Same workaround applies.
+
+            - **Link header** — `Link: <url>; rel="next"` in HTTP response headers. The
+
+            platform only inspects the response body.'
+        nextPageParam:
+          type: string
+          description: 'Query parameter name used to pass the cursor on subsequent GET requests, or the
+
+            `{placeholder}` name used in the POST `bodyTemplate` (e.g. `"cursor"`,
+
+            `"pageToken"`, `"offset"`).
+
+
+            Must be set together with `nextPagePath`.'
+        maxPages:
+          type: integer
+          minimum: 1
+          description: 'Maximum number of pages to fetch (default: 10). Acts as a safety cap against
+
+            infinite pagination loops when the server never returns an empty cursor.'
+          default: 10
+      description: 'A named HTTP endpoint that an enrich step can call to fetch enrichment data.
+
+
+        The platform makes one request per extracted source value, substituting the value
+
+        as a query parameter or body template placeholder. The raw response (or the
+
+        sub-value selected by `responsePath`) is injected into the output, or passed to
+
+        LLM agent reasoning when `matchInstructions` is set.
+
+
+        **Request formats:**
+
+        - `GET`: Appends `?{queryParam}={value}` to the URL.
+
+        - `POST`: Sends `bodyTemplate` as the request body, replacing `{value}` with the extracted value.'
+    RenderTemplateInput:
+      type: object
+      required:
+      - base64
+      properties:
+        name:
+          type: string
+          description: Original upload filename (e.g. `contract.docx`), stored for display only. Does not affect where the template is stored.
+        base64:
+          type: string
+          contentEncoding: base64
+          description: Base64-encoded `.docx` bytes. In the Bem CLI, use `@path/to/file` to embed it automatically.
+      title: Render template input
+    SendDestinationType:
+      type: string
+      enum:
+      - webhook
+      - s3
+      - google_drive
+      description: Destination type for a Send function.
+    AnalyzeFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - enableBoundingBoxes
+      - preCount
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - analyze
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Only applicable to analyze and extract functions.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency.'
+    FunctionType:
+      type: string
+      enum:
+      - transform
+      - extract
+      - route
+      - classify
+      - send
+      - split
+      - join
+      - analyze
+      - payload_shaping
+      - enrich
+      - parse
+      - render
+      description: The type of the function.
+    enrichConfig:
+      type: object
+      required:
+      - steps
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/enrichStep'
+          minItems: 1
+          description: Array of enrichment steps to execute sequentially.
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/enrichEndpoint'
+          description: 'Named HTTP endpoints available to endpoint-source steps.
+
+            Each endpoint must have a unique `name` referenced by the step''s `endpointName`.
+
+            Required when any step uses `source: "endpoint"`.'
+      description: 'Configuration for an enrich function.
+
+
+        **How Enrich Functions Work:**
+
+
+        Enrich functions augment JSON input with data from external sources. They take JSON input
+
+        (typically from a previous function), extract specified fields, fetch or search for matching
+
+        data, and inject the results back into the JSON.
+
+
+        **Data Sources:**
+
+        - **Collections** (`source: "collection"`): Vector/keyword search against a BEM collection.
+
+        Best for semantic matching against pre-indexed documents.
+
+        - **Endpoints** (`source: "endpoint"`): HTTP call to any user-provided REST API.
+
+        Best for looking up live data from CRMs, ERPs, or other external systems.
+
+        Optionally uses LLM agent reasoning to rank candidates returned by the endpoint.
+
+
+        **Input Requirements:**
+
+        - Must receive JSON input (typically from a previous function''s output)
+
+
+        **Example Use Cases:**
+
+        - Match product descriptions to SKU codes from a product catalog collection
+
+        - Enrich customer data with account details from a CRM endpoint
+
+        - Use LLM agent reasoning to fuzzy-match line item descriptions to catalog products
+
+
+        **Configuration:**
+
+        - Define named endpoints (for endpoint-source steps)
+
+        - Define one or more enrichment steps; steps are executed sequentially'
+    WorkflowUsageInfo:
+      type: object
+      required:
+      - workflowID
+      - workflowName
+      - currentVersionNum
+      - usedInWorkflowVersionNums
+      properties:
+        workflowID:
+          type: string
+          description: Unique identifier of workflow.
+        workflowName:
+          type: string
+          description: Name of workflow.
+        currentVersionNum:
+          type: integer
+          description: Current version number of workflow, provided for reference - compare to usedInWorkflowVersionNums to see whether the current version of the workflow uses this function version.
+        usedInWorkflowVersionNums:
+          type: array
+          items:
+            type: integer
+          description: Version numbers of workflows that this function version is used in.
+    EnrichFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - config
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - enrich
+        config:
+          $ref: '#/components/schemas/enrichConfig'
+    ListFunctionVersionsResponseV3:
+      type: object
+      properties:
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionVersionV3'
+        totalCount:
+          type: integer
+          description: The total number of results available.
+    UserActionSummary:
+      type: object
+      required:
+      - userActionID
+      - createdAt
+      properties:
+        userActionID:
+          type: string
+          description: Unique identifier of the user action.
+        userID:
+          type: string
+          description: User's ID. Present for user-initiated actions.
+        userEmail:
+          type: string
+          description: User's email address. Present for user-initiated actions.
+        apiKeyName:
+          type: string
+          description: API key name. Present for API key-initiated actions.
+        emailAddress:
+          type: string
+          description: Email address. Present for email-initiated actions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the action was created.
+    CreateRenderFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      - renderConfig
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - render
+        renderConfig:
+          allOf:
+          - $ref: '#/components/schemas/RenderConfigInput'
+          description: 'Render configuration. Required at create time — a Render function
+
+            without a template has nothing to bind data to. Update bodies may
+
+            omit this for partial edits.'
+      title: Render Function
+    TransformFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - emailAddress
+      - tabularChunkingEnabled
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - transform
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        emailAddress:
+          type: string
+          description: Email address automatically created by bem. You can forward emails with or without attachments, to be transformed.
+        tabularChunkingEnabled:
+          type: boolean
+          description: Whether tabular chunking is enabled on the pipeline. This processes tables in CSV/Excel in row batches, rather than all rows at once.
+    AnalyzeFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - enableBoundingBoxes
+      - preCount
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - analyze
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        enableBoundingBoxes:
+          type: boolean
+          description: 'Whether bounding box extraction is enabled. Only applicable to analyze and extract functions.
+
+            When true, the function returns the document regions (page, coordinates) from which each
+
+            field was extracted.'
+        preCount:
+          type: boolean
+          description: 'Reducing the risk of the model stopping early on long documents.
+
+            Trade-off: Increases total latency.'
+      title: Analyze Function
+    ClassifyFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - description
+      - classifications
+      - emailAddress
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - classify
+        description:
+          type: string
+          description: Description of classifier. Can be used to provide additional context on classifier's purpose and expected inputs.
+        classifications:
+          $ref: '#/components/schemas/ClassificationList'
+        emailAddress:
+          type: string
+          description: Email address automatically created by bem. You can forward emails with or without attachments, to be classified.
+      title: Classify Function
+    TransformFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - outputSchemaName
+      - outputSchema
+      - emailAddress
+      - tabularChunkingEnabled
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - transform
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+        emailAddress:
+          type: string
+          description: Email address automatically created by bem. You can forward emails with or without attachments, to be transformed.
+        tabularChunkingEnabled:
+          type: boolean
+          description: Whether tabular chunking is enabled on the pipeline. This processes tables in CSV/Excel in row batches, rather than all rows at once.
+      title: Transform Function
+    FunctionVersionResponseV3:
+      type: object
+      required:
+      - function
+      properties:
+        function:
+          $ref: '#/components/schemas/FunctionVersionV3'
+      description: Single-function-version response wrapper used by V3 endpoints.
+    JoinFunction:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - description
+      - joinType
+      - outputSchemaName
+      - outputSchema
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function.
+        type:
+          type: string
+          enum:
+          - join
+        description:
+          type: string
+          description: Description of join function.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join to perform.
+        outputSchemaName:
+          type: string
+          description: Name of output schema object.
+        outputSchema:
+          type: object
+          unevaluatedProperties: {}
+          description: Desired output structure defined in standard JSON Schema convention.
+      title: Join Function
+    SplitFunctionVersion:
+      type: object
+      required:
+      - functionID
+      - functionName
+      - versionNum
+      - type
+      - splitType
+      properties:
+        functionID:
+          type: string
+          description: Unique identifier of function.
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        versionNum:
+          type: integer
+          description: Version number of function.
+        usedInWorkflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowUsageInfo'
+          description: List of workflows that use this function.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the function version was created.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/FunctionAudit'
+          description: Audit trail information for the function version.
+        type:
+          type: string
+          enum:
+          - split
+        splitType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageSplitConfig:
+          type: object
+          properties:
+            nextFunctionID:
+              type: string
+        semanticPageSplitConfig:
+          type: object
+          properties:
+            itemClasses:
+              type: array
+              items:
+                $ref: '#/components/schemas/SplitFunctionSemanticPageItemClass'
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
+    CreatePayloadShapingFunction:
+      type: object
+      required:
+      - functionName
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - payload_shaping
+        shapingSchema:
+          type: string
+          description: 'JMESPath expression that defines how to transform and customize the input payload structure.
+
+            Payload shaping allows you to extract, reshape, and reorganize data from complex input payloads
+
+            into a simplified, standardized output format. Use JMESPath syntax to select specific fields,
+
+            perform calculations, and create new data structures tailored to your needs.'
+      title: Payload Shaping Function
+    ParseExtraFunctionConfiguration:
+      type: object
+      properties:
+        enableBoundingBoxes:
+          type: boolean
+          description: 'When true, return per-section and per-entity-mention coordinates in
+
+            the parse event''s `fieldBoundingBoxes` map (same shape as Extract:
+
+            JSON Pointer key → array of `{page, left, top, width, height}` with
+
+            coordinates normalized to [0, 1]). Keys are `/sections/{N}` and
+
+            `/entities/{N}/occurrences/{M}` into the parse output. Only applies
+
+            to the open-ended discovery path (no `schema`) and to vision input
+
+            types. Bedrock-backed parse functions silently return an empty map
+
+            (no native bbox support). Defaults to false.'
+      description: 'Cross-cutting toggles for Parse functions. Mirrors the `extraConfig`
+
+        surface on Extract / Join — separated from `parseConfig` so the per-call
+
+        Parse output shape stays distinct from operator-level execution flags.'
+    UpsertClassifyFunction:
+      type: object
+      required:
+      - type
+      properties:
+        functionName:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis.
+        displayName:
+          type: string
+          description: Display name of function. Human-readable name to help you identify the function.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags to categorize and organize functions.
+        type:
+          type: string
+          enum:
+          - classify
+        description:
+          type: string
+          description: Description of classifier. Can be used to provide additional context on classifier's purpose and expected inputs.
+        classifications:
+          $ref: '#/components/schemas/ClassificationList'
+      description: 'V3 create/update variants of the shared function payloads.
+
+
+        The V3 Functions API no longer accepts the legacy `transform` or `analyze`
+
+        function types when creating new functions or updating existing ones — both
+
+        have been unified under `extract`. Existing functions of those types remain
+
+        readable and callable via V3, so the V3 read-side unions still include
+
+        `transform` and `analyze` variants.
+
+
+        The V3 API also exposes `classify` in place of the legacy `route` type on
+
+        create/update, with `classifications` in place of `routes`. Read-side
+
+        `ClassifyFunction` / `ClassifyFunctionVersion` / `ClassificationList` are
+
+        defined in the shared functions models and used by both the V2 and V3
+
+        response unions (existing classify functions are returned from V2 GET
+
+        endpoints verbatim).V3 wire form of the classify function upsert payload.'
+      title: Classify Function
+    RenderTemplatePlaceholders:
+      type: object
+      required:
+      - stringKeys
+      - blockKeys
+      properties:
+        stringKeys:
+          type: array
+          items:
+            type: string
+        blockKeys:
+          type: array
+          items:
+            type: string
+      description: 'The placeholder contract a Render template declares, grouped by how each
+
+        placeholder is filled. Derived from the template at create/update time by
+
+        scanning its `docxtpl` tags; not user-supplied.
+
+
+        - `stringKeys`: bare string placeholders (`{{ key }}`) filled with a single
+
+        value.
+
+        - `blockKeys`: wrapped-primitive placeholders (`{{p key }}`) — bind one core
+
+        primitive (paragraph, table, image, or list). The placeholder''s own
+
+        paragraph dissolves and is replaced by the rendered subdocument''s blocks,
+
+        rather than substituting text inline.'
+      title: Render template placeholder contract
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

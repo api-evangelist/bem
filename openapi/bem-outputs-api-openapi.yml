@@ -1,0 +1,2042 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Outputs API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Outputs
+  description: 'Retrieve terminal non-error output events from workflow calls.
+
+
+    Outputs are events produced by successful terminal function steps — steps that completed
+
+    without errors and did not spawn further downstream function calls. A single workflow call
+
+    may produce multiple outputs (e.g. from a split-then-transform pipeline).
+
+
+    Outputs and errors from the same call are not mutually exclusive: a partially-completed
+
+    workflow may have both.
+
+
+    Use `GET /v3/outputs` to list outputs across calls, or `GET /v3/outputs/{eventID}` to
+
+    retrieve a specific output. To get outputs scoped to a single call, filter by `callIDs`.'
+paths:
+  /v3/outputs:
+    get:
+      operationId: v3-list-outputs
+      summary: List Outputs
+      description: '**List terminal non-error output events.**
+
+
+        Returns events that represent successful terminal outputs — primary events
+
+        (non-split-collection) that did not trigger any downstream function calls.
+
+        Error events are excluded; use `GET /v3/errors` to retrieve those.
+
+
+        ## Intermediate Events
+
+
+        By default, intermediate events (those that spawned a downstream function call in a
+
+        multi-step workflow) are excluded. Pass `includeIntermediate=true` to include them.
+
+
+        ## Filtering
+
+
+        Filter by call, workflow, function, or reference ID. Multiple filters are ANDed together.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+      - name: callIDs
+        in: query
+        required: false
+        description: Filter to outputs from specific calls.
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: workflowIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: workflowNames
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: functionIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: functionNames
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: referenceIDs
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: eventIDs
+        in: query
+        required: false
+        description: Filter to specific output events by their event IDs (KSUIDs).
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: eventTypes
+        in: query
+        required: false
+        description: Filter to specific non-error output event types, e.g. `classify` or `extract`.
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: transformationIDs
+        in: query
+        required: false
+        description: 'Filter by legacy transformation IDs. Provided for backwards compatibility
+
+          with clients migrating from `/v1-beta/transformations`.'
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        explode: false
+      - name: functionVersionNums
+        in: query
+        required: false
+        description: Filter to specific function version numbers.
+        schema:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+        explode: false
+      - name: referenceIDSubstring
+        in: query
+        required: false
+        description: Case-insensitive substring match against `referenceID`.
+        schema:
+          type: string
+        explode: false
+      - name: isLabelled
+        in: query
+        required: false
+        description: 'If `true`, only outputs with a corrected (labelled) payload.
+
+          If `false`, only outputs that are not labelled. If omitted, no filter is applied.'
+        schema:
+          type: boolean
+      - name: isRegression
+        in: query
+        required: false
+        description: 'If `true`, only regression-marked outputs. If `false`, only non-regression outputs.
+
+          If omitted, no filter is applied.
+
+
+          Note: clients migrating from `/v1-beta/transformations` should pass `isRegression=false`
+
+          explicitly to preserve the legacy default (regressions hidden unless explicitly requested).'
+        schema:
+          type: boolean
+      - name: includeIntermediate
+        in: query
+        required: false
+        description: 'When `true`, includes intermediate events (those that spawned a downstream function call).
+
+          Default: `false`.'
+        schema:
+          type: boolean
+      - name: sortOrder
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+          default: asc
+      - name: startingAfter
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: endingBefore
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOutputsResponseV3'
+      tags:
+      - Outputs
+  /v3/outputs/{eventID}:
+    get:
+      operationId: v3-get-output
+      summary: Get an Output
+      description: '**Retrieve a single output event by ID.**
+
+
+        Fetches any non-error event by its `eventID`. Returns `404` if the event does not exist
+
+        or if it is an error event (use `GET /v3/errors/{eventID}` for those).'
+      parameters:
+      - name: eventID
+        in: path
+        required: true
+        description: The unique identifier of the output event.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutputResponseV3'
+      tags:
+      - Outputs
+components:
+  schemas:
+    OutputResponseV3:
+      type: object
+      required:
+      - output
+      properties:
+        output:
+          allOf:
+          - $ref: '#/components/schemas/EventV3'
+          description: The output event. Polymorphic by `eventType`.
+    PayloadShapingEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - payload_shaping
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: 'The reshaped payload produced by applying the function''s JMESPath
+
+            expressions to the input data.'
+      description: 'Emitted by `payload_shaping` functions, which restructure JSON payloads
+
+        using JMESPath expressions configured on the function. The shaped result
+
+        is carried in `transformedContent`.'
+      title: Payload Shaping Event
+    SendEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - deliveryStatus
+      - destinationType
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - send
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        deliveryStatus:
+          allOf:
+          - $ref: '#/components/schemas/SendDeliveryStatus'
+          description: Whether the payload was successfully delivered or the send node was skipped.
+        destinationType:
+          allOf:
+          - $ref: '#/components/schemas/SendDestinationType'
+          description: The type of destination the payload was sent to.
+        deliveredContent:
+          type: object
+          unevaluatedProperties: {}
+          description: 'The full protocol event JSON that was delivered — identical to what subscription
+
+            publish would deliver for the same event. For ad-hoc calls with a JSON file input,
+
+            contains the raw input JSON. For ad-hoc calls with a binary file input, contains
+
+            {"s3URL": "<presigned-url>"}.'
+        webhookOutput:
+          allOf:
+          - $ref: '#/components/schemas/SendEventWebhookOutput'
+          description: Populated when destinationType is "webhook".
+        s3Output:
+          allOf:
+          - $ref: '#/components/schemas/SendEventS3Output'
+          description: Populated when destinationType is "s3".
+        googleDriveOutput:
+          allOf:
+          - $ref: '#/components/schemas/SendEventGoogleDriveOutput'
+          description: Populated when destinationType is "google_drive".
+      title: Send Event
+    AnyType:
+      anyOf:
+      - type: object
+        unevaluatedProperties: {}
+      - type: array
+        items: {}
+      - type: string
+      - type: number
+      - type: integer
+      - type: boolean
+      - type: 'null'
+    AnalyzeEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      - invalidProperties
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - analyze
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformationID:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The extracted content of the input. The structure of this object is defined by the function's `outputSchema`.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL of the input file that was analyzed.
+        fieldBoundingBoxes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
+
+            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      description: 'Emitted by functions of the legacy `analyze` type (the vision path predecessor of
+
+        `extract`). Carries the extracted JSON along with per-field bounding-box metadata
+
+        identifying the document regions each value was extracted from.'
+      title: Analyze Event
+    SplitItemEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - outputType
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - split_item
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        outputType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageOutput:
+          type: object
+          properties:
+            collectionReferenceID:
+              type: string
+            itemCount:
+              type: integer
+            itemOffset:
+              type: integer
+            s3URL:
+              type: string
+        semanticPageOutput:
+          type: object
+          properties:
+            collectionReferenceID:
+              type: string
+            pageCount:
+              type: integer
+            itemCount:
+              type: integer
+            itemOffset:
+              type: integer
+            itemClass:
+              type: string
+            itemClassCount:
+              type: integer
+            itemClassOffset:
+              type: integer
+            pageStart:
+              type: integer
+            pageEnd:
+              type: integer
+            s3URL:
+              type: string
+      title: Split Item Event
+    SendEventS3Output:
+      type: object
+      required:
+      - bucketName
+      - key
+      properties:
+        bucketName:
+          type: string
+          description: Name of the S3 bucket the payload was written to.
+        key:
+          type: string
+          description: Object key under which the payload was stored.
+      description: Metadata returned when a Send function delivers to an S3 bucket.
+    EventInboundEmail:
+      type: object
+      required:
+      - to
+      - from
+      - subject
+      properties:
+        to:
+          type: string
+          description: The email address of the recipient.
+        deliveredTo:
+          type: string
+          description: The email address of the original intended recipient if the email itself was forwarded.
+        from:
+          type: string
+          description: The email address of the sender.
+        subject:
+          type: string
+          description: The subject of the email.
+    JoinEventItem:
+      type: object
+      required:
+      - itemReferenceID
+      - itemOffset
+      - itemCount
+      properties:
+        itemReferenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were transformed.
+        s3URL:
+          type: string
+          description: The presigned S3 URL of the file that was joined.
+    JoinEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - joinType
+      - transformedContent
+      - invalidProperties
+      - items
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - join
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join that was performed.
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoinEventItem'
+          description: The items that were joined.
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      title: Join Event
+    ParseEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      - itemOffset
+      - itemCount
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - parse
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        inputType:
+          $ref: '#/components/schemas/InputType'
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL for the input content uploaded to S3.
+        inputs:
+          anyOf:
+          - type: array
+            items:
+              type: object
+              properties:
+                inputType:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                inputContent:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                jsonInputContent:
+                  anyOf:
+                  - type: object
+                    unevaluatedProperties: {}
+                  - type: 'null'
+                s3URL:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+          - type: 'null'
+          description: Array of parse inputs with their types and S3 URLs.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: 'The parsed content of the input. Top-level keys are `sections`, `entities`,
+
+            and `relationships`; the precise shape is determined by the parse function''s
+
+            configuration.'
+        correctedContent:
+          anyOf:
+          - type: object
+            properties:
+              output:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnyType'
+          - $ref: '#/components/schemas/AnyType'
+          description: Corrected feedback provided for fine-tuning purposes.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was parsed. Used for batch parsing to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were parsed. Used for batch parsing to indicate how many items were parsed.
+        fieldBoundingBoxes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths
+
+            to the document regions from which each parsed value was sourced.'
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
+
+            to float values in the range [0, 1] indicating the model''s confidence in each parsed field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all parsed fields, in the range [0, 1].
+      description: 'Emitted when a `parse` function completes. Reuses the `extract` event shape
+
+        on the wire — both wrap a Transformation and downstream consumers care
+
+        about the same `transformedContent` payload — but uses a distinct
+
+        `eventType` discriminator so receivers can dispatch on the function type
+
+        that produced it.'
+      title: Parse Event
+    EvaluationEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformId
+      - evaluationVersion
+      - result
+      - status
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - evaluation
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformId:
+          type: string
+          description: Unique ID of the transformation that was evaluated.
+        evaluationVersion:
+          type: string
+          description: Version identifier of the evaluation logic that produced this result.
+        result:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Evaluator output. Shape depends on `evaluationVersion` and includes
+
+            confidence scores, per-field hallucination flags, and relevance metrics.'
+        status:
+          type: string
+          enum:
+          - success
+          - failed
+          description: Terminal status of the evaluation run.
+        errorMessage:
+          type: string
+          description: Failure reason populated when `status` is `failed`.
+      description: 'Emitted when a function-accuracy evaluation completes for a transformation.
+
+        Evaluations are scheduled by `POST /v3/eval` and run asynchronously; this
+
+        event reports the terminal result.'
+      title: Evaluation Event
+    collectionProcessingEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - collectionID
+      - collectionName
+      - operation
+      - processedCount
+      - status
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - collection_processing
+        collectionID:
+          type: string
+          description: Unique identifier of the collection.
+        collectionName:
+          type: string
+          description: Name/path of the collection.
+        operation:
+          type: string
+          enum:
+          - add
+          - update
+          description: The operation performed (add or update).
+        processedCount:
+          type: integer
+          description: Number of items successfully processed.
+        collectionItemIDs:
+          type: array
+          items:
+            type: string
+          description: Array of collection item KSUIDs that were added or updated.
+        status:
+          type: string
+          enum:
+          - success
+          - failed
+          description: Processing status (success or failed).
+        errorMessage:
+          type: string
+          description: Error message if processing failed.
+      title: Collection Processing Event
+    TransformEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      - itemOffset
+      - itemCount
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - transform
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        pipelineID:
+          type: string
+          description: ID of pipeline that transformed the original input data.
+        publishedAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the transform was published via webhook and received a successful 200 response. Value is `null` if the transformation hasn't been sent.
+        lastPublishErrorAt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Last timestamp indicating when the transform was published via webhook and received a non-200 response. Set to `null` on a subsequent retry if the webhook service receives a 200 response.
+        inputType:
+          $ref: '#/components/schemas/InputType'
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL for the input content uploaded to S3.
+        inputs:
+          anyOf:
+          - type: array
+            items:
+              type: object
+              properties:
+                inputType:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                inputContent:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                jsonInputContent:
+                  anyOf:
+                  - type: object
+                    unevaluatedProperties: {}
+                  - type: 'null'
+                s3URL:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+          - type: 'null'
+          description: Array of transformation inputs with their types and S3 URLs.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+        correctedContent:
+          anyOf:
+          - type: object
+            properties:
+              output:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnyType'
+          - $ref: '#/components/schemas/AnyType'
+          description: Corrected feedback provided for fine-tuning purposes.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        metrics:
+          anyOf:
+          - type: object
+            properties:
+              metrics:
+                type: object
+                properties:
+                  accuracy:
+                    type: number
+                  precision:
+                    type: number
+                  recall:
+                    type: number
+                  f1Score:
+                    type: number
+              differences:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category:
+                      type: string
+                    correctedVal: {}
+                    extractedVal: {}
+                    jsonPointer:
+                      type: string
+          - type: 'null'
+          description: Accuracy, precision, recall, and F1 score when corrected JSON is provided.
+        orderMatching:
+          type: boolean
+          description: Indicates whether array order matters when comparing corrected JSON with extracted JSON.
+        isRegression:
+          type: boolean
+          description: Indicates whether this transformation was created as part of a regression test.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were transformed. Used for batch transformations to indicate how many items were transformed.
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      title: Transform Event
+    SendDestinationType:
+      type: string
+      enum:
+      - webhook
+      - s3
+      - google_drive
+      description: Destination type for a Send function.
+    EventV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/TransformEvent'
+      - $ref: '#/components/schemas/ExtractEvent'
+      - $ref: '#/components/schemas/ParseEvent'
+      - $ref: '#/components/schemas/AnalyzeEvent'
+      - $ref: '#/components/schemas/RouteEvent'
+      - $ref: '#/components/schemas/ClassifyEvent'
+      - $ref: '#/components/schemas/SplitCollectionEvent'
+      - $ref: '#/components/schemas/SplitItemEvent'
+      - $ref: '#/components/schemas/ErrorEvent'
+      - $ref: '#/components/schemas/JoinEvent'
+      - $ref: '#/components/schemas/EnrichEvent'
+      - $ref: '#/components/schemas/PayloadShapingEvent'
+      - $ref: '#/components/schemas/EvaluationEvent'
+      - $ref: '#/components/schemas/collectionProcessingEvent'
+      - $ref: '#/components/schemas/SendEvent'
+      - $ref: '#/components/schemas/RenderEvent'
+      discriminator:
+        propertyName: eventType
+        mapping:
+          transform: '#/components/schemas/TransformEvent'
+          extract: '#/components/schemas/ExtractEvent'
+          parse: '#/components/schemas/ParseEvent'
+          analyze: '#/components/schemas/AnalyzeEvent'
+          route: '#/components/schemas/RouteEvent'
+          classify: '#/components/schemas/ClassifyEvent'
+          split_collection: '#/components/schemas/SplitCollectionEvent'
+          split_item: '#/components/schemas/SplitItemEvent'
+          error: '#/components/schemas/ErrorEvent'
+          join: '#/components/schemas/JoinEvent'
+          enrich: '#/components/schemas/EnrichEvent'
+          payload_shaping: '#/components/schemas/PayloadShapingEvent'
+          evaluation: '#/components/schemas/EvaluationEvent'
+          collection_processing: '#/components/schemas/collectionProcessingEvent'
+          send: '#/components/schemas/SendEvent'
+          render: '#/components/schemas/RenderEvent'
+      description: 'V3 read-side event union. Superset of the shared `Event` union: it contains
+
+        every shared variant verbatim (backward compatible) and adds the V3-only
+
+        `extract`, `parse`, `classify`, `analyze`, `payload_shaping`, and
+
+        `evaluation` variants. This is also the union delivered as the body of
+
+        outbound webhook payloads.'
+    EnrichEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - enrichedContent
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - enrich
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        enrichedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The enriched content produced by the enrich function. Contains the input data augmented with results from semantic search against collections.
+      title: Enrich Event
+    ClassifyEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - choice
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - classify
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        choice:
+          type: string
+          description: The classification chosen by the classify function.
+        s3URL:
+          type: string
+          description: The presigned S3 URL of the file that was classified.
+      title: Classify Event
+    SendEventWebhookOutput:
+      type: object
+      required:
+      - httpStatusCode
+      - httpResponseBody
+      properties:
+        httpStatusCode:
+          type: integer
+          description: HTTP status code returned by the webhook endpoint.
+        httpResponseBody:
+          type: string
+          description: Raw HTTP response body returned by the webhook endpoint.
+      description: Metadata returned when a Send function delivers to a webhook.
+    SendDeliveryStatus:
+      type: string
+      enum:
+      - success
+      - skip
+      description: Outcome of a Send function's delivery attempt.
+    InputType:
+      type: string
+      enum:
+      - csv
+      - docx
+      - email
+      - heic
+      - html
+      - jpeg
+      - json
+      - heif
+      - m4a
+      - mov
+      - mp3
+      - mp4
+      - pdf
+      - png
+      - text
+      - wav
+      - webp
+      - xls
+      - xlsx
+      - xml
+      description: The input type of the content you're sending for transformation.
+    ErrorEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - message
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - error
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        message:
+          type: string
+          description: Error message.
+        kind:
+          type: string
+          description: 'Open, extensible error-kind label for typed transformation errors. The
+
+            platform emits these as plain strings and the set grows over time, so
+
+            clients must accept unknown values. For render functions the known kinds
+
+            are `render_source_fetch`, `render_template_fetch`,
+
+            `render_image_unresolved`, `render_validation`, `render_exception`,
+
+            `render_upload`, and `render_contract`. Omitted for historical events
+
+            that pre-date the kind column and for non-transform errors.'
+      title: Error Event
+    SplitCollectionEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - outputType
+      - printPageOutput
+      - semanticPageOutput
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - split_collection
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        outputType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageOutput:
+          type: object
+          properties:
+            itemCount:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemReferenceID:
+                    type: string
+                  itemOffset:
+                    type: integer
+                  s3URL:
+                    type: string
+        semanticPageOutput:
+          type: object
+          properties:
+            pageCount:
+              type: integer
+            itemCount:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemReferenceID:
+                    type: string
+                  itemOffset:
+                    type: integer
+                  itemClass:
+                    type: string
+                  itemClassCount:
+                    type: integer
+                  itemClassOffset:
+                    type: integer
+                  pageStart:
+                    type: integer
+                  pageEnd:
+                    type: integer
+                  s3URL:
+                    type: string
+      title: Split Collection Event
+    RenderEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - outputDownloadURL
+      - validationSeconds
+      - docxRenderSeconds
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - render
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        outputDownloadURL:
+          type: string
+          description: 'Short-lived presigned HTTPS URL the recipient can GET to download the
+
+            rendered docx. Bearer-token semantics: possession equals access. Treat
+
+            as a credential — do not log full URLs or store beyond the delivery
+
+            window. The URL expires after the platform-configured TTL; the next
+
+            API serialization mints a fresh one.'
+        validationSeconds:
+          type: number
+          format: double
+          description: Wall-clock seconds spent validating the upstream JSON against the doc-type schema.
+        docxRenderSeconds:
+          type: number
+          format: double
+          description: Wall-clock seconds spent generating the output docx through the template.
+      title: Render Event
+    ExtractEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      - itemOffset
+      - itemCount
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - extract
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        inputType:
+          $ref: '#/components/schemas/InputType'
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL for the input content uploaded to S3.
+        inputs:
+          anyOf:
+          - type: array
+            items:
+              type: object
+              properties:
+                inputType:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                inputContent:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                jsonInputContent:
+                  anyOf:
+                  - type: object
+                    unevaluatedProperties: {}
+                  - type: 'null'
+                s3URL:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+          - type: 'null'
+          description: Array of transformation inputs with their types and S3 URLs.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+        correctedContent:
+          anyOf:
+          - type: object
+            properties:
+              output:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnyType'
+          - $ref: '#/components/schemas/AnyType'
+          description: Corrected feedback provided for fine-tuning purposes.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were transformed. Used for batch transformations to indicate how many items were transformed.
+        fieldBoundingBoxes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
+
+            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      description: 'V3 event variants that do not exist in the shared `Event` union.
+
+
+        `ExtractEvent` and `ClassifyEvent` are emitted only by V3-era function types
+
+        (`extract` and `classify`). The shared `Event` union in `specs/events/models.tsp`
+
+        predates these types and continues to describe V2 / V1-alpha responses verbatim;
+
+        V3 response payloads add the new variants via the `EventV3` union below while
+
+        keeping every shared variant intact for backward compatibility.'
+      title: Extract Event
+    SendEventGoogleDriveOutput:
+      type: object
+      required:
+      - folderID
+      - fileName
+      properties:
+        folderID:
+          type: string
+          description: ID of the Google Drive folder the file was placed in.
+        fileName:
+          type: string
+          description: Name of the file created in Google Drive.
+      description: Metadata returned when a Send function delivers to Google Drive.
+    ListOutputsResponseV3:
+      type: object
+      required:
+      - outputs
+      - totalCount
+      properties:
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventV3'
+          description: 'Array of terminal non-error output events. Each element is polymorphic by `eventType`.
+
+            Intermediate events (those that spawned a downstream function call) are excluded by default;
+
+            pass `includeIntermediate=true` to include them.'
+        totalCount:
+          type: integer
+          description: The total number of results available.
+    RouteEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - choice
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - route
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        choice:
+          type: string
+          description: The choice made by the router function.
+        s3URL:
+          type: string
+          description: The presigned S3 URL of the file that was routed.
+      title: Route Event
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

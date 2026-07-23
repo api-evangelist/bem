@@ -1,0 +1,264 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Entity Curation API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Entity Curation
+  description: "Curate the knowledge graph by transitioning entities through their review\nlifecycle and editing their metadata.\n\n- **`PATCH /v3/entities/{id}`** updates a single entity. Every field is\n  optional but at least one is required:\n  - `status` transitions curation state to `approved` or `rejected` (only\n    from `extracted`/`proposed`; any other transition is `409 Conflict`).\n    Approving emits an `entity_validated` webhook; rejecting emits\n    `entity_rejected`.\n  - `assignedTypeID` sets (or, with the empty string, clears) the\n    customer-assigned type that overrides the bem-inferred type.\n  - `canonical` replaces the canonical surface form.\n  - `addSynonyms` / `removeSynonymIDs` attach `customer_defined` synonyms\n    or soft-delete existing ones (an `extracted` synonym cannot be\n    removed — `409 Conflict`).\n\n  A merged-away entity id transparently resolves to its surviving\n  canonical entity.\n- **`POST /v3/entities/bulk-validate`** transitions a batch of entities to\n  `approved` or `rejected` in one request. Each row reports `validated`,\n  `skipped` (not found / not authorized), or `rejected-row` (an illegal\n  transition such as an already-terminal entity), alongside a summary.\n\nOn the dashboard (JWT) surface these actions additionally require the\nacting user to be an assigned reviewer for the entity's effective type, or\nto hold the `admin` role (or higher). On the API-key surface admin-key\nauthorization applies and no per-user reviewer check is made."
+paths:
+  /v3/entities/bulk-validate:
+    post:
+      operationId: v3-bulk-validate-entities
+      summary: Bulk Validate Entities
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkValidateEntitiesResponseV3'
+      tags:
+      - Entity Curation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkValidateEntitiesRequestV3'
+            examples:
+              Approve a batch of entities:
+                summary: Approve a batch of entities
+                value:
+                  entityIDs:
+                  - ent_2abc
+                  - ent_2def
+                  status: approved
+  /v3/entities/{id}:
+    patch:
+      operationId: v3-update-entity
+      summary: Update Entity
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Entity public ID (`ent_...`). A merged-away id resolves to its survivor.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityResponseV3'
+      tags:
+      - Entity Curation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEntityRequestV3'
+            examples:
+              Approve an entity:
+                summary: Approve an entity
+                value:
+                  status: approved
+components:
+  schemas:
+    BulkValidateRowResultV3:
+      type: object
+      required:
+      - entityID
+      - outcome
+      properties:
+        entityID:
+          type: string
+          description: The `ent_...` ID from the request.
+        outcome:
+          type: string
+          enum:
+          - validated
+          - skipped
+          - rejected-row
+          description: '`validated` (transition applied), `skipped` (not found or not authorized),
+
+            or `rejected-row` (the transition itself was illegal, e.g. already
+
+            terminal).'
+        reason:
+          type: string
+          description: Explanation for a `skipped` or `rejected-row` outcome.
+      description: The outcome of validating one row.
+    BulkValidateSummaryV3:
+      type: object
+      required:
+      - validated
+      - skipped
+      - rejectedRow
+      properties:
+        validated:
+          type: integer
+          format: int32
+          description: Rows whose transition was applied.
+        skipped:
+          type: integer
+          format: int32
+          description: Rows skipped (not found / not authorized).
+        rejectedRow:
+          type: integer
+          format: int32
+          description: Rows whose transition was illegal.
+      description: Per-outcome tally across a bulk-validate batch.
+    UpdateEntityRequestV3:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: 'Transition the entity''s curation status. Only `approved` or `rejected` are
+
+            accepted, and only from `extracted` or `proposed` (any other transition is
+
+            rejected with `409`).'
+        assignedTypeID:
+          type: string
+          description: 'The `ety_...` public ID of the type to assign (overriding the bem-inferred
+
+            type). The empty string clears the assignment. Omit to leave unchanged.'
+        canonical:
+          type: string
+          description: Replace the entity's canonical surface form (re-derives its normalized form).
+        addSynonyms:
+          type: array
+          items:
+            type: string
+          description: Surface forms to attach as `customer_defined` synonyms.
+        removeSynonymIDs:
+          type: array
+          items:
+            type: string
+          description: '`esn_...` synonym IDs to soft-delete. Only `customer_defined` /
+
+            `sme_approved` synonyms may be removed; an `extracted` synonym is rejected
+
+            with `409`.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag stamped on any added synonyms.
+      description: 'Request body for `PATCH /v3/entities/{id}`. Every field is optional, but at
+
+        least one must be present.'
+    BulkValidateEntitiesResponseV3:
+      type: object
+      required:
+      - results
+      - summary
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkValidateRowResultV3'
+          description: Per-row outcomes, in request order.
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/BulkValidateSummaryV3'
+          description: Aggregate counts.
+      description: '`200` response for `POST /v3/entities/bulk-validate`.'
+    EntityResponseV3:
+      type: object
+      required:
+      - entityID
+      - canonical
+      - type
+      - mentionCount
+      - surfaceForms
+      - createdAt
+      - updatedAt
+      - status
+      properties:
+        entityID:
+          type: string
+          description: Public ID (`ent_...`).
+        canonical:
+          type: string
+          description: The canonical (longest / most descriptive) surface form.
+        type:
+          type: string
+          description: The entity's effective type name (assigned type if set, else inferred).
+        description:
+          type: string
+          description: Free-form description.
+        mentionCount:
+          type: integer
+          format: int32
+          description: Total mentions across parsed documents.
+        surfaceForms:
+          type: array
+          items:
+            type: string
+          description: Distinct surface forms resolved to this entity.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-update timestamp.
+        status:
+          type: string
+          enum:
+          - extracted
+          - proposed
+          - approved
+          - rejected
+          description: Curation lifecycle state.
+        typeID:
+          type: string
+          description: '`ety_...` public ID of the assigned type, when one is set.'
+        validatedAt:
+          type: string
+          format: date-time
+          description: When the entity was approved/rejected. Present only once validated.
+        validatedByUserID:
+          type: string
+          description: '`usr_...` public ID of the validating user (dashboard transitions only).'
+      description: An entity record, including its curation status and assigned type.
+    BulkValidateEntitiesRequestV3:
+      type: object
+      required:
+      - entityIDs
+      - status
+      properties:
+        entityIDs:
+          type: array
+          items:
+            type: string
+          description: The `ent_...` IDs to transition. Must be non-empty.
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: Terminal status to apply to every entity.
+      description: Request body for `POST /v3/entities/bulk-validate`.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

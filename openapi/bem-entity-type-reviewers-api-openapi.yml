@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Entity Type Reviewers API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Entity Type Reviewers
+  description: "Reviewer assignments link users to the entity types they are responsible\nfor reviewing, scoped to an account+environment. These are dashboard-only\nendpoints: an assignment needs a user identity, which only the dashboard\n(JWT) surface carries.\n\n- **`POST /v3/entity-types/{typeID}/reviewers`** assigns a user as a\n  reviewer of the type. The assignment is idempotent: re-assigning an\n  existing reviewer returns the existing assignment. Requires the `admin`\n  role.\n- **`GET /v3/entity-types/{typeID}/reviewers`** lists the users assigned\n  to review the type, with each user's email and role. Requires the\n  `operator` role.\n- **`DELETE /v3/entity-types/{typeID}/reviewers/{userID}`** removes an\n  assignment. Requires the `admin` role.\n- **`GET /v3/users/{userID}/reviewer-assignments`** is the reverse lookup:\n  the entity types a user reviews. A user may read their own assignments;\n  reading another user's assignments requires the `admin` role."
+paths:
+  /v3/entity-types/{typeID}/reviewers:
+    post:
+      operationId: v3-add-entity-type-reviewer
+      summary: Assign a Reviewer
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypeReviewerV3'
+      tags:
+      - Entity Type Reviewers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddReviewerRequestV3'
+            examples:
+              Assign a reviewer:
+                summary: Assign a reviewer
+                value:
+                  userID: usr_2xyz...
+    get:
+      operationId: v3-list-entity-type-reviewers
+      summary: List Reviewers
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListReviewersResponseV3'
+      tags:
+      - Entity Type Reviewers
+  /v3/entity-types/{typeID}/reviewers/{userID}:
+    delete:
+      operationId: v3-remove-entity-type-reviewer
+      summary: Remove a Reviewer
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      - name: userID
+        in: path
+        required: true
+        description: Assigned user public ID (`usr_...`).
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+      - Entity Type Reviewers
+  /v3/users/{userID}/reviewer-assignments:
+    get:
+      operationId: v3-list-user-reviewer-assignments
+      summary: List a User's Reviewer Assignments
+      parameters:
+      - name: userID
+        in: path
+        required: true
+        description: User public ID (`usr_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListReviewerAssignmentsResponseV3'
+      tags:
+      - Entity Type Reviewers
+components:
+  schemas:
+    EntityTypeReviewerV3:
+      type: object
+      required:
+      - reviewerID
+      - userID
+      - email
+      - role
+      - createdAt
+      properties:
+        reviewerID:
+          type: string
+          description: Stable public identifier for the assignment (`etr_...`).
+        userID:
+          type: string
+          description: Public identifier of the assigned user (`usr_...`).
+        email:
+          type: string
+          description: The assigned user's email.
+        role:
+          type: string
+          description: The assigned user's account role (for example `operator`, `admin`).
+        createdAt:
+          type: string
+          format: date-time
+          description: When the assignment was created (RFC 3339).
+      description: 'A reviewer assignment links a user to an entity type they are responsible
+
+        for reviewing. The assignment is scoped to an account+environment and is
+
+        unique per (entity type, user).'
+    ReviewerAssignmentV3:
+      type: object
+      required:
+      - typeID
+      - name
+      - description
+      - createdAt
+      properties:
+        typeID:
+          type: string
+          description: Public ID (`ety_...`) of the entity type the user reviews.
+        name:
+          type: string
+          description: The entity type's human-facing name.
+        description:
+          type: string
+          description: The entity type's description.
+        createdAt:
+          type: string
+          format: date-time
+          description: When the assignment was created (RFC 3339).
+      description: 'One entity type a user reviews, as returned by the reverse-lookup endpoint.
+
+        The type is exposed via its public ID plus its name and description.'
+    AddReviewerRequestV3:
+      type: object
+      required:
+      - userID
+      properties:
+        userID:
+          type: string
+          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
+      description: Request body to assign a user as a reviewer for an entity type.
+    ListReviewerAssignmentsResponseV3:
+      type: object
+      required:
+      - assignments
+      properties:
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewerAssignmentV3'
+      description: Response body for the reverse lookup of a user's reviewer assignments.
+    ListReviewersResponseV3:
+      type: object
+      required:
+      - reviewers
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeReviewerV3'
+      description: Response body for listing the reviewers of an entity type.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

@@ -1,0 +1,464 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets File System API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: File System
+  description: 'Unix-shell-style nav over parsed documents and the cross-doc memory store.
+
+
+    `POST /v3/fs` is a single op-driven endpoint designed for LLM agents
+
+    and programmatic consumers that want to walk a corpus the way they''d
+
+    walk a filesystem.
+
+
+    ## Doc-level ops (every parsed document)
+
+
+    - `ls` — list parsed documents with rich per-doc metadata.
+
+    - `cat` — read one doc''s parse JSON, sliced (`range`) or projected (`select`).
+
+    - `head` — first N sections of one doc.
+
+    - `grep` — substring or regex search; `scope`, `path`, `countOnly` available.
+
+    - `stat` — metadata only (page/section/entity counts, timestamps).
+
+
+    ## Memory-level ops (require `linkAcrossDocuments: true` on the parse function)
+
+
+    - `find` — list canonical entities across the corpus.
+
+    - `open` — entity + mentions.
+
+    - `xref` — for one entity, sections across docs that mention it (with content).
+
+
+    Memory ops return an empty list with a `hint` when no docs in this
+
+    environment have been memory-linked.
+
+
+    ## Pagination
+
+
+    List ops paginate by cursor — pass the previous response''s `nextCursor`
+
+    back as `cursor`; `hasMore: false` signals the last page. Same idiom as
+
+    `/v3/calls` and `/v3/outputs`.'
+paths:
+  /v3/fs:
+    post:
+      operationId: v3-fs
+      summary: File System Operations
+      description: '**Navigate parsed documents and the cross-doc memory store via Unix-shell verbs.**
+
+
+        `POST /v3/fs` is a single op-driven endpoint that lets an LLM agent
+
+        (or any programmatic client) walk a corpus the way it would walk a
+
+        filesystem — `ls` to list, `cat` to read, `grep` to search, `head`
+
+        for a quick peek, `stat` for metadata, and `find` / `open` / `xref`
+
+        for the cross-doc entity memory layer.
+
+
+        The body always carries an `op` field; other fields apply per op.
+
+        The response envelope is uniform: `{op, data, hasMore?, nextCursor?, count?, hint?}`.
+
+
+        ## Quick reference
+
+
+        | Op | `path` | Other fields | What it does |
+
+        |----|--------|-------------|--------------|
+
+        | `ls` | — | `filter`, `limit`, `cursor` | List parsed documents |
+
+        | `grep` | referenceID *(optional)* | `pattern`, `scope`, `countOnly` | Search across documents |
+
+        | `cat` | referenceID | `range`, `select` | Read a document''s parsed content |
+
+        | `head` | referenceID | `n` | First N sections (default 10) |
+
+        | `stat` | referenceID *or* entityID | — | Metadata only |
+
+        | `find` | — | `filter`, `limit`, `cursor` | List canonical entities |
+
+        | `open` | entityID | — | Entity detail + all mentions |
+
+        | `xref` | entityID | `limit`, `cursor` | Sections across docs mentioning an entity |
+
+
+        **`path`** is the positional identifier. For doc ops (`cat`, `head`,
+
+        `stat`), pass a `referenceID` from `ls`. For entity ops (`open`,
+
+        `xref`), pass an `entityID` from `find`. `grep` optionally takes a
+
+        `path` to scope search to one document.
+
+
+        ## Examples
+
+
+        **List documents:**
+
+        `{"op": "ls"}`
+
+
+        **Search one document:**
+
+        `{"op": "grep", "path": "my-doc-001", "pattern": "holiday", "scope": "sections"}`
+
+
+        **Read one page:**
+
+        `{"op": "cat", "path": "my-doc-001", "range": {"page": 7}}`
+
+
+        **Read a page range:**
+
+        `{"op": "cat", "path": "my-doc-001", "range": {"pageRange": [5, 10]}}`
+
+
+        **Project section labels and pages only:**
+
+        `{"op": "cat", "path": "my-doc-001", "select": ["sections.label", "sections.page", "sections.type"]}`
+
+
+        **Preview first 5 sections:**
+
+        `{"op": "head", "path": "my-doc-001", "n": 5}`
+
+
+        **Document metadata:**
+
+        `{"op": "stat", "path": "my-doc-001"}`
+
+
+        **List entities:**
+
+        `{"op": "find"}`
+
+
+        **Entity detail + mentions:**
+
+        `{"op": "open", "path": "ent_abc123"}`
+
+
+        **Cross-document sections for an entity:**
+
+        `{"op": "xref", "path": "ent_abc123"}`
+
+
+        ## Key details
+
+
+        `range` is an **object** with optional keys: `page` (integer),
+
+        `pageRange` (two-element array `[from, to]`), `sectionTypes`
+
+        (array of strings like `["table", "heading"]`).
+
+
+        `select` is an **array of strings** — dotted paths like
+
+        `["sections.label", "sections.page"]`.
+
+
+        `scope` (grep) is one of `"sections"`, `"entities"`,
+
+        `"relationships"`, or `"all"` (default).
+
+
+        ## Pagination
+
+
+        List ops (`ls`, `find`) paginate by cursor: pass the last item''s
+
+        `nextCursor` from a previous response to fetch the next page;
+
+        `hasMore: false` signals the last page. Same idiom as `/v3/calls`
+
+        and `/v3/outputs`.'
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FSResponse'
+      tags:
+      - File System
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FSRequest'
+components:
+  schemas:
+    FSResponse:
+      type: object
+      required:
+      - op
+      - data
+      properties:
+        op:
+          allOf:
+          - $ref: '#/components/schemas/FSOp'
+          description: The op echoed back.
+        data:
+          description: Op-specific payload. See per-op shapes below.
+        hasMore:
+          type: boolean
+          description: True when more pages exist for cursor-paginated ops.
+        nextCursor:
+          type: string
+          description: 'Cursor to pass as `cursor` in the next request to fetch the next
+
+            page. Empty when `hasMore=false`.'
+        count:
+          type: integer
+          description: 'Set for ops that return a count rather than a list (`grep` with
+
+            `countOnly=true`) or as a sanity check on lists.'
+        hint:
+          type: string
+          description: 'Optional human-readable note. Surfaced on memory-level ops
+
+            (`find` / `open` / `xref`) when the corpus has no memory-linked
+
+            docs, pointing users at the `linkAcrossDocuments` toggle on the
+
+            parse function.'
+      description: 'Uniform response shape returned for every `op`. `data` is op-specific
+
+        JSON (a list, an object, or a string), but the wrapper is constant
+
+        so a client only learns one parse path.'
+    FSContext:
+      type: object
+      properties:
+        bucket:
+          type: string
+          description: 'Bucket KSUID (prefix `bkt_`) to scope the request to — a named partition
+
+            of the knowledge graph within the caller''s account+environment.
+
+
+            **Optional.** Omitting it (or passing an empty value) leaves the request
+
+            UNSCOPED: memory-level reads (`find` / `open` / `xref`) return entities
+
+            across every bucket in the account+environment, so pre-bucket callers
+
+            keep their original all-entities behavior unchanged. (Writes are
+
+            different: a parse call with no bucket targets the account default
+
+            bucket.) When a bucket IS supplied, memory-level ops return only entities
+
+            in that bucket; doc-level ops (`ls`/`cat`/`head`/`stat`/`grep`) are
+
+            unaffected either way — documents are not bucket-partitioned. A bucket
+
+            that does not belong to the caller''s account+environment is rejected.'
+      description: 'Request-scoping concerns that are orthogonal to the op itself. Carried on a
+
+        `context` object so future scoping hints (e.g. as-of timestamps, read
+
+        consistency) can slot in without reshaping the op-specific fields.'
+    FSRange:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Restrict sections to one page (1-indexed).
+        pageRange:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+          description: 'Restrict sections to an inclusive page range. Two-element array of
+
+            `[from, to]` (both 1-indexed).'
+        sectionTypes:
+          type: array
+          items:
+            type: string
+          description: 'Keep only sections whose `type` matches one of these (e.g.
+
+            `["table", "list"]`).'
+      description: Slice the parse output along page or section dimensions. Used with `op=cat`.
+    FSOp:
+      type: string
+      enum:
+      - ls
+      - find
+      - open
+      - cat
+      - grep
+      - xref
+      - stat
+      - head
+      description: 'Operations exposed by `POST /v3/fs`.
+
+
+        The verbs and their flag names mirror Unix tools so an LLM agent''s
+
+        existing vocabulary maps directly:
+
+
+        - `ls` — list parsed documents
+
+        - `cat` — read one parsed doc (optionally sliced by range / projected by select)
+
+        - `grep` — substring or regex search across parse outputs
+
+        - `head` — first N sections of one doc
+
+        - `stat` — metadata only (page count, section count, parsed at, ...)
+
+        - `find` — list canonical entities (cross-doc memory)
+
+        - `open` — entity + mentions
+
+        - `xref` — entity → sections across docs that mention it
+
+
+        Doc-level ops (ls, cat, grep, head, stat) work on every parsed
+
+        document, regardless of how the parse function was configured.
+
+
+        Memory-level ops (find, open, xref) operate on the global entities
+
+        table which is only populated when the parse function had
+
+        `linkAcrossDocuments: true`. On environments with no memory-linked
+
+        docs they return empty data with a hint pointing at the toggle.'
+    FSFilter:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Match an entity's `type` field exactly (e.g. `"drug"`, `"study"`).
+        search:
+          type: string
+          description: 'Substring match on canonical name (entities) or `referenceID`
+
+            (parsed docs). Case-insensitive.'
+        functionName:
+          type: string
+          description: Match a parsed doc's source function name exactly.
+        since:
+          type: string
+          format: date-time
+          description: Restrict to resources created at or after this timestamp.
+      description: Filter options for `op=ls` and `op=find`.
+    FSRequest:
+      type: object
+      required:
+      - op
+      properties:
+        op:
+          allOf:
+          - $ref: '#/components/schemas/FSOp'
+          description: The operation to run. Required.
+        context:
+          allOf:
+          - $ref: '#/components/schemas/FSContext'
+          description: 'Request-scoping context (currently just the bucket scope). Optional;
+
+            when omitted the request resolves against the account+environment default
+
+            bucket. See `FSContext`.'
+        path:
+          type: string
+          description: 'Identifier for ops that operate on a single resource:
+
+            - cat / head / stat: a parsed document, by `referenceID` or
+
+            `transformationID`.
+
+            - open / xref / stat: an entity, by `entityID`.'
+        pattern:
+          type: string
+          description: Substring or regex pattern for `op=grep`.
+        regex:
+          type: boolean
+          description: When true, `pattern` is interpreted as a Go regex. Default false.
+        ignoreCase:
+          type: boolean
+          description: When true (default), substring/regex matching is case-insensitive.
+        scope:
+          type: string
+          description: 'Restricts grep to one part of the parse output. One of
+
+            `"sections"`, `"entities"`, `"relationships"`, `"all"` (default).'
+        countOnly:
+          type: boolean
+          description: 'When true, return only the hit count without snippet payload.
+
+            Cheaper than fetching matches when the agent only wants a yes/no.'
+        filter:
+          allOf:
+          - $ref: '#/components/schemas/FSFilter'
+          description: Narrows results for `op=ls` and `op=find`.
+        range:
+          allOf:
+          - $ref: '#/components/schemas/FSRange'
+          description: Slices the parse output for `op=cat`.
+        select:
+          type: array
+          items:
+            type: string
+          description: 'Project the parse output to specific dotted paths
+
+            (e.g. `["sections.label", "sections.page"]`), letting an agent map
+
+            a doc''s structure cheaply before reading content. Used with
+
+            `op=cat`.'
+        n:
+          type: integer
+          description: First-N count for `op=head`. Defaults to 10.
+        limit:
+          type: integer
+          description: Maximum results to return. Defaults vary per op (25–50).
+        cursor:
+          type: string
+          description: 'Pagination cursor. Pass the last item''s ID from a previous response
+
+            (`nextCursor`) to fetch the next page.'
+      description: Request body for `POST /v3/fs`. Op-specific fields apply per op.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

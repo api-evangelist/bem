@@ -1,0 +1,122 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Feedback API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Feedback
+  description: 'Submit training corrections for `extract`, `classify`, and `join` events.
+
+
+    Feedback is event-centric — each correction is attached to an event by its `eventID`,
+
+    and the server resolves the correct underlying storage (extract/join transformations
+
+    or classify route events) from the event''s function type.
+
+
+    Split and enrich function types do not support feedback.'
+paths:
+  /v3/events/{eventID}/feedback:
+    post:
+      operationId: v3-submit-event-feedback
+      summary: Submit Event Feedback
+      description: '**Submit a correction for an event.**
+
+
+        Accepts training corrections for `extract`, `classify`, and `join` events.
+
+        For extract/join events, `correction` is a JSON object matching the function''s
+
+        output schema. For classify events, `correction` is a JSON string matching
+
+        one of the function version''s declared classifications.
+
+
+        Submitting feedback again for the same event overwrites the previous correction.
+
+
+        Unsupported function types (split, enrich) return `400`.'
+      parameters:
+      - name: eventID
+        in: path
+        required: true
+        description: The unique identifier of the event being corrected.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+      tags:
+      - Feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+components:
+  schemas:
+    FeedbackResponse:
+      type: object
+      required:
+      - eventID
+      - functionType
+      - correction
+      - createdAt
+      properties:
+        eventID:
+          type: string
+        functionType:
+          $ref: '#/components/schemas/FeedbackFunctionType'
+        correction: {}
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp when the correction was persisted (RFC 3339).
+      description: Echoed response after a correction is recorded.
+    FeedbackFunctionType:
+      type: string
+      enum:
+      - extract
+      - classify
+      - join
+      description: Function types that support feedback submission.
+    FeedbackRequest:
+      type: object
+      required:
+      - correction
+      properties:
+        correction: {}
+        orderMatching:
+          type: boolean
+      description: 'Correction payload for V3 event feedback.
+
+
+        `correction` is polymorphic:
+
+        - For extract/join events: a JSON object matching the function''s output schema.
+
+        - For classify events: a JSON string matching one of the function version''s declared classifications.
+
+
+        `orderMatching` is honored only for extract events (defaults to `false`); ignored for join/classify.'
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

@@ -1,0 +1,246 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Review Queue API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Review Queue
+  description: "The reviewer-facing read surface for entity curation, available on the\ndashboard (JWT) only.\n\n- **`GET /v3/review-queue`** returns a cursor-paginated set of entities\n  awaiting curation, scoped to your account+environment (and optional\n  `bucket`). Each row is a full entity plus a small preview (up to 2) of\n  its first mentions, so a reviewer can triage without opening every\n  entity.\n\nFilters AND together. `status` (repeatable) defaults to the pre-terminal\nstates `extracted` + `proposed` when omitted. `type` (repeatable `ety_…`\nIDs) matches the entity's *effective* type — its assigned type id, or, for\nentities with no assigned type, its bem-inferred type name. `assignedTo`\n(`me` or a `usr_…` ID) restricts to entities whose effective type the user\nreviews. `since` (RFC3339) filters by creation time. Pagination is\ncursor-based on `entityID` ascending; default limit 50, maximum 200."
+paths:
+  /v3/review-queue:
+    get:
+      operationId: v3-list-review-queue
+      summary: List Review Queue
+      description: '**List entities awaiting curation, for a human reviewer''s queue.**
+
+
+        Returns a cursor-paginated set of entities scoped to your
+
+        account+environment (and optional `bucket`), each carrying a small preview
+
+        of its first mentions so a reviewer can triage without opening every
+
+        entity. All filters AND together.
+
+
+        - **`status`** (repeatable) restricts to the given lifecycle states.
+
+        Omitting it defaults to the pre-terminal states `extracted` and
+
+        `proposed`.
+
+        - **`type`** (repeatable, `ety_...` IDs) matches the entity''s *effective*
+
+        type: an entity matches when its assigned type is one of these IDs, or it
+
+        has no assigned type and its bem-inferred type name matches one of them.
+
+        - **`assignedTo`** (`me` or a `usr_...` ID) restricts to entities whose
+
+        effective type the given user reviews. `me` resolves to the calling user.
+
+        - **`since`** (RFC3339) restricts to entities created at or after the time.
+
+
+        Pagination is cursor-based on `entityID` ascending; default limit is 50,
+
+        maximum 200.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        description: Restrict to these lifecycle states. Defaults to `extracted` + `proposed`.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: type
+        in: query
+        required: false
+        description: Restrict to entities whose effective type is one of these `ety_...` IDs.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: assignedTo
+        in: query
+        required: false
+        description: '`me` or a `usr_...` ID — restrict to entities whose effective type that user reviews.'
+        schema:
+          type: string
+        explode: false
+      - name: since
+        in: query
+        required: false
+        description: RFC3339 timestamp — restrict to entities created at or after this time.
+        schema:
+          type: string
+        explode: false
+      - name: cursor
+        in: query
+        required: false
+        description: Cursor — an `entityID` defining your place in the list.
+        schema:
+          type: string
+        explode: false
+      - name: bucket
+        in: query
+        required: false
+        description: Optional bucket public ID (`bkt_...`) to scope to. Omit for all buckets.
+        schema:
+          type: string
+        explode: false
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 200
+          default: 50
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewQueueResponseV3'
+      tags:
+      - Review Queue
+components:
+  schemas:
+    ReviewQueueMentionV3:
+      type: object
+      required:
+      - mentionID
+      - entityID
+      - referenceID
+      - page
+      - surface
+      - createdAt
+      properties:
+        mentionID:
+          type: string
+          description: Public ID (`emn_...`) of this mention.
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the entity this mention resolves to.
+        referenceID:
+          type: string
+          description: The user-provided document handle this mention came from.
+        transformationID:
+          type: string
+          description: Public ID of the parse transformation that produced this mention, when known.
+        page:
+          type: integer
+          format: int32
+          description: 1-indexed page number within the source document.
+        sectionLabel:
+          type: string
+          description: The parse-emitted section label this mention sat under, when present.
+        surface:
+          type: string
+          description: The exact surface string Parse extracted on the page.
+        createdAt:
+          type: string
+          format: date-time
+          description: When this mention was recorded.
+      description: A single per-document occurrence of an entity, used in review-queue previews.
+    ReviewQueueEntityV3:
+      type: object
+      required:
+      - entityID
+      - canonical
+      - type
+      - mentionCount
+      - surfaceForms
+      - createdAt
+      - updatedAt
+      - status
+      - previewMentions
+      properties:
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the entity.
+        canonical:
+          type: string
+          description: The canonical (longest / most descriptive) surface form.
+        type:
+          type: string
+          description: The effective type name (assigned override if set, else bem-inferred).
+        description:
+          type: string
+          description: Free-form description of the entity, when present.
+        mentionCount:
+          type: integer
+          format: int32
+          description: Total mentions across all parsed documents.
+        surfaceForms:
+          type: array
+          items:
+            type: string
+          description: Distinct surface forms that have resolved to this entity.
+        createdAt:
+          type: string
+          format: date-time
+          description: When the entity was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the entity was last updated.
+        status:
+          type: string
+          description: 'Curation lifecycle state: `extracted`, `proposed`, `approved`, `rejected`.'
+        typeID:
+          type: string
+          description: Public ID (`ety_...`) of the customer-assigned type, when one is set.
+        validatedAt:
+          type: string
+          format: date-time
+          description: When a human approved/rejected the entity. Omitted while un-validated.
+        validatedByUserID:
+          type: string
+          description: Public ID (`usr_...`) of the user who validated the entity, when known.
+        previewMentions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueMentionV3'
+          description: 'A capped preview (up to 2) of the entity''s first mentions, ordered by
+
+            page then time, so a reviewer can triage without opening each entity.'
+      description: 'One row of the review queue: an entity plus a small preview of its mentions.'
+    ReviewQueueResponseV3:
+      type: object
+      required:
+      - entities
+      - hasMore
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueEntityV3'
+          description: The page of entities awaiting curation.
+        hasMore:
+          type: boolean
+          description: Whether more rows exist beyond this page.
+        nextCursor:
+          type: string
+          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
+      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header

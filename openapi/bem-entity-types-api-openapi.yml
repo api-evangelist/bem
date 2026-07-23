@@ -1,0 +1,249 @@
+openapi: 3.1.0
+info:
+  title: Bem Buckets Entity Types API
+  version: 1.0.0
+  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+servers:
+- url: https://api.bem.ai
+  description: US Region API
+  variables: {}
+- url: https://api.eu1.bem.ai
+  description: EU Region API
+  variables: {}
+security:
+- API Key: []
+tags:
+- name: Entity Types
+  description: "Entity Types are the customer-defined taxonomy for the knowledge graph,\nscoped to an account+environment. Each type has a unique, immutable name\nand can be organised into hierarchies via `parentTypeID`. A type may\ncarry per-type structured attribute metadata in `attributeSchema` (for\nexample `{\"unit\": \"mg\", \"range\": [0, 100]}`).\n\nUse these endpoints to create, list, fetch, update, and delete entity\ntypes:\n\n- **`POST /v3/entity-types`** creates a type, optionally under a parent.\n- **`GET /v3/entity-types`** lists types with cursor pagination\n  (`startingAfter` / `endingBefore` over `typeID`) and an optional\n  `parentTypeId` filter for direct children.\n- **`PATCH /v3/entity-types/{typeID}`** updates `description`,\n  `parentTypeID`, and/or `attributeSchema`. The `name` is immutable.\n- **`DELETE /v3/entity-types/{typeID}`** soft-deletes a type. The request\n  is rejected with `409 Conflict` while any live entity is assigned to\n  the type or any live child type points at it."
+paths:
+  /v3/entity-types:
+    post:
+      operationId: v3-create-entity-type
+      summary: Create an Entity Type
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypeV3'
+      tags:
+      - Entity Types
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityTypeCreateRequestV3'
+            examples:
+              Create entity type:
+                summary: Create entity type
+                value:
+                  name: Drug
+                  description: A pharmaceutical compound
+    get:
+      operationId: v3-list-entity-types
+      summary: List Entity Types
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of entity types to return (default 50, max 200).
+        schema:
+          type: integer
+          format: int32
+        explode: false
+      - name: startingAfter
+        in: query
+        required: false
+        description: 'Cursor: return types whose `typeID` sorts after this value.'
+        schema:
+          type: string
+        explode: false
+      - name: endingBefore
+        in: query
+        required: false
+        description: 'Cursor: return types whose `typeID` sorts before this value.'
+        schema:
+          type: string
+        explode: false
+      - name: parentTypeId
+        in: query
+        required: false
+        description: Filter to the direct children of this parent type (`ety_...`).
+        schema:
+          type: string
+        explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypeListResponseV3'
+      tags:
+      - Entity Types
+  /v3/entity-types/{typeID}:
+    get:
+      operationId: v3-get-entity-type
+      summary: Get an Entity Type
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypeV3'
+      tags:
+      - Entity Types
+    patch:
+      operationId: v3-update-entity-type
+      summary: Update an Entity Type
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypeV3'
+      tags:
+      - Entity Types
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityTypeUpdateRequestV3'
+    delete:
+      operationId: v3-delete-entity-type
+      summary: Delete an Entity Type
+      parameters:
+      - name: typeID
+        in: path
+        required: true
+        description: Entity type public ID (`ety_...`).
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+      - Entity Types
+components:
+  schemas:
+    EntityTypeV3:
+      type: object
+      required:
+      - typeID
+      - name
+      - description
+      - parentTypeID
+      - createdAt
+      - updatedAt
+      properties:
+        typeID:
+          type: string
+          description: Stable public identifier for the entity type (`ety_...`).
+        name:
+          type: string
+          description: Human-facing type name. Unique within an account+environment, and immutable once set.
+        description:
+          type: string
+          description: Optional human-facing note about the type.
+        parentTypeID:
+          type: string
+          description: 'Public ID (`ety_...`) of the parent type, or an empty string when the
+
+            type is top-level.'
+        attributeSchema:
+          description: Optional per-type structured attribute metadata.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp (RFC 3339).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-update timestamp (RFC 3339).
+      description: 'An EntityType is a customer-defined type in the knowledge-graph taxonomy,
+
+        scoped to an account+environment. Types may be organised into hierarchies
+
+        via `parentTypeID`, and may carry per-type structured attribute metadata in
+
+        `attributeSchema` (for example `{"unit": "mg", "range": [0, 100]}`).'
+    EntityTypeUpdateRequestV3:
+      type: object
+      properties:
+        description:
+          type: string
+          description: New description.
+        parentTypeID:
+          type: string
+          description: 'New parent type public ID (`ety_...`), or an empty string to clear the
+
+            parent (promote to top-level). Must belong to the same
+
+            account+environment and may not be the type itself.'
+        attributeSchema:
+          description: New per-type structured attribute metadata.
+      description: 'Request body to update an entity type. Only the fields present are changed.
+
+        `name` is intentionally not updatable — it is immutable because external
+
+        references key off it.'
+    EntityTypeCreateRequestV3:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Type name. Required and unique within the account+environment.
+        description:
+          type: string
+          description: Optional description.
+        parentTypeID:
+          type: string
+          description: 'Optional public ID (`ety_...`) of the parent type. Must belong to the
+
+            same account+environment.'
+        attributeSchema:
+          description: Optional per-type structured attribute metadata.
+      description: Request body to create an entity type.
+    EntityTypeListResponseV3:
+      type: object
+      required:
+      - entityTypes
+      - totalCount
+      properties:
+        entityTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeV3'
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of entity types matching the query, ignoring pagination.
+      description: Response body for listing entity types.
+  securitySchemes:
+    API Key:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Authenticate using API Key in request header
