@@ -1,0 +1,47 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/bem-openapi-original.yml
+docs: https://docs.bem.ai/guide/errors
+format: custom-json
+note: >-
+  bem does NOT use RFC 9457 application/problem+json. Every non-2xx response is
+  a custom JSON envelope { message, code, details }. This catalog is derived from
+  the OpenAPI 4xx/5xx responses and enriched from the docs error reference.
+envelope:
+  message: {type: string, required: true}
+  code: {type: integer, required: false}
+  details: {type: object, required: false}
+status_codes:
+- {status: 200, meaning: Success with body, context: reads; completed wait=true calls}
+- {status: 202, meaning: Accepted for async processing, context: workflow calls without wait=true; eval queueing}
+- {status: 204, meaning: Success no body, context: deletes}
+- {status: 207, meaning: Partial success, context: batch updates with mixed outcomes}
+problems:
+- status: 400
+  title: Invalid request
+  meaning: Schema violations, malformed schemas
+  operation_count: 16
+  retry: false
+- status: 401
+  title: Unauthorized
+  meaning: Missing or revoked x-api-key header
+  operation_count: 1
+  retry: false
+- status: 404
+  title: Resource not found
+  meaning: Wrong workflow/function name or environment
+  operation_count: 11
+  retry: false
+- status: 422
+  title: Semantically invalid
+  meaning: Valid syntax but violated constraints (e.g. invalid node references)
+  retry: false
+- status: 429
+  title: Rate limited
+  meaning: Too many requests; back off and retry
+  retry: true
+- status: 500
+  title: Server error
+  meaning: Internal error; retryable with backoff
+  operation_count: 7
+  retry: true

@@ -1,0 +1,32 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Bem API
+  version: 1.0.0
+extends: openapi/bem-openapi-original.yml
+actions:
+- target: $.info
+  update:
+    x-apievangelist-enriched: '2026-07-18'
+    x-apievangelist-artifacts:
+      authentication: authentication/bem-authentication.yml
+      conventions: conventions/bem-conventions.yml
+      errors: errors/bem-problem-types.yml
+      lifecycle: lifecycle/bem-lifecycle.yml
+      data-model: data-model/bem-data-model.yml
+      webhooks: asyncapi/bem-webhooks.yml
+      mcp: mcp/bem-mcp.yml
+      packages: packages/bem-packages.yml
+      trust-center: security/bem-trust-center.yml
+- target: $.info
+  update:
+    x-idempotency:
+      supported: true
+      field: callReferenceID
+      scope: per-workflow
+      source: https://docs.bem.ai/guide/polling-and-retries
+- target: $.info
+  update:
+    x-webhooks:
+      signature_header: bem-signature
+      scheme: HMAC-SHA256
+      source: https://docs.bem.ai/guide/webhooks

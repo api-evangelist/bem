@@ -1,0 +1,67 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.bem.ai/guide/polling-and-retries
+docs:
+  errors: https://docs.bem.ai/guide/errors
+  webhooks: https://docs.bem.ai/guide/webhooks
+  polling: https://docs.bem.ai/guide/polling-and-retries
+  authentication: https://docs.bem.ai/api/v3/authentication
+base_url: https://api.bem.ai
+regions:
+- {region: US, base_url: https://api.bem.ai}
+- {region: EU, base_url: https://api.eu1.bem.ai, note: EU data sovereignty; EEA traffic stays on EU infrastructure}
+version_prefix: /v3
+authentication:
+  style: api-key
+  header: x-api-key
+  env_var: BEM_API_KEY
+  notes: Keys generated in the dashboard under Settings -> API Keys.
+idempotency:
+  supported: true
+  mechanism: client-supplied reference id
+  field: callReferenceID
+  scope: per-workflow
+  behavior: >-
+    Resubmitting the same callReferenceID against the same workflow returns the
+    existing call instead of creating a new one, so network failures can be
+    retried without producing duplicates.
+  retention: short
+  guidance: Reference id must be deterministic from your domain (invoice id, document UUID); random values defeat deduplication.
+execution_modes:
+  synchronous:
+    param: wait=true
+    hold: up to 30 seconds
+    returns: 200 OK with results if complete within the window, else 202 Accepted
+  asynchronous:
+    default: true
+    completion: via polling or webhooks
+polling:
+  initial_delay: 500ms-1s
+  backoff: exponential with jitter, doubling, capped ~10s
+  max_rate: ~2 calls/sec
+retries:
+  retry_on: [408, 429, 500, 502, 503, 504]
+  do_not_retry: [400, 401, 404, 422]
+  strategy: exponential backoff (handled by official SDKs by default)
+error_envelope:
+  format: custom-json
+  content_type: application/json
+  fields:
+    message: {type: string, required: true, note: operator-safe human-readable description}
+    code: {type: integer, required: false, note: mirrors HTTP status when present}
+    details: {type: object, required: false, note: field-level context for 400/422}
+  partial_success:
+    http: 207 Multi-Status (batch operations)
+    call_level: call.errors[] and call.outputs[] are not mutually exclusive on 200/202 responses
+rate_limiting:
+  signal: HTTP 429 with backoff expected
+webhooks:
+  signature_header: bem-signature
+  scheme: HMAC-SHA256 over "{timestamp}.{raw_body}", format t=<timestamp>,v1=<hex>
+  tolerance: reject timestamps older than ~5 minutes
+  envelope: none (body is the event itself)
+cross_reference:
+  errors: errors/bem-problem-types.yml
+  lifecycle: lifecycle/bem-lifecycle.yml
+  authentication: authentication/bem-authentication.yml
+  webhooks: asyncapi/bem-webhooks.yml

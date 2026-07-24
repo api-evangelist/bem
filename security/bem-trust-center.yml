@@ -1,0 +1,19 @@
+generated: '2026-07-18'
+method: searched
+probe: false
+url: https://trust.bem.ai
+platform: Vanta
+source: https://www.bem.ai/security
+certifications:
+- SOC 2 Type II
+- HIPAA
+- GDPR
+resources:
+- SOC 2 reports
+- penetration test summaries
+- SIG questionnaires
+- subprocessor lists
+access: Documentation distributed under NDA within one business day via the trust center.
+evidence:
+- {source: https://www.bem.ai/security, keywords: [soc 2 type ii, hipaa, gdpr, trust center]}
+- {source: https://trust.bem.ai, keywords: [trust, security, compliance], note: Vanta-hosted trust center}

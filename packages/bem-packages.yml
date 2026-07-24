@@ -1,0 +1,55 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.bem.ai/guide/sdks
+packages:
+- language: typescript
+  registry: npm
+  name: bem-ai-sdk
+  url: https://www.npmjs.com/package/bem-ai-sdk
+  install: npm install bem-ai-sdk
+  repo: https://github.com/bem-team/bem-typescript-sdk
+  version: 0.28.0
+  official: true
+- language: python
+  registry: pypi
+  name: bem-sdk
+  url: https://pypi.org/project/bem-sdk/
+  install: pip install bem-sdk
+  repo: https://github.com/bem-team/bem-python-sdk
+  version: 0.30.0
+  official: true
+- language: go
+  registry: pkg.go.dev
+  name: github.com/bem-team/bem-go-sdk
+  url: https://pkg.go.dev/github.com/bem-team/bem-go-sdk
+  install: go get github.com/bem-team/bem-go-sdk
+  repo: https://github.com/bem-team/bem-go-sdk
+  official: true
+- language: csharp
+  registry: nuget
+  name: Bem
+  url: https://www.nuget.org/packages/Bem
+  install: dotnet add package Bem
+  repo: https://github.com/bem-team/bem-csharp-sdk
+  official: true
+- language: go
+  registry: homebrew
+  name: bem
+  install: brew install bem-team/tools/bem
+  repo: https://github.com/bem-team/bem-cli
+  kind: cli
+  official: true
+- language: typescript
+  registry: npm
+  name: bem-ai-sdk-mcp
+  url: https://www.npmjs.com/package/bem-ai-sdk-mcp
+  install: npx -y bem-ai-sdk-mcp
+  kind: mcp-server
+  official: true
+- language: hcl
+  registry: terraform
+  name: bem-team/bem
+  url: https://registry.terraform.io/providers/bem-team/bem
+  repo: https://github.com/bem-team/terraform-provider-bem
+  kind: terraform-provider
+  official: true

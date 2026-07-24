@@ -1,7 +1,29 @@
 aid: bem
 name: Bem
-description: Bem is a company surfaced as a portfolio company of uncork-capital and added to the API Evangelist
-  network as a stub for enrichment. This profile is a lead awaiting the enrichment pipeline.
+description: >-
+  Bem is the production layer for unstructured data. Its API turns inbound
+  documents — PDFs, images, video, audio, and email — into structured JSON
+  against a schema you define, using versioned, LLM-powered functions (extract,
+  classify, parse, split, join, enrich, payload-shaping, and send) composed into
+  reusable workflows. Bem automates document-heavy tasks such as invoice
+  handling, claims adjudication, and data onboarding, with automatic schema
+  inference, strict type enforcement, confidence scoring and drift detection,
+  human-in-the-loop review, webhooks, and a knowledge graph. It offers US and EU
+  regional endpoints, official SDKs, a CLI, a Terraform provider, and an MCP
+  server, and is SOC 2 Type II, HIPAA, and GDPR compliant.
+accessModel:
+  pricing: unknown
+  onboarding: self-serve
+  trial: false
+  try_now: false
+  public: false
+  label: Self-serve signup
+  confidence: medium
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
+image: https://avatars.githubusercontent.com/u/151673182?v=4
 url: https://raw.githubusercontent.com/api-evangelist/bem/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
@@ -11,12 +33,972 @@ x-tier: stub
 x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-18'
 tags:
 - Company
-apis: []
+- Document Processing
+- Unstructured Data
+- Data Extraction
+- Artificial Intelligence
+- LLM
+- ETL
+- Schema Inference
+- Webhooks
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+apis:
+- aid: bem:bem-buckets-api
+  name: Bem Buckets API
+  description: >-
+    Buckets are named partitions of the knowledge graph within an
+
+    account+environment. Entities, mentions, and relations are scoped to a
+
+    bucket so a single account+environment can host multiple isolated graphs
+
+    — for example one per data source or workspace.
+
+
+    Every account+environment has exactly one **default** bucket, used by
+
+    unscoped flows. The default bucket can be renamed but never deleted.
+
+
+    Use these endpoints to create, list, fetch, rename, and delete buckets:
+
+
+    - **`POST /v3/buckets`** creates a non-default bucket.
+
+    - **`GET /v3/buckets`** lists buckets with cursor pagination
+      (`startingAfter` / `endingBefore` over `bucketID`).
+    - **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.
+
+    - **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty
+      bucket is rejected with `409 Conflict` unless `?cascade=true` is
+      passed; the default bucket can never be deleted.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Buckets
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-buckets-api-openapi.yml
+- aid: bem:bem-calls-api
+  name: Bem Calls API
+  description: >-
+    The Calls API provides a unified interface for invoking both **Workflows** and **Functions**.
+
+
+    Use this API when you want to:
+
+    - Execute a complete workflow that chains multiple functions together
+
+    - Call a single function directly without defining a workflow
+
+    - Submit batch requests with multiple inputs in a single API call
+
+    - Track execution status using call reference IDs
+
+
+    **Key Difference**: Calls vs Function Calls
+
+    - **Calls API** (`/v3/calls`): High-level API for invoking workflows or functions by name/ID. Supports
+    batch processing and workflow orchestration.
+
+    - **Function Calls API** (`/v3/functions/{functionName}/call`): Direct function invocation with function-type-specific
+    arguments. Better for granular control over individual function calls.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Calls
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-calls-api-openapi.yml
+- aid: bem:bem-collections-api
+  name: Bem Collections API
+  description: >-
+    Collections are named groups of embedded items used by Enrich functions for semantic search.
+
+
+    Each collection is referenced by a `collectionName`, which supports dot notation for
+
+    hierarchical paths (e.g. `customers.premium.vip`). Names must contain only letters,
+
+    digits, underscores, and dots, and each segment must start with a letter or underscore.
+
+
+    ## Items
+
+
+    Items carry either a string or a JSON object in their `data` field. When items are added
+
+    or updated, their `data` is embedded asynchronously — `POST /v3/collections/items` and
+
+    `PUT /v3/collections/items` return immediately with a `pending` status and an `eventID`
+
+    that can be correlated with webhook notifications once processing completes.
+
+
+    ## Listing and hierarchy
+
+
+    Use `GET /v3/collections` with `parentCollectionName` to list collections under a path,
+
+    or `collectionNameSearch` for a case-insensitive substring match. `GET /v3/collections/items`
+
+    retrieves a specific collection's items; pass `includeSubcollections=true` to fold in items
+
+    from all descendant collections.
+
+
+    ## Token counting
+
+
+    Use `POST /v3/collections/token-count` to check whether texts fit within the embedding
+
+    model's 8,192-token-per-text limit before submitting them for embedding.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Collections
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-collections-api-openapi.yml
+- aid: bem:bem-connectors-api
+  name: Bem Connectors API
+  description: >-
+    Connectors are integrations that trigger a Bem workflow from an external system.
+
+
+    A connector binds an inbound source — currently Box or a Paragon-managed integration such as
+
+    Google Drive — to a specific workflow (by `workflowName` or `workflowID`). When the source
+
+    observes a new file, Bem invokes the bound workflow against that file.
+
+
+    Use these endpoints to create, list, and remove connectors. The fields used at create time
+
+    depend on the connector `type`: Box connectors require Box credentials and a folder to watch,
+
+    while Paragon connectors carry a `paragonIntegration` identifier and an integration-specific
+
+    `paragonConfiguration` object (for example, `{ "folderId": "..." }` for Google Drive).
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Connectors
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-connectors-api-openapi.yml
+- aid: bem:bem-entity-bulk-seed-api
+  name: Bem Entity Bulk Seed API
+  description: >-
+    Seed the knowledge graph with a batch of customer-authored canonical
+
+    entities in one request — their types, descriptions, synonyms, and
+
+    per-entity attributes.
+
+
+    - **`POST /v3/entities/bulk`** creates or merges each entity into a single
+      bucket (the optional `bucket` reference, else the account+environment
+      default). For each row the entity's `type` is resolved or created in
+      your taxonomy, the entity is upserted on its normalized canonical, and
+      any `synonyms` are attached as `customer_defined`. An entity that
+      already exists is **merged** (`onConflict: "merge"`): synonyms are added
+      additively, a longer `description` replaces the old one, and
+      `attributes` are merged with new keys winning.
+    - Small batches (fewer than 100 entities) process **synchronously** and
+      return `200` with a per-row `results` array and a `summary`.
+    - Larger batches process **asynchronously**: the call returns `202` with a
+      `seedJobID` and a `statusURL`. Poll **`GET /v3/entities/seed/{id}`**
+      until `status` is `completed` (or `failed`); the completed response
+      includes the per-row `results`.
+
+    Each row's outcome is one of `created`, `merged-with`, or `rejected` (with
+
+    a `reason`, e.g. an attribute key not declared in the type's schema).
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Entity Bulk Seed
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-entity-bulk-seed-api-openapi.yml
+- aid: bem:bem-entity-curation-api
+  name: Bem Entity Curation API
+  description: >-
+    Curate the knowledge graph by transitioning entities through their review
+
+    lifecycle and editing their metadata.
+
+
+    - **`PATCH /v3/entities/{id}`** updates a single entity. Every field is
+      optional but at least one is required:
+      - `status` transitions curation state to `approved` or `rejected` (only
+        from `extracted`/`proposed`; any other transition is `409 Conflict`).
+        Approving emits an `entity_validated` webhook; rejecting emits
+        `entity_rejected`.
+      - `assignedTypeID` sets (or, with the empty string, clears) the
+        customer-assigned type that overrides the bem-inferred type.
+      - `canonical` replaces the canonical surface form.
+      - `addSynonyms` / `removeSynonymIDs` attach `customer_defined` synonyms
+        or soft-delete existing ones (an `extracted` synonym cannot be
+        removed — `409 Conflict`).
+
+      A merged-away entity id transparently resolves to its surviving
+      canonical entity.
+    - **`POST /v3/entities/bulk-validate`** transitions a batch of entities to
+      `approved` or `rejected` in one request. Each row reports `validated`,
+      `skipped` (not found / not authorized), or `rejected-row` (an illegal
+      transition such as an already-terminal entity), alongside a summary.
+
+    On the dashboard (JWT) surface these actions additionally require the
+
+    acting user to be an assigned reviewer for the entity's effective type, or
+
+    to hold the `admin` role (or higher). On the API-key surface admin-key
+
+    authorization applies and no per-user reviewer check is made.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Entity Curation
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-entity-curation-api-openapi.yml
+- aid: bem:bem-entity-synonyms-api
+  name: Bem Entity Synonyms API
+  description: >-
+    Manage the human-readable surface forms (synonyms) attached to a canonical
+
+    entity. Synonyms feed the matcher's exact-match path, so adding the right
+
+    synonyms improves cross-document entity resolution.
+
+
+    - **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`
+      synonym. If the same normalized form already exists as an `extracted`
+      synonym, it is upgraded to `customer_defined` (so the matcher weights it
+      higher); an existing customer/SME synonym is returned unchanged.
+    - **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a
+      synonym. Only `customer_defined` and `sme_approved` synonyms are
+      deletable; `extracted` synonyms are resolver-owned and the request is
+      rejected with `409 Conflict`.
+
+    A merged-away entity id transparently resolves to its surviving canonical
+
+    entity, so a synonym added to a stale id lands on the entity that persists.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Entity Synonyms
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-entity-synonyms-api-openapi.yml
+- aid: bem:bem-entity-type-reviewers-api
+  name: Bem Entity Type Reviewers API
+  description: >-
+    Reviewer assignments link users to the entity types they are responsible
+
+    for reviewing, scoped to an account+environment. These are dashboard-only
+
+    endpoints: an assignment needs a user identity, which only the dashboard
+
+    (JWT) surface carries.
+
+
+    - **`POST /v3/entity-types/{typeID}/reviewers`** assigns a user as a
+      reviewer of the type. The assignment is idempotent: re-assigning an
+      existing reviewer returns the existing assignment. Requires the `admin`
+      role.
+    - **`GET /v3/entity-types/{typeID}/reviewers`** lists the users assigned
+      to review the type, with each user's email and role. Requires the
+      `operator` role.
+    - **`DELETE /v3/entity-types/{typeID}/reviewers/{userID}`** removes an
+      assignment. Requires the `admin` role.
+    - **`GET /v3/users/{userID}/reviewer-assignments`** is the reverse lookup:
+      the entity types a user reviews. A user may read their own assignments;
+      reading another user's assignments requires the `admin` role.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Entity Type Reviewers
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-entity-type-reviewers-api-openapi.yml
+- aid: bem:bem-entity-types-api
+  name: Bem Entity Types API
+  description: >-
+    Entity Types are the customer-defined taxonomy for the knowledge graph,
+
+    scoped to an account+environment. Each type has a unique, immutable name
+
+    and can be organised into hierarchies via `parentTypeID`. A type may
+
+    carry per-type structured attribute metadata in `attributeSchema` (for
+
+    example `{"unit": "mg", "range": [0, 100]}`).
+
+
+    Use these endpoints to create, list, fetch, update, and delete entity
+
+    types:
+
+
+    - **`POST /v3/entity-types`** creates a type, optionally under a parent.
+
+    - **`GET /v3/entity-types`** lists types with cursor pagination
+      (`startingAfter` / `endingBefore` over `typeID`) and an optional
+      `parentTypeId` filter for direct children.
+    - **`PATCH /v3/entity-types/{typeID}`** updates `description`,
+      `parentTypeID`, and/or `attributeSchema`. The `name` is immutable.
+    - **`DELETE /v3/entity-types/{typeID}`** soft-deletes a type. The request
+      is rejected with `409 Conflict` while any live entity is assigned to
+      the type or any live child type points at it.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Entity Types
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-entity-types-api-openapi.yml
+- aid: bem:bem-errors-api
+  name: Bem Errors API
+  description: >-
+    Retrieve terminal error events from workflow calls.
+
+
+    Errors are events produced by function steps that failed during processing. A single workflow
+
+    call may produce multiple error events if several steps fail independently.
+
+
+    Errors and outputs from the same call are not mutually exclusive: a partially-completed
+
+    workflow may have both.
+
+
+    Use `GET /v3/errors` to list errors across calls, or `GET /v3/errors/{eventID}` to retrieve
+
+    a specific error. To get errors scoped to a single call, filter by `callIDs`.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Errors
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-errors-api-openapi.yml
+- aid: bem:bem-feedback-api
+  name: Bem Feedback API
+  description: >-
+    Submit training corrections for `extract`, `classify`, and `join` events.
+
+
+    Feedback is event-centric — each correction is attached to an event by its `eventID`,
+
+    and the server resolves the correct underlying storage (extract/join transformations
+
+    or classify route events) from the event's function type.
+
+
+    Split and enrich function types do not support feedback.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Feedback
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-feedback-api-openapi.yml
+- aid: bem:bem-file-system-api
+  name: Bem File System API
+  description: >-
+    Unix-shell-style nav over parsed documents and the cross-doc memory store.
+
+
+    `POST /v3/fs` is a single op-driven endpoint designed for LLM agents
+
+    and programmatic consumers that want to walk a corpus the way they'd
+
+    walk a filesystem.
+
+
+    ## Doc-level ops (every parsed document)
+
+
+    - `ls` — list parsed documents with rich per-doc metadata.
+
+    - `cat` — read one doc's parse JSON, sliced (`range`) or projected (`select`).
+
+    - `head` — first N sections of one doc.
+
+    - `grep` — substring or regex search; `scope`, `path`, `countOnly` available.
+
+    - `stat` — metadata only (page/section/entity counts, timestamps).
+
+
+    ## Memory-level ops (require `linkAcrossDocuments: true` on the parse function)
+
+
+    - `find` — list canonical entities across the corpus.
+
+    - `open` — entity + mentions.
+
+    - `xref` — for one entity, sections across docs that mention it (with content).
+
+
+    Memory ops return an empty list with a `hint` when no docs in this
+
+    environment have been memory-linked.
+
+
+    ## Pagination
+
+
+    List ops paginate by cursor — pass the previous response's `nextCursor`
+
+    back as `cursor`; `hasMore: false` signals the last page. Same idiom as
+
+    `/v3/calls` and `/v3/outputs`.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - File System
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-file-system-api-openapi.yml
+- aid: bem:bem-function-accuracy-api
+  name: Bem Function Accuracy API
+  description: >-
+    Monitor, evaluate, and iterate on the quality of every function in your
+
+    environment. Function Accuracy bundles two complementary loops:
+
+
+    ## Evaluations (`/v3/eval`)
+
+
+    Trigger and retrieve per-transformation evaluations. Evaluations run
+
+    asynchronously and score each transformation's output against the
+
+    function's schema for confidence, per-field hallucination detection,
+
+    and relevance. Supported for `extract`, `transform`, `analyze`, and
+
+    `join` events.
+
+
+    1. **Trigger** — `POST /v3/eval` queues jobs for a batch of transformation IDs.
+
+    2. **Poll** — `GET /v3/eval/results` returns the current state of each
+       requested ID, partitioned into `results`, `pending`, and `failed`.
+       Accepts either `eventIDs` (preferred) or `transformationIDs` as a
+       comma-separated query parameter, and always keys the response by
+       event KSUID.
+
+    Up to 100 IDs may be submitted per request.
+
+
+    ## Metrics, review, regression (`/v3/functions/{metrics,review,regression,compare}`)
+
+
+    Roll evaluation results and user corrections up into actionable
+
+    function-level signal:
+
+
+    - **`GET /v3/functions/metrics`** — aggregate accuracy, precision,
+      recall, F1, and confusion-matrix counts per function.
+    - **`POST /v3/functions/review`** — sample-size estimation,
+      confidence-bucketed distribution, PR-AUC, and per-threshold
+      confidence intervals (Wald or Wilson) for picking review cutoffs.
+    - **`POST /v3/functions/regression`** — replay corrected historical
+      inputs against a new function version, producing a labeled
+      regression dataset.
+    - **`POST /v3/functions/regression/corrections`** — propagate
+      baseline corrections onto the regression dataset so it can be
+      scored.
+    - **`POST /v3/functions/compare`** — compute aggregate and
+      field-level lift between any two versions, optionally scoped to
+      the regression dataset.
+
+    All five endpoints support `extract` end-to-end on both the vision
+
+    and OCR paths, alongside the legacy `transform` / `analyze` / `join`
+
+    types.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Function Accuracy
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-function-accuracy-api-openapi.yml
+- aid: bem:bem-functions-api
+  name: Bem Functions API
+  description: >-
+    Functions are the core building blocks of data transformation in Bem. Each function type serves a
+    specific purpose:
+
+
+    - **Extract**: Extract structured JSON data from unstructured documents (PDFs, emails, images, spreadsheets),
+    with optional layout-aware bounding-box extraction
+
+    - **Route**: Direct data to different processing paths based on conditions
+
+    - **Split**: Break multi-page documents into individual pages for parallel processing
+
+    - **Join**: Combine outputs from multiple function calls into a single result
+
+    - **Parse**: Render documents into a navigable structure of page-aware sections, named entities, and
+    relationships — designed to be walked by an LLM agent via the [File System API](/api/v3/file-system)
+    (`POST /v3/fs`). Two toggles, both `true` by default: `extractEntities` controls per-document entity
+    and relationship extraction; `linkAcrossDocuments` merges entities into one canonical record per real-world
+    thing across the environment, populating cross-document memory.
+
+    - **Payload Shaping**: Transform and restructure data using JMESPath expressions
+
+    - **Enrich**: Enhance data with semantic search against collections
+
+    - **Send**: Deliver workflow outputs to downstream destinations
+
+
+    Use these endpoints to create, update, list, and manage your functions.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Functions
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-functions-api-openapi.yml
+- aid: bem:bem-knowledge-graph-api
+  name: Bem Knowledge Graph API
+  description: >-
+    Read the cross-document knowledge graph — the canonical entities and the
+
+    directed relations between them that the Parse pipeline populates when
+
+    `linkAcrossDocuments` is enabled.
+
+
+    - **`GET /v3/entities/{id}/relations`** returns the inbound and outbound
+      edges incident to one entity, split by direction. Supports
+      `direction`, an exact `relationType` filter, and cursor pagination over
+      edges. A merged-away entity id transparently resolves to its surviving
+      canonical entity.
+    - **`GET /v3/knowledge-graph`** returns the graph as `{ nodes, edges }`,
+      paginating over edges. The `nodes` for a page are the distinct endpoint
+      entities of that page's edges (both endpoints of every edge are
+      included). Filter with `type[]`, `since`, and `search`; an edge is
+      returned only when both of its endpoints survive the entity filters.
+
+    Both endpoints take an optional `bucket` (`bkt_...`) to scope the read to
+
+    a single bucket; omit it for the unscoped account+environment view.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Knowledge Graph
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-knowledge-graph-api-openapi.yml
+- aid: bem:bem-outputs-api
+  name: Bem Outputs API
+  description: >-
+    Retrieve terminal non-error output events from workflow calls.
+
+
+    Outputs are events produced by successful terminal function steps — steps that completed
+
+    without errors and did not spawn further downstream function calls. A single workflow call
+
+    may produce multiple outputs (e.g. from a split-then-transform pipeline).
+
+
+    Outputs and errors from the same call are not mutually exclusive: a partially-completed
+
+    workflow may have both.
+
+
+    Use `GET /v3/outputs` to list outputs across calls, or `GET /v3/outputs/{eventID}` to
+
+    retrieve a specific output. To get outputs scoped to a single call, filter by `callIDs`.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Outputs
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-outputs-api-openapi.yml
+- aid: bem:bem-review-queue-api
+  name: Bem Review Queue API
+  description: >-
+    The reviewer-facing read surface for entity curation, available on the
+
+    dashboard (JWT) only.
+
+
+    - **`GET /v3/review-queue`** returns a cursor-paginated set of entities
+      awaiting curation, scoped to your account+environment (and optional
+      `bucket`). Each row is a full entity plus a small preview (up to 2) of
+      its first mentions, so a reviewer can triage without opening every
+      entity.
+
+    Filters AND together. `status` (repeatable) defaults to the pre-terminal
+
+    states `extracted` + `proposed` when omitted. `type` (repeatable `ety_…`
+
+    IDs) matches the entity's *effective* type — its assigned type id, or, for
+
+    entities with no assigned type, its bem-inferred type name. `assignedTo`
+
+    (`me` or a `usr_…` ID) restricts to entities whose effective type the user
+
+    reviews. `since` (RFC3339) filters by creation time. Pagination is
+
+    cursor-based on `entityID` ascending; default limit 50, maximum 200.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Review Queue
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-review-queue-api-openapi.yml
+- aid: bem:bem-schema-inference-api
+  name: Bem Schema Inference API
+  description: >-
+    Infer JSON Schemas from uploaded documents using AI.
+
+
+    Upload a file (PDF, image, spreadsheet, email, etc.) and receive a general-purpose JSON Schema
+
+    that captures the document's structure. The inferred schema can be used directly as the
+
+    `outputSchema` when creating Extract functions.
+
+
+    The schema is designed to be broadly applicable to documents of the same type, not just
+
+    the specific file uploaded.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Schema Inference
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-schema-inference-api-openapi.yml
+- aid: bem:bem-subscriptions-api
+  name: Bem Subscriptions API
+  description: >-
+    Subscriptions wire up notifications for the events your functions and collections produce.
+
+
+    Most subscriptions target a single function (by `functionName` or `functionID`) or a single
+
+    collection (by `collectionName` or `collectionID`) and select a `type` corresponding to the
+
+    event you want to receive — for example `transform`, `route`, `join`, `evaluation`, `error`,
+
+    `enrich`, or `collection_processing`.
+
+
+    Entity-lifecycle events are account-wide and target no function or collection. Set `type` to
+
+    one of the following and provide a `webhookURL` (these event types support webhook delivery
+
+    only):
+
+
+    - `entity_proposed` — an entity entered the `proposed` curation status (queued for review).
+
+    - `entity_validated` — an entity was approved/validated by a reviewer.
+
+    - `entity_rejected` — an entity was rejected by a reviewer.
+
+
+    Each entity-lifecycle delivery is a JSON POST describing the transition (`entityID`,
+
+    `typeName`, `priorStatus`, `newStatus`, optional `actorUserID` and `reason`, and a
+
+    `timestamp`).
+
+
+    Deliveries can be sent to any combination of:
+
+
+    - `webhookURL` — HTTPS endpoint that receives a JSON POST per event.
+
+    - `s3Bucket` + `s3FilePath` — sync output JSON into an AWS S3 prefix you own.
+
+    - `googleDriveFolderID` — drop output JSON into a Google Drive folder.
+
+
+    Use `disabled: true` to pause delivery without deleting the subscription. Updates follow
+
+    conventional PATCH semantics — only the fields you include are changed.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Subscriptions
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-subscriptions-api-openapi.yml
+- aid: bem:bem-views-api
+  name: Bem Views API
+  description: >-
+    Views are tabular projections over the `transformations` your functions
+
+    produce — a saved query that turns raw extracted JSON into a
+
+    filterable, paginatable, aggregatable table.
+
+
+    ## Anatomy
+
+
+    A view declares:
+
+    - One or more **functions** to read from (by `functionID` or `functionName`).
+
+    - A list of **columns**, each pinned to a `valueSchemaPath` (a JSON
+      Pointer into the function's output schema).
+    - Optional **filters** (string equality, numeric comparators,
+      null-checks) and **aggregations** (`count`, `count_distinct`,
+      `sum`, `average`, `min`, `max`).
+
+    Views are versioned: every update produces a new version, and the
+
+    previous version remains immutable and addressable. Function types
+
+    that produce transformations with an output schema — `extract`,
+
+    `transform`, `analyze`, `join` — are all queryable through views;
+
+    `extract` works uniformly across vision and OCR inputs.
+
+
+    ## Reading data
+
+
+    - **`POST /v3/views/table-data`** — paginated rows of column values.
+      Each row reports the underlying event's `eventID` (the
+      externally-stable KSUID used everywhere else in V3) plus the
+      projected column values.
+    - **`POST /v3/views/aggregation-data`** — group-by-able aggregate
+      values across the same query surface.
+
+    Both endpoints take a `timeWindow` to bound the transformation set
+
+    and require at least one `function` to read from.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Views
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-views-api-openapi.yml
+- aid: bem:bem-webhooks-api
+  name: Bem Webhooks API
+  description: >-
+    bem POSTs a JSON event to your configured webhook URL each time a subscribed function call, workflow
+    output, or collection-processing job fires. This section is the reference for those deliveries: the
+    payload shape per event type, plus the endpoints you use to manage the signing secret.
+
+
+    Every variant shares the same envelope — function/workflow IDs, timestamps, the inbound email that
+    triggered the call, and so on — and adds a payload field that depends on the function type. The `eventType`
+    field on the body is the discriminator: dispatch on it to select which payload shape to expect. SDKs
+    generated from this spec expose a `webhooks.unwrap()` helper that performs the dispatch and returns
+    a typed event.
+
+
+    ## Payloads
+
+
+    | `eventType` | Payload | Schema |
+
+    | --- | --- | --- |
+
+    | `extract` | [Extract event](/api/v3/webhooks/events/extract) | `ExtractEvent` |
+
+    | `classify` | [Classify event](/api/v3/webhooks/events/classify) | `ClassifyEvent` |
+
+    | `parse` | [Parse event](/api/v3/webhooks/events/parse) | `ParseEvent` |
+
+    | `split_collection` | [Split collection event](/api/v3/webhooks/events/split-collection) | `SplitCollectionEvent`
+    |
+
+    | `split_item` | [Split item event](/api/v3/webhooks/events/split-item) | `SplitItemEvent` |
+
+    | `join` | [Join event](/api/v3/webhooks/events/join) | `JoinEvent` |
+
+    | `enrich` | [Enrich event](/api/v3/webhooks/events/enrich) | `EnrichEvent` |
+
+    | `payload_shaping` | [Payload shaping event](/api/v3/webhooks/events/payload-shaping) | `PayloadShapingEvent`
+    |
+
+    | `send` | [Send event](/api/v3/webhooks/events/send) | `SendEvent` |
+
+    | `evaluation` | [Evaluation event](/api/v3/webhooks/events/evaluation) | `EvaluationEvent` |
+
+    | `collection_processing` | [Collection processing event](/api/v3/webhooks/events/collection-processing)
+    | `collectionProcessingEvent` |
+
+    | `error` | [Error event](/api/v3/webhooks/events/error) | `ErrorEvent` |
+
+
+    ## Signing secret
+
+
+    Every delivery includes a `bem-signature` header in the format `t={unix_timestamp},v1={hex_hmac_sha256}`.
+    The signature covers `{timestamp}.{raw_request_body}` and is computed with HMAC-SHA256 using the active
+    signing secret for your environment.
+
+
+    To verify a payload:
+
+
+    1. Parse `bem-signature: t={timestamp},v1={signature}`.
+
+    2. Construct the signed string: `{timestamp}.{raw_request_body}`.
+
+    3. Compute HMAC-SHA256 of that string using your secret.
+
+    4. Reject the request if the hex digest doesn't match `v1`, or if the timestamp is more than a few
+    minutes old.
+
+
+    Manage the secret with these endpoints:
+
+
+    - [**Generate a signing secret**](/api/v3/webhooks/secret/generate-secret) — `POST /v3/webhook-secret`.
+    Returns the new secret in full exactly once.
+
+    - [**Get the signing secret**](/api/v3/webhooks/secret/get-secret) — `GET /v3/webhook-secret`. Returns
+    the active secret.
+
+    - [**Revoke the signing secret**](/api/v3/webhooks/secret/revoke-secret) — `DELETE /v3/webhook-secret`.
+    Webhook deliveries continue but are unsigned until a new secret is generated.
+
+
+    For zero-downtime rotation, briefly accept both the old and new secret in your verification logic
+    before revoking the old one.
+
+
+    ## Retries
+
+
+    bem treats any non-2XX response (or a transport failure) as a delivery error and retries with exponential
+    backoff. Return a 2XX as soon as you have durably queued the payload — do not block on downstream
+    work.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-webhooks-api-openapi.yml
+- aid: bem:bem-workflows-api
+  name: Bem Workflows API
+  description: >-
+    Workflows orchestrate one or more functions into a directed acyclic graph (DAG) for document processing.
+
+
+    Use these endpoints to create, update, list, and manage workflows, and to invoke them
+
+    with file input via `POST /v3/workflows/{workflowName}/call`.
+
+
+    The call endpoint accepts files as either multipart form data or JSON with base64-encoded
+
+    content. In the Bem CLI, use `@path/to/file` inside JSON values to automatically read and
+
+    encode files:
+
+
+    ```
+
+    bem workflows call --workflow-name my-workflow \
+      --input.single-file '{"inputContent": "@file.pdf", "inputType": "pdf"}' \
+      --wait
+    ```
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Workflows
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-workflows-api-openapi.yml
+common:
+- type: Website
+  url: https://bem.ai
+- type: DeveloperPortal
+  url: https://docs.bem.ai
+- type: Documentation
+  url: https://docs.bem.ai
+- type: APIReference
+  url: https://docs.bem.ai/api/v3/authentication
+- type: GettingStarted
+  url: https://docs.bem.ai/guide/quickstart
+- type: Blog
+  url: https://www.bem.ai/log
+- type: Pricing
+  url: https://www.bem.ai/pricing
+- type: SignUp
+  url: https://app.bem.ai/auth/sign-up
+- type: TermsOfService
+  url: https://www.bem.ai/terms
+- type: PrivacyPolicy
+  url: https://www.bem.ai/privacy
+- type: StatusPage
+  url: https://status.bem.ai
+- type: GitHubOrganization
+  url: https://github.com/bem-team
+- type: TrustCenter
+  url: https://trust.bem.ai
+- type: Compliance
+  url: https://www.bem.ai/security
+- type: Lifecycle
+  url: lifecycle/bem-lifecycle.yml
+- type: Deprecation
+  url: lifecycle/bem-lifecycle.yml
+- type: Authentication
+  url: authentication/bem-authentication.yml
+- type: DomainSecurity
+  url: security/bem-domain-security.yml
+- type: Conformance
+  url: conformance/bem-conformance.yml
+- type: AgenticAccess
+  url: agentic-access/bem-agentic-access.yml
+- type: Packages
+  url: packages/bem-packages.yml
+- type: SDKs
+  url: packages/bem-packages.yml
+- type: CLI
+  url: cli/bem-cli.yml
+- type: MCPServer
+  url: mcp/bem-mcp.yml
+- type: LLMsTxt
+  url: llms/bem-llms.txt
+- type: ErrorCatalog
+  url: errors/bem-problem-types.yml
+- type: Conventions
+  url: conventions/bem-conventions.yml
+- type: Idempotency
+  url: conventions/bem-conventions.yml
+- type: DataModel
+  url: data-model/bem-data-model.yml
+- type: Webhooks
+  url: asyncapi/bem-webhooks.yml
+- type: AgentSkill
+  url: skills/_index.yml
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence

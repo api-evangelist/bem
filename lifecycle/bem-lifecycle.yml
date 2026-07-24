@@ -1,0 +1,25 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.bem.ai
+versioning:
+  scheme: uri-path
+  current: v3
+  path_prefix: /v3
+  docs: https://docs.bem.ai/api/v3/authentication
+  previous:
+  - v1
+  - v2
+deprecation:
+  policy_url: https://docs.bem.ai
+  legacy_apis:
+  - version: v1
+    status: legacy
+    docs: https://docs.bem.ai/api/legacy/authentication
+  - version: v2
+    status: legacy
+  migration_guide: https://docs.bem.ai (V3 migration)
+  notes: v1/v2 remain documented as legacy APIs; V3 is the recommended current version with a published migration guide.
+status_page: https://status.bem.ai
+sla:
+  url: https://trust.bem.ai
+deprecated_operations: []

@@ -1,0 +1,363 @@
+# Docs
+
+> bem turns inbound documents into structured JSON through versioned, LLM-powered functions; this index lists every guide and API reference page.
+
+- API Reference: Learn about all the bem API endpoints
+  - V3: The latest version of the bem API
+    - **API Reference (V3)**
+
+    - [Authentication](/api/v3/authentication): API keys, webhook signatures, and pagination
+    - Workflows: undefined
+      - [Workflows](/api/v3/workflows): Overview of the Workflows API
+      - [Copy a Workflow](/api/v3/workflows/v3-copy-workflow)
+      - [Create a Workflow](/api/v3/workflows/v3-create-workflow)
+      - [Delete a Workflow](/api/v3/workflows/v3-delete-workflow)
+      - [Get a Workflow Version](/api/v3/workflows/v3-get-workflow-version)
+      - [Get a Workflow](/api/v3/workflows/v3-get-workflow)
+      - [List Workflow Versions](/api/v3/workflows/v3-list-workflow-versions)
+      - [List Workflows](/api/v3/workflows/v3-list-workflows)
+      - [Update a Workflow](/api/v3/workflows/v3-update-workflow)
+    - Functions: undefined
+      - [Functions](/api/v3/functions): Overview of the Functions API
+      - [Copy a Function](/api/v3/functions/v3-copy-function)
+      - [Create a Function](/api/v3/functions/v3-create-function)
+      - [Delete a Function](/api/v3/functions/v3-delete-function)
+      - [Get a Function Version](/api/v3/functions/v3-get-function-version)
+      - [Get a Function](/api/v3/functions/v3-get-function)
+      - [List Function Versions](/api/v3/functions/v3-list-function-versions)
+      - [List Functions](/api/v3/functions/v3-list-functions)
+      - [Update a Function](/api/v3/functions/v3-update-function)
+    - Calls: undefined
+      - [Calls](/api/v3/calls): Overview of the Calls API
+      - [Call a Workflow](/api/v3/calls/v3-call-workflow)
+      - [Get Call Trace](/api/v3/calls/v3-get-call-trace)
+      - [Get a Call](/api/v3/calls/v3-get-call)
+      - [List Calls](/api/v3/calls/v3-list-calls)
+    - Outputs: undefined
+      - [Outputs](/api/v3/outputs): Overview of the Outputs API
+      - [Get an Output](/api/v3/outputs/v3-get-output)
+      - [List Outputs](/api/v3/outputs/v3-list-outputs)
+    - File System: undefined
+      - [File System](/api/v3/file-system): Overview of the File System API
+      - [File System Operations](/api/v3/file-system/v3-fs)
+    - Errors: undefined
+      - [Errors](/api/v3/errors): Overview of the Errors API
+      - [Get an Error](/api/v3/errors/v3-get-error)
+      - [List Errors](/api/v3/errors/v3-list-errors)
+    - Feedback: undefined
+      - [Feedback](/api/v3/feedback): Overview of the Feedback API
+      - [Submit Event Feedback](/api/v3/feedback/v3-submit-event-feedback)
+    - Function Accuracy: undefined
+      - [Function Accuracy](/api/v3/function-accuracy): Overview of the Function Accuracy API
+      - [Apply Baseline Corrections to Regression Transformations](/api/v3/function-accuracy/v3-apply-baseline-corrections)
+      - [Cancel Score Run](/api/v3/function-accuracy/v3-eval-score-cancel)
+      - [Score Function Against (input, expected) Pairs](/api/v3/function-accuracy/v3-eval-score-create)
+      - [Get Score Run](/api/v3/function-accuracy/v3-eval-score-get)
+      - [Run Function Regression Testing](/api/v3/function-accuracy/v3-function-regression)
+      - [Function Review](/api/v3/function-accuracy/v3-function-review)
+      - [Compare Metrics Between Function Versions](/api/v3/function-accuracy/v3-function-version-compare)
+      - [Get Evaluation Results](/api/v3/function-accuracy/v3-get-evaluation-results)
+      - [Get Function Metrics](/api/v3/function-accuracy/v3-get-function-metrics)
+      - [Trigger Transformation Evaluations](/api/v3/function-accuracy/v3-trigger-transformation-evaluations)
+    - Collections: undefined
+      - [Collections](/api/v3/collections): Overview of the Collections API
+      - [Add new items to a Collection](/api/v3/collections/v3-add-collection-items)
+      - [Count tokens for texts](/api/v3/collections/v3-count-tokens)
+      - [Create a Collection](/api/v3/collections/v3-create-collection)
+      - [Delete an item from a Collection](/api/v3/collections/v3-delete-collection-item)
+      - [Delete a Collection](/api/v3/collections/v3-delete-collection)
+      - [Get a Collection](/api/v3/collections/v3-get-collection)
+      - [List Collections](/api/v3/collections/v3-list-collections)
+      - [Update existing items in a Collection](/api/v3/collections/v3-update-collection-items)
+    - Connectors: undefined
+      - [Connectors](/api/v3/connectors): Overview of the Connectors API
+      - [Create a Connector](/api/v3/connectors/v3-create-connector)
+      - [Delete a Connector](/api/v3/connectors/v3-delete-connector)
+      - [List Connectors](/api/v3/connectors/v3-list-connectors)
+    - Schema Inference: undefined
+      - [Schema Inference](/api/v3/schema-inference): Overview of the Schema Inference API
+      - [Infer Schema from File](/api/v3/schema-inference/v3-infer-schema)
+    - Subscriptions: undefined
+      - [Subscriptions](/api/v3/subscriptions): Overview of the Subscriptions API
+      - [Create a Subscription](/api/v3/subscriptions/v3-create-subscription)
+      - [Delete a Subscription](/api/v3/subscriptions/v3-delete-subscription)
+      - [Get a Subscription](/api/v3/subscriptions/v3-get-subscription)
+      - [List Subscriptions](/api/v3/subscriptions/v3-list-subscriptions)
+      - [Update a Subscription](/api/v3/subscriptions/v3-update-subscription)
+    - Views: undefined
+      - [Views](/api/v3/views): Overview of the Views API
+      - [Create a View](/api/v3/views/v3-create-view)
+      - [Delete a View](/api/v3/views/v3-delete-view)
+      - [Generate View Aggregation Data](/api/v3/views/v3-generate-view-aggregation-data)
+      - [Generate View Table Data](/api/v3/views/v3-generate-view-table-data)
+      - [Get a View](/api/v3/views/v3-get-view)
+      - [List Views](/api/v3/views/v3-list-views)
+      - [Update a View](/api/v3/views/v3-update-view)
+    - Webhooks: undefined
+      - [Webhooks](/api/v3/webhooks): Overview of the Webhooks API
+      - Events: undefined
+        - [Extract event](/api/v3/webhooks/events/extract)
+        - [Classify event](/api/v3/webhooks/events/classify)
+        - [Parse event](/api/v3/webhooks/events/parse)
+        - [Split collection event](/api/v3/webhooks/events/split-collection)
+        - [Split item event](/api/v3/webhooks/events/split-item)
+        - [Join event](/api/v3/webhooks/events/join)
+        - [Enrich event](/api/v3/webhooks/events/enrich)
+        - [Payload shaping event](/api/v3/webhooks/events/payload-shaping)
+        - [Send event](/api/v3/webhooks/events/send)
+        - [Evaluation event](/api/v3/webhooks/events/evaluation)
+        - [Collection processing event](/api/v3/webhooks/events/collection-processing)
+        - [Error event](/api/v3/webhooks/events/error)
+      - Signing Secrets: undefined
+        - [Generate Webhook Secret](/api/v3/webhooks/secret/generate-secret)
+        - [Get Webhook Secret](/api/v3/webhooks/secret/get-secret)
+        - [Revoke Webhook Secret](/api/v3/webhooks/secret/revoke-secret)
+    - **Knowledge Graph**
+
+    - Knowledge Graph: undefined
+      - [Knowledge Graph](/api/v3/knowledge-graph): Overview of the Knowledge Graph API
+      - [Get an Entity's Relations](/api/v3/knowledge-graph/v3-get-entity-relations)
+      - [Retrieve the Knowledge Graph](/api/v3/knowledge-graph/v3-get-knowledge-graph)
+    - Buckets: undefined
+      - [Buckets](/api/v3/buckets): Overview of the Buckets API
+      - [Create a Bucket](/api/v3/buckets/v3-create-bucket)
+      - [Delete a Bucket](/api/v3/buckets/v3-delete-bucket)
+      - [Get a Bucket](/api/v3/buckets/v3-get-bucket)
+      - [List Buckets](/api/v3/buckets/v3-list-buckets)
+      - [Update a Bucket](/api/v3/buckets/v3-update-bucket)
+    - Entity Types: undefined
+      - [Entity Types](/api/v3/entity-types): Overview of the Entity Types API
+      - [Create an Entity Type](/api/v3/entity-types/v3-create-entity-type)
+      - [Delete an Entity Type](/api/v3/entity-types/v3-delete-entity-type)
+      - [Get an Entity Type](/api/v3/entity-types/v3-get-entity-type)
+      - [List Entity Types](/api/v3/entity-types/v3-list-entity-types)
+      - [Update an Entity Type](/api/v3/entity-types/v3-update-entity-type)
+    - Entity Synonyms: undefined
+      - [Entity Synonyms](/api/v3/entity-synonyms): Overview of the Entity Synonyms API
+      - [Add a Synonym to an Entity](/api/v3/entity-synonyms/v3-add-entity-synonym)
+      - [Remove a Synonym from an Entity](/api/v3/entity-synonyms/v3-remove-entity-synonym)
+    - Entity Bulk Seed: undefined
+      - [Entity Bulk Seed](/api/v3/entity-bulk-seed): Overview of the Entity Bulk Seed API
+      - [Bulk Seed Entities](/api/v3/entity-bulk-seed/v3-bulk-seed-entities)
+      - [Get Seed Job Status](/api/v3/entity-bulk-seed/v3-get-seed-job)
+    - Entity Curation: undefined
+      - [Entity Curation](/api/v3/entity-curation): Overview of the Entity Curation API
+      - [Bulk Validate Entities](/api/v3/entity-curation/v3-bulk-validate-entities)
+      - [Update Entity](/api/v3/entity-curation/v3-update-entity)
+    - Review Queue: undefined
+      - [Review Queue](/api/v3/review-queue): Overview of the Review Queue API
+      - [List Review Queue](/api/v3/review-queue/v3-list-review-queue)
+    - Entity Type Reviewers: undefined
+      - [Entity Type Reviewers](/api/v3/entity-type-reviewers): Overview of the Entity Type Reviewers API
+      - [Assign a Reviewer](/api/v3/entity-type-reviewers/v3-add-entity-type-reviewer)
+      - [List Reviewers](/api/v3/entity-type-reviewers/v3-list-entity-type-reviewers)
+      - [List a User's Reviewer Assignments](/api/v3/entity-type-reviewers/v3-list-user-reviewer-assignments)
+      - [Remove a Reviewer](/api/v3/entity-type-reviewers/v3-remove-entity-type-reviewer)
+  - Legacy (v1/v2): v1 and v2 API endpoints
+    - **API Reference (Legacy)**
+
+    - [Authentication](/api/legacy/authentication): API keys, webhook signatures, and pagination
+    - Functions: undefined
+      - [Functions](/api/legacy/functions): Overview of the Functions API
+      - [Copy a Function](/api/legacy/functions/copy-function)
+      - [Create a Function](/api/legacy/functions/create-function)
+      - [Delete a Function](/api/legacy/functions/delete-function)
+      - [Get a Function Version](/api/legacy/functions/get-function-version)
+      - [Get a Function](/api/legacy/functions/get-function)
+      - [List Function Versions](/api/legacy/functions/list-function-versions)
+      - [List Functions](/api/legacy/functions/list-functions)
+      - [Update a Function](/api/legacy/functions/update-function)
+    - Function Accuracy: undefined
+      - [Function Accuracy](/api/legacy/function-accuracy): Overview of the Function Accuracy API
+      - [Apply Baseline Corrections to Regression Transformations](/api/legacy/function-accuracy/apply-baseline-corrections)
+      - [Run Function Regression Testing](/api/legacy/function-accuracy/function-regression)
+      - [Function Review](/api/legacy/function-accuracy/function-review)
+      - [Compare Metrics Between Function Versions](/api/legacy/function-accuracy/function-version-compare)
+      - [Get Function Metrics](/api/legacy/function-accuracy/get-function-metrics)
+    - Workflows: undefined
+      - [Workflows](/api/legacy/workflows): Overview of the Workflows API
+      - [Copy a Workflow](/api/legacy/workflows/copy-workflow)
+      - [Create a Workflow](/api/legacy/workflows/create-workflow)
+      - [Delete a Workflow](/api/legacy/workflows/delete-workflow)
+      - [Get a Workflow Version](/api/legacy/workflows/get-workflow-version)
+      - [Get a Workflow](/api/legacy/workflows/get-workflow)
+      - [List Workflow Versions](/api/legacy/workflows/list-workflow-versions)
+      - [List Workflows](/api/legacy/workflows/list-workflows)
+      - [Update a Workflow](/api/legacy/workflows/update-workflow)
+    - Calls: undefined
+      - [Calls](/api/legacy/calls): Overview of the Calls API
+      - [Call a Workflow or Function](/api/legacy/calls/create-calls)
+      - [Get a Call](/api/legacy/calls/get-call)
+      - [List Calls](/api/legacy/calls/list-calls)
+    - Function Calls: undefined
+      - [Function Calls](/api/legacy/function-calls): Overview of the Function Calls API
+      - [Call a Function](/api/legacy/function-calls/call-function)
+      - [Delete Function References](/api/legacy/function-calls/delete-function-references)
+      - [Get a Function Call](/api/legacy/function-calls/get-function-call)
+      - [List Function Calls](/api/legacy/function-calls/list-function-calls)
+    - Events: undefined
+      - [Events](/api/legacy/events): Overview of the Events API
+      - [Get an Event by ID](/api/legacy/events/get-event)
+      - [List Events](/api/legacy/events/list-events)
+      - [Receive event webhook](/api/legacy/events/receive-event-webhook)
+    - Dashboard: undefined
+      - [Dashboard](/api/legacy/dashboard): Overview of the Dashboard API
+      - [Get Dashboard](/api/legacy/dashboard/get-dashboard)
+    - Transformations: undefined
+      - [Transformations](/api/legacy/transformations): Overview of the Transformations API
+      - [Create a batch of Transformations](/api/legacy/transformations/create-transformations)
+      - [Delete Transformations](/api/legacy/transformations/delete-transformations)
+      - [(DEPRECATED) Get Evaluation Results for Multiple Transformations](/api/legacy/transformations/deprecated-get-evaluation-results)
+      - [(DEPRECATED) Correct the Transformation value](/api/legacy/transformations/deprecated-update-transformation)
+      - [Queue Evaluation for Multiple Transformations](/api/legacy/transformations/evaluate-transformations)
+      - [Get Evaluation Results for Multiple Transformations](/api/legacy/transformations/get-evaluation-results)
+      - [List Transformation errors](/api/legacy/transformations/list-transformation-errors)
+      - [List Transformations](/api/legacy/transformations/list-transformations)
+      - [Receive Transformation Errors webhook](/api/legacy/transformations/receive-transformation-errors-webhook)
+      - [Receive completed Transformation webhook](/api/legacy/transformations/receive-transformation-webhook)
+      - [Correct the Transformation value](/api/legacy/transformations/update-transformation)
+    - Subscriptions: undefined
+      - [Subscriptions](/api/legacy/subscriptions): Overview of the Subscriptions API
+      - [Create a Subscription](/api/legacy/subscriptions/create-subscription)
+      - [Delete a Subscription](/api/legacy/subscriptions/delete-subscription)
+      - [Get a Subscription](/api/legacy/subscriptions/get-subscription)
+      - [List Subscriptions](/api/legacy/subscriptions/list-subscriptions)
+      - [Update a Subscription](/api/legacy/subscriptions/update-subscription)
+    - Security: undefined
+      - [Security](/api/legacy/security): Overview of the Security API
+      - [Generate a new webhook secret](/api/legacy/security/generate-webhook-secret)
+      - [Get a User Action](/api/legacy/security/get-user-action)
+      - [Get the current webhook secret](/api/legacy/security/get-webhook-secret)
+      - [List User Actions](/api/legacy/security/list-user-actions)
+    - Connectors: undefined
+      - [Connectors](/api/legacy/connectors): Overview of the Connectors API
+      - [Create a Connector](/api/legacy/connectors/create-connector)
+      - [Delete a Connector](/api/legacy/connectors/delete-connector)
+      - [List Connectors](/api/legacy/connectors/list-connectors)
+    - Pipelines: undefined
+      - [Pipelines](/api/legacy/pipelines): Overview of the Pipelines API
+      - [Create a Pipeline](/api/legacy/pipelines/create-pipeline)
+      - [Delete a Pipeline](/api/legacy/pipelines/delete-pipeline)
+      - [Get a Pipeline](/api/legacy/pipelines/get-pipeline)
+      - [List Pipelines](/api/legacy/pipelines/list-pipelines)
+      - [Update a Pipeline](/api/legacy/pipelines/update-pipeline)
+    - Actions: undefined
+      - [Actions](/api/legacy/actions): Overview of the Actions API
+      - [Correct a Route action's choice for an event](/api/legacy/actions/update-route-action)
+    - Collections: undefined
+      - [Collections](/api/legacy/collections): Overview of the Collections API
+      - [Add new items to a Collection](/api/legacy/collections/add-collection-items)
+      - [Count tokens for texts](/api/legacy/collections/count-tokens)
+      - [Create a Collection](/api/legacy/collections/create-collection)
+      - [Delete an item from a Collection](/api/legacy/collections/delete-collection-item)
+      - [Delete a Collection](/api/legacy/collections/delete-collection)
+      - [Get a Collection](/api/legacy/collections/get-collection)
+      - [List Collections](/api/legacy/collections/list-collections)
+      - [Update existing items in a Collection](/api/legacy/collections/update-collection-items)
+    - Views: undefined
+      - [Views](/api/legacy/views): Overview of the Views API
+      - [Create a View](/api/legacy/views/create-view)
+      - [Delete a View](/api/legacy/views/delete-view)
+      - [Generate View Aggregation Data](/api/legacy/views/generate-view-aggregation-data)
+      - [Generate View Table Data](/api/legacy/views/generate-view-table-data)
+      - [Get a View](/api/legacy/views/get-view)
+      - [List Views](/api/legacy/views/list-views)
+      - [Update a View](/api/legacy/views/update-view)
+    - Golden Data Sets: undefined
+      - [Golden Data Sets](/api/legacy/golden-data-sets): Overview of the Golden Data Sets API
+      - [Create a Column in a Golden Data Set](/api/legacy/golden-data-sets/create-golden-data-set-column)
+      - [Create a Golden Data Set from Archive File](/api/legacy/golden-data-sets/create-golden-data-set-from-archive-file)
+      - [Create a Golden Data Set from Schema](/api/legacy/golden-data-sets/create-golden-data-set-from-schema)
+      - [Create a Golden Data Set from Schema and Transformations](/api/legacy/golden-data-sets/create-golden-data-set-from-transformations)
+      - [Create Columns in a Row](/api/legacy/golden-data-sets/create-golden-data-set-row-columns)
+      - [Create a Row in a Golden Data Set](/api/legacy/golden-data-sets/create-golden-data-set-row-from-row)
+      - [Create a Row in a Golden Data Set](/api/legacy/golden-data-sets/create-golden-data-set-row)
+      - [Create a Golden Data Set from Schema](/api/legacy/golden-data-sets/create-golden-data-set)
+      - [Create or Update Rows in a Golden Data Set from Transformations](/api/legacy/golden-data-sets/create-or-update-golden-data-set-rows-from-transformations)
+      - [Delete a Column from a Golden Data Set](/api/legacy/golden-data-sets/delete-golden-data-set-column)
+      - [Delete a Column from a Row](/api/legacy/golden-data-sets/delete-golden-data-set-row-column)
+      - [Delete a Row from a Golden Data Set](/api/legacy/golden-data-sets/delete-golden-data-set-row)
+      - [Delete a Golden Data Set](/api/legacy/golden-data-sets/delete-golden-data-set)
+      - [Get a Column from a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set-column)
+      - [Get a Column from a Row](/api/legacy/golden-data-sets/get-golden-data-set-row-column)
+      - [Get a Row from a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set-row)
+      - [Get a Column from a Specific Version of a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set-version-column)
+      - [Get a Column from a Row in a Specific Version](/api/legacy/golden-data-sets/get-golden-data-set-version-row-column)
+      - [Get a Row from a Specific Version of a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set-version-row)
+      - [Get a Specific Version of a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set-version)
+      - [Get a Golden Data Set](/api/legacy/golden-data-sets/get-golden-data-set)
+      - [List Columns in a Golden Data Set](/api/legacy/golden-data-sets/list-golden-data-set-columns)
+      - [List Columns in a Row](/api/legacy/golden-data-sets/list-golden-data-set-row-columns)
+      - [List Rows in a Golden Data Set](/api/legacy/golden-data-sets/list-golden-data-set-rows)
+      - [List Columns in a Specific Version of a Golden Data Set](/api/legacy/golden-data-sets/list-golden-data-set-version-columns)
+      - [List Columns in a Row from a Specific Version](/api/legacy/golden-data-sets/list-golden-data-set-version-row-columns)
+      - [List Rows in a Specific Version of a Golden Data Set](/api/legacy/golden-data-sets/list-golden-data-set-version-rows)
+      - [List Versions of a Golden Data Set](/api/legacy/golden-data-sets/list-golden-data-set-versions)
+      - [List Golden Data Sets](/api/legacy/golden-data-sets/list-golden-data-sets)
+      - [Update a Column in a Golden Data Set](/api/legacy/golden-data-sets/update-golden-data-set-column)
+      - [Update a Column in a Row](/api/legacy/golden-data-sets/update-golden-data-set-row-column)
+      - [Update a Row in a Golden Data Set](/api/legacy/golden-data-sets/update-golden-data-set-row)
+      - [Update a Golden Data Set](/api/legacy/golden-data-sets/update-golden-data-set)
+- Documentation: Get started with bem
+  - **Get Started**
+
+  - [Introduction](/guide/introduction): bem turns documents into structured JSON, against a schema you define
+  - [Quickstart](/guide/quickstart): Make your first synchronous workflow call with bem
+  - [System Overview](/guide/system-overview): bem's primitives — functions, workflows, calls, events, transformations, subscriptions, views — and how they fit together
+  - **Overview**
+
+  - [Workflows Explained](/guide/workflows-explained): How workflows compose functions into a directed graph with one entry point
+  - Function Types: undefined
+    - [Function Types Overview](/guide/function-types/overview): Understanding the different types of functions available in bem
+    - [Extract Functions](/guide/function-types/extract): Pull structured JSON out of documents, images, and media against a schema you define
+    - [Classify Functions](/guide/function-types/classify): Route inputs down labeled paths based on content classification
+    - [Split Functions](/guide/function-types/split): Break multi-page documents into smaller pieces for processing
+    - [Join Functions](/guide/function-types/join): Combine multiple inputs into a single output
+    - [Enrich Functions](/guide/function-types/enrich): Add context from knowledge bases using semantic search
+    - [Parse Functions](/guide/function-types/parse): Render documents into a navigable structure of sections, entities, and relationships — designed to be walked by an LLM agent
+    - [Payload Shaping Functions](/guide/function-types/payload-shaping): Transform data structures using JMESPath expressions
+    - [Send Functions](/guide/function-types/send): Deliver workflow outputs to webhooks, S3 buckets, and other downstream destinations
+    - [Render Functions](/guide/function-types/render): Turn structured JSON and a .docx template into a finished document
+    - **Legacy**
+
+    - [Transform Functions](/guide/function-types/transform): Extract structured JSON data from documents
+    - [Analyze Functions](/guide/function-types/analyze): Visual analysis of images and documents using AI
+    - [Route Functions](/guide/function-types/route): Direct data to different processing paths based on content
+  - [Reading Workflow Call Outputs](/guide/reading-workflow-call-outputs): Where the extracted data lives in a `POST /v3/workflows/{name}/call` response — the path, the per-event-type field map, and accessor patterns in every SDK
+  - [File System API](/guide/file-system): Navigate parsed documents with Unix-shell operations
+  - [Knowledge Graph API](/guide/knowledge-graph): Read entities and their relations across every document in a bucket
+  - [Customer Ontology](/guide/ontology): Define your own entity types and synonyms, and seed them in bulk
+  - [Entity Curation](/guide/entity-curation): Review, validate, and correct the entities bem extracts, and assign reviewers per type
+  - [Supported File Types](/guide/file-types): Every input type bem accepts, with MIME mappings and processing notes
+  - [Schema Building Guide](/guide/schema-building): Best practices for designing the JSON Schema you give to Extract and Join functions
+  - [Known Limitations](/guide/known-limitations)
+  - **Conventions**
+
+  - [Errors and Status Codes](/guide/errors): How bem reports failures, how to retry safely, and how to handle partial successes
+  - [Webhooks](/guide/webhooks): Subscribe to events, verify signatures, and handle deliveries safely
+  - [Synchronous Mode](/guide/synchronous-mode): Block on a workflow call with `wait=true` for up to 30 seconds — the contract, latency expectations, and how to use it in production
+  - [Polling and Retries](/guide/polling-and-retries): Synchronous waits, polling cadence, idempotency, and how to retry safely
+  - [V3 Migration](/guide/v3-migration): What changed between the legacy API and V3, and what you need to do
+  - **Resources**
+
+  - [SDKs](/guide/sdks): Official client libraries for the bem API
+  - [Terraform](/guide/terraform): Manage bem functions and workflows declaratively with Terraform
+  - [MCP Server](/guide/mcp-server): Use the bem MCP server to expose the bem API to Claude, Cursor, and other MCP-compatible agents
+  - [CLI](/guide/cli): Manage bem functions, workflows, and calls from your terminal
+  - **Cookbooks**
+
+  - [Overview](/guide/cookbooks/overview): End-to-end walkthroughs for the patterns we see most often in production
+  - [Parse and Search over Contracts](/guide/cookbooks/parse-and-search-over-contracts): Parse a contract into a navigable structure, then search and reason over it with the `/v3/fs` File System API
+  - [Triage and Extract Logistics Documents](/guide/cookbooks/triage-and-extract-logistics-documents): Build a workflow that classifies inbound logistics docs (invoices, bills of lading, packing slips) and routes each to a type-specific Extract function
+  - [Match Buyer Orders to Catalog SKUs](/guide/cookbooks/match-buyer-orders-to-catalog-skus): Extract a buyer's natural-language order, then resolve each line item against your product catalog with a bem Collection — ERP/WMS-ready in one workflow call
+  - **Web UI Guide**
+
+  - [Overview](/guide/dashboard/overview): Tour of the bem dashboard
+  - [Workflows](/guide/dashboard/workflows): Browse and manage every workflow in your environment
+  - [Workflow Editor](/guide/dashboard/workflow-editor): Compose, configure, and test a workflow in the DAG editor
+  - [Workflow Calls](/guide/dashboard/workflow-calls): Inspect every call to a single workflow
+  - [Call Log](/guide/dashboard/call-log): Global feed of every call across every workflow
+  - [Forge](/guide/dashboard/forge): Bootstrap a working workflow from a file and a prompt
+  - [Collections](/guide/dashboard/collections): Reference data for enriching transformation outputs
+  - [Accuracy](/guide/dashboard/accuracy): Label, review, and regression-test your function outputs
+  - [Dashboard](/guide/dashboard/dashboard): High-level operational metrics across every workflow

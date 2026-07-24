@@ -1,0 +1,42 @@
+generated: '2026-07-18'
+method: searched
+source: https://www.bem.ai/security
+compliance_program:
+  url: https://www.bem.ai/security
+  trust_center: https://trust.bem.ai
+  certifications:
+  - SOC 2 Type II
+  - HIPAA
+  - GDPR
+  detail:
+    soc2: Audited annually by independent auditors (SOC 2 Type II)
+    hipaa: Business Associate Agreements (BAA) available on request
+    gdpr: EU data sovereignty; EEA traffic stays on EU infrastructure
+  encryption:
+    in_transit: TLS 1.3
+    at_rest: AES-256
+    key_management: AWS KMS
+  data_residency: US or EU selectable at workspace level
+  data_retention: zero-retention (source file and intermediate state purged after structured output is returned)
+standards:
+- id: oauth2
+  conforms: false
+  evidence: API uses apiKey (x-api-key header) auth, not OAuth2
+- id: openapi-3.1
+  conforms: true
+  evidence: openapi/bem-openapi-original.yml is OpenAPI 3.1.0
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: uses a custom { message, code, details } JSON error envelope, not application/problem+json
+- id: hmac-webhook-signatures
+  conforms: true
+  evidence: webhooks signed with HMAC-SHA256 (bem-signature header, t=/v1= format)
+- id: soc2-type2
+  conforms: true
+  evidence: published on https://www.bem.ai/security and trust.bem.ai
+- id: hipaa
+  conforms: true
+  evidence: BAA available; published on https://www.bem.ai/security
+- id: gdpr
+  conforms: true
+  evidence: EU data sovereignty; published on https://www.bem.ai/security

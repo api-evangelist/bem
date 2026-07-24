@@ -1,0 +1,39 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.bem.ai/guide/webhooks
+spec_type: Webhooks
+note: >-
+  bem does not publish an AsyncAPI document. It ships a webhook event surface:
+  Subscriptions bind a function to a webhook URL, and bem POSTs the terminal
+  event JSON to that URL. This catalog captures the webhook surface (type
+  Webhooks); no AsyncAPI is fabricated.
+subscription:
+  create: POST /v3/subscriptions
+  required_fields: [name, type, functionName, webhookURL]
+  docs: https://docs.bem.ai/api/v3/subscriptions
+signing:
+  header: bem-signature
+  scheme: HMAC-SHA256 over "{timestamp}.{raw_body}"
+  format: t=<timestamp>,v1=<hex-encoded-hash>
+  verification: constant-time compare of v1; reject timestamps older than ~5 minutes
+  secret_management:
+    generate: POST /v3/webhook-secret
+    get: GET /v3/webhook-secret
+    revoke: DELETE /v3/webhook-secret
+delivery:
+  envelope: none (HTTP body is the event itself)
+  discriminator: eventType
+  mirrors: GET /v3/outputs/{eventID} and GET /v3/errors/{eventID}
+events:
+- {type: extract, docs: https://docs.bem.ai/api/v3/webhooks/events/extract}
+- {type: classify, docs: https://docs.bem.ai/api/v3/webhooks/events/classify}
+- {type: parse, docs: https://docs.bem.ai/api/v3/webhooks/events/parse}
+- {type: split-collection, docs: https://docs.bem.ai/api/v3/webhooks/events/split-collection}
+- {type: split-item, docs: https://docs.bem.ai/api/v3/webhooks/events/split-item}
+- {type: join, docs: https://docs.bem.ai/api/v3/webhooks/events/join}
+- {type: enrich, docs: https://docs.bem.ai/api/v3/webhooks/events/enrich}
+- {type: payload-shaping, docs: https://docs.bem.ai/api/v3/webhooks/events/payload-shaping}
+- {type: send, docs: https://docs.bem.ai/api/v3/webhooks/events/send}
+- {type: evaluation, docs: https://docs.bem.ai/api/v3/webhooks/events/evaluation}
+- {type: collection-processing, docs: https://docs.bem.ai/api/v3/webhooks/events/collection-processing}
+- {type: error, docs: https://docs.bem.ai/api/v3/webhooks/events/error}

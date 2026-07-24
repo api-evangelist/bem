@@ -1,0 +1,16 @@
+generated: '2026-07-18'
+method: generated
+source: openapi/bem-openapi-original.yml
+skills:
+- file: bem-extract-structured-data.md
+  name: Extract structured data from a document
+  api: openapi/bem-openapi-original.yml
+  operations: [v3-create-function, v3-create-workflow, v3-call-workflow, v3-get-call, v3-get-output]
+- file: bem-infer-schema-and-build-extractor.md
+  name: Infer a schema and build an extractor
+  api: openapi/bem-openapi-original.yml
+  operations: [v3-infer-schema, v3-create-function, v3-get-function, v3-create-workflow]
+- file: bem-subscribe-to-webhook-events.md
+  name: Subscribe to webhook events and verify signatures
+  api: openapi/bem-openapi-original.yml
+  operations: [v3-generate-webhook-secret, v3-get-webhook-secret, v3-create-subscription, v3-get-subscription]

@@ -1,0 +1,69 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/bem-openapi-original.yml
+docs: https://docs.bem.ai
+summary:
+  entities: 13
+  note: >-
+    bem's core model: Functions (Extract/Classify/Parse/Split/Join/Enrich/
+    Payload-Shaping/Send) are composed into Workflows (DAGs). Calling a workflow
+    against a file produces a Call, which yields Outputs and/or Errors. A
+    Knowledge Graph of Entities/EntityTypes supports enrichment. Subscriptions
+    deliver terminal events to webhooks.
+entities:
+- name: Workflow
+  path: /v3/workflows
+  id_param: workflowName
+  schema: WorkflowV3
+- name: Function
+  path: /v3/functions
+  id_param: functionName
+  note: Types include Extract, Classify, Parse, Split, Join, Enrich, PayloadShaping, Send (+ legacy Transform/Analyze/Route)
+- name: Call
+  path: /v3/calls
+  id_param: callID
+  schema: CallV3
+- name: Output
+  path: /v3/outputs
+  id_param: eventID
+- name: Error
+  path: /v3/errors
+  id_param: eventID
+- name: Collection
+  path: /v3/collections
+- name: Bucket
+  path: /v3/buckets
+  id_param: bucketID
+- name: Connector
+  path: /v3/connectors
+  id_param: connectorID
+- name: EntityType
+  path: /v3/entity-types
+  id_param: typeID
+- name: Entity
+  path: /v3/entities
+  id_param: id
+- name: Subscription
+  path: /v3/subscriptions
+  id_param: subscriptionID
+- name: View
+  path: /v3/views
+  id_param: view_id
+- name: KnowledgeGraph
+  path: /v3/knowledge-graph
+relationships:
+- {from: Workflow, type: has_many, to: Function, via: DAG nodes}
+- {from: Function, type: belongs_to, to: Workflow}
+- {from: Function, type: has_many, to: FunctionVersion, via: versionNum}
+- {from: Workflow, type: has_many, to: WorkflowVersion, via: versionNum}
+- {from: Call, type: belongs_to, to: Workflow, via: workflowName}
+- {from: Call, type: has_many, to: Output, via: eventID}
+- {from: Call, type: has_many, to: Error, via: eventID}
+- {from: Collection, type: has_many, to: CollectionItem}
+- {from: EntityType, type: has_many, to: Entity}
+- {from: Entity, type: has_many, to: EntitySynonym, via: synonymID}
+- {from: Entity, type: has_many, to: EntityRelation}
+- {from: EntityType, type: has_many, to: Reviewer, via: userID}
+- {from: Subscription, type: belongs_to, to: Function, via: functionName}
+- {from: Subscription, type: has_one, to: WebhookURL, via: webhookURL}
+- {from: KnowledgeGraph, type: has_many, to: Entity}

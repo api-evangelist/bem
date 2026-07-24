@@ -1,0 +1,31 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.bem.ai/guide/cli
+binary: bem
+repo: https://github.com/bem-team/bem-cli
+install:
+- {method: homebrew, command: brew install bem-team/tools/bem}
+- {method: go, command: go install (from source)}
+- {method: source, command: build from https://github.com/bem-team/bem-cli}
+authentication:
+  env_var: BEM_API_KEY
+  flag: --api-key
+output_formats:
+- json
+- yaml
+- jsonl
+- pretty
+command_groups:
+- {group: functions, description: Create, list, get, update, delete extraction/transformation functions and manage versions}
+- {group: workflows, description: Build DAGs that chain functions and invoke them against files (bem workflows call)}
+- {group: calls, description: Inspect call history and individual execution records}
+- {group: outputs, description: Retrieve terminal outputs of calls}
+- {group: errors, description: Inspect call errors}
+- {group: infer-schema, description: Generate JSON schemas from sample documents for new extractors}
+flows:
+- name: Bootstrap a schema
+  description: Run infer-schema on a sample document to generate a JSON schema.
+- name: Invoke a workflow
+  description: bem workflows call against a file to run the DAG.
+- name: CI/CD integration
+  description: Scriptable output formats integrate into pipelines.
