@@ -1,0 +1,41 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets File System API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "File System",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "File System Operations",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/fs",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Navigate parsed documents and the cross-doc memory store via Unix-shell verbs.**\n\n`POST /v3/fs` is a single op-driven endpoint that lets an LLM agent\n(or any programmatic client) walk a corpus the way it would walk a\nfilesystem — `ls` to list, `cat` to read, `grep` to search, `head`\nfor a quick peek, `stat` for metadata, and `find` / `open` / `xref`\nfor the cross-doc entity memory layer.\n\nThe body always carries an `op` field; other fields apply per op.\nThe response envelope is uniform: `{op, "
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

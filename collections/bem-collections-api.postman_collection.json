@@ -1,0 +1,1405 @@
+{
+  "item": [
+    {
+      "id": "2ef9d975-bb61-488d-9ba2-df0fe6691dd2",
+      "name": "Collections",
+      "description": {
+        "content": "Collections are named groups of embedded items used by Enrich functions for semantic search.\n\nEach collection is referenced by a `collectionName`, which supports dot notation for\nhierarchical paths (e.g. `customers.premium.vip`). Names must contain only letters,\ndigits, underscores, and dots, and each segment must start with a letter or underscore.\n\n## Items\n\nItems carry either a string or a JSON object in their `data` field. When items are added\nor updated, their `data` is embedded asynchronously — `POST /v3/collections/items` and\n`PUT /v3/collections/items` return immediately with a `pending` status and an `eventID`\nthat can be correlated with webhook notifications once processing completes.\n\n## Listing and hierarchy\n\nUse `GET /v3/collections` with `parentCollectionName` to list collections under a path,\nor `collectionNameSearch` for a case-insensitive substring match. `GET /v3/collections/items`\nretrieves a specific collection's items; pass `includeSubcollections=true` to fold in items\nfrom all descendant collections.\n\n## Token counting\n\nUse `POST /v3/collections/token-count` to check whether texts fit within the embedding\nmodel's 8,192-token-per-text limit before submitting them for embedding.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "c4f90ade-321f-46af-8f2f-0aa9df039a1f",
+          "name": "Delete a Collection",
+          "request": {
+            "name": "Delete a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "collectionName",
+                  "value": "<string>",
+                  "description": "(Required) The name/path of the collection to delete. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+                }
+              ],
+              "variable": []
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "7abf6548-d66e-493f-a8c1-982f18d70447",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "0ff524dd-b0b6-4eec-9921-4d6eaf9e0cde",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f8d19873-cd3e-48c3-a5a7-b70103652897",
+          "name": "List Collections",
+          "request": {
+            "name": "List Collections",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "parentCollectionName",
+                  "value": "<string>",
+                  "description": "Optional filter to list only collections under a specific parent collection path.\nFor example, \"customers\" will return \"customers\", \"customers.premium\", \"customers.premium.vip\", etc."
+                },
+                {
+                  "disabled": false,
+                  "key": "collectionNameSearch",
+                  "value": "<string>",
+                  "description": "Optional substring search filter for collection names (case-insensitive).\nFor example, \"premium\" will match \"customers.premium\", \"products.premium\", etc."
+                },
+                {
+                  "disabled": false,
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Number of collections per page"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "548548a6-c0d2-4e75-8079-a90003385122",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "parentCollectionName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "collectionNameSearch",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"collections\": [\n    {\n      \"collectionID\": \"string\",\n      \"collectionName\": \"string\",\n      \"itemCount\": 5012,\n      \"createdAt\": \"2017-10-30T07:30:57.215Z\",\n      \"updatedAt\": \"1975-03-08T16:22:15.569Z\"\n    },\n    {\n      \"collectionID\": \"string\",\n      \"collectionName\": \"string\",\n      \"itemCount\": 8023,\n      \"createdAt\": \"2024-06-05T13:19:39.822Z\",\n      \"updatedAt\": \"2002-12-10T09:24:39.521Z\"\n    }\n  ],\n  \"page\": 4345,\n  \"limit\": 2145,\n  \"totalCount\": 1940,\n  \"totalPages\": 4661\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "a5305cf0-ab0a-4b3b-a1ae-9dbeb7c9a28b",
+          "name": "Create a Collection",
+          "request": {
+            "name": "Create a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collectionName\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "ed4e43f1-152d-4ede-b0a3-0a0d0d2c5c62",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"collectionID\": \"cl_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n  \"collectionName\": \"product_catalog\",\n  \"itemCount\": 0,\n  \"createdAt\": \"2024-10-20T15:30:00Z\",\n  \"updatedAt\": \"2024-10-20T15:30:00Z\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "a9833b84-4a27-420d-a4ea-1f198b3c097f",
+          "name": "Delete an item from a Collection",
+          "request": {
+            "name": "Delete an item from a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections",
+                "items"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "collectionName",
+                  "value": "<string>",
+                  "description": "(Required) The name/path of the collection. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+                },
+                {
+                  "disabled": false,
+                  "key": "collectionItemID",
+                  "value": "<string>",
+                  "description": "(Required) The unique identifier of the item to delete"
+                }
+              ],
+              "variable": []
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "bc878cf3-570b-4466-a053-df62d9740466",
+              "name": "There is no content to send for this request, but the headers may be useful.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "collectionItemID",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "ae5497af-8b6d-425f-a197-46ea8559a37e",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "collectionItemID",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "baa27152-6f38-4dc9-9f78-783dd307327a",
+          "name": "Get a Collection",
+          "request": {
+            "name": "Get a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections",
+                "items"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "collectionName",
+                  "value": "<string>",
+                  "description": "(Required) The name/path of the collection. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+                },
+                {
+                  "disabled": false,
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Number of items per page"
+                },
+                {
+                  "disabled": false,
+                  "key": "includeSubcollections",
+                  "value": "<boolean>",
+                  "description": "When true, includes items from all subcollections under the specified collection path.\nFor example, querying \"customers\" with this flag will return items from \"customers\",\n\"customers.premium\", \"customers.premium.vip\", etc."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "bd8e6550-6dcc-4f11-b02e-f74fe37906be",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "includeSubcollections",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"collectionID\": \"string\",\n  \"collectionName\": \"string\",\n  \"itemCount\": 5301,\n  \"createdAt\": \"1979-10-25T02:48:11.540Z\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"string\",\n      \"data\": \"string\",\n      \"createdAt\": \"1970-06-23T20:57:18.831Z\",\n      \"updatedAt\": \"2020-08-18T22:11:47.499Z\"\n    },\n    {\n      \"collectionItemID\": \"string\",\n      \"data\": \"string\",\n      \"createdAt\": \"2007-11-13T19:55:02.762Z\",\n      \"updatedAt\": \"2003-11-07T06:42:22.175Z\"\n    }\n  ],\n  \"page\": 8761,\n  \"limit\": 3804,\n  \"totalPages\": 3643,\n  \"updatedAt\": \"2019-10-30T11:12:01.595Z\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f2817eb2-c97c-46c0-ba43-6a5a7b3c295d",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "collectionName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "includeSubcollections",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f0b2a8fc-a604-4cc5-93ed-7b696c535bb7",
+          "name": "Add new items to a Collection",
+          "request": {
+            "name": "Add new items to a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections",
+                "items"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collectionName\": \"<string>\",\n  \"items\": [\n    {\n      \"data\": \"<string>\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "1e63e905-3d61-47b1-8584-281ebcfb9f20",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"data\": {\n        \"sku\": \"SKU-11111\",\n        \"name\": \"Deluxe Component\",\n        \"category\": \"Hardware\",\n        \"price\": 299.99\n      }\n    },\n    {\n      \"data\": {\n        \"sku\": \"SKU-22222\",\n        \"name\": \"Standard Part\",\n        \"category\": \"Tools\",\n        \"price\": 49.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"pending\",\n  \"message\": \"Collection items are being processed asynchronously\",\n  \"eventID\": \"evt_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "9e1d3907-bb67-4cfd-9069-9ad87541d9a6",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"data\": {\n        \"sku\": \"SKU-11111\",\n        \"name\": \"Deluxe Component\",\n        \"category\": \"Hardware\",\n        \"price\": 299.99\n      }\n    },\n    {\n      \"data\": {\n        \"sku\": \"SKU-22222\",\n        \"name\": \"Standard Part\",\n        \"category\": \"Tools\",\n        \"price\": 49.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "e5d9a595-67d3-47fa-aeef-c84a4066988c",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"data\": {\n        \"sku\": \"SKU-11111\",\n        \"name\": \"Deluxe Component\",\n        \"category\": \"Hardware\",\n        \"price\": 299.99\n      }\n    },\n    {\n      \"data\": {\n        \"sku\": \"SKU-22222\",\n        \"name\": \"Standard Part\",\n        \"category\": \"Tools\",\n        \"price\": 49.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "77e0daa8-7d9a-4cba-89c2-fc9b4d61e7e2",
+              "name": "Server error",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"data\": {\n        \"sku\": \"SKU-11111\",\n        \"name\": \"Deluxe Component\",\n        \"category\": \"Hardware\",\n        \"price\": 299.99\n      }\n    },\n    {\n      \"data\": {\n        \"sku\": \"SKU-22222\",\n        \"name\": \"Standard Part\",\n        \"category\": \"Tools\",\n        \"price\": 49.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "cf96d276-aa60-4797-8ab9-c0447147e1ec",
+          "name": "Update existing items in a Collection",
+          "request": {
+            "name": "Update existing items in a Collection",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "collections",
+                "items"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collectionName\": \"<string>\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"<string>\",\n      \"data\": \"<string>\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "0238b23c-9acc-4948-bba0-3655eba3e25d",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"clitm_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n      \"data\": \"SKU-12345: Updated Industrial Widget - Premium Edition\"\n    },\n    {\n      \"collectionItemID\": \"clitm_3M7hI9ALDnwc7CoGdHriLK09WaQ\",\n      \"data\": {\n        \"sku\": \"SKU-67890\",\n        \"name\": \"Updated Premium Gear\",\n        \"category\": \"Hardware\",\n        \"price\": 399.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"pending\",\n  \"message\": \"Collection items are being updated asynchronously\",\n  \"eventID\": \"evt_3M7hI9ALDnwc7CoGdHriLK09WaQ\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "28eadc44-edd8-489f-a607-57343772f7dd",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"clitm_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n      \"data\": \"SKU-12345: Updated Industrial Widget - Premium Edition\"\n    },\n    {\n      \"collectionItemID\": \"clitm_3M7hI9ALDnwc7CoGdHriLK09WaQ\",\n      \"data\": {\n        \"sku\": \"SKU-67890\",\n        \"name\": \"Updated Premium Gear\",\n        \"category\": \"Hardware\",\n        \"price\": 399.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "8afc9a16-1ca9-4f0e-85e0-fa56793796c8",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"clitm_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n      \"data\": \"SKU-12345: Updated Industrial Widget - Premium Edition\"\n    },\n    {\n      \"collectionItemID\": \"clitm_3M7hI9ALDnwc7CoGdHriLK09WaQ\",\n      \"data\": {\n        \"sku\": \"SKU-67890\",\n        \"name\": \"Updated Premium Gear\",\n        \"category\": \"Hardware\",\n        \"price\": 399.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "9cfe9855-7ffc-4831-ba22-0f74b92903b6",
+              "name": "Server error",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "items"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"collectionName\": \"product_catalog\",\n  \"items\": [\n    {\n      \"collectionItemID\": \"clitm_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n      \"data\": \"SKU-12345: Updated Industrial Widget - Premium Edition\"\n    },\n    {\n      \"collectionItemID\": \"clitm_3M7hI9ALDnwc7CoGdHriLK09WaQ\",\n      \"data\": {\n        \"sku\": \"SKU-67890\",\n        \"name\": \"Updated Premium Gear\",\n        \"category\": \"Hardware\",\n        \"price\": 399.99\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7dbf36fc-c2d4-477d-acdb-8d5b47641e0c",
+          "name": "Count tokens for texts",
+          "request": {
+            "name": "Count tokens for texts",
+            "description": {
+              "content": "Count the number of tokens in the provided texts using the BGE M3 tokenizer.\nThis is useful for checking if texts will fit within the embedding model's token limit\n(8,192 tokens per text) before sending them for embedding.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "collections",
+                "token-count"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texts\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "09bcfee3-5e9d-4a3c-aaf0-bdb9ebe07f39",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "token-count"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token_counts\": [\n    {\n      \"index\": 3910,\n      \"token_count\": 8249,\n      \"exceeds_limit\": true,\n      \"char_count\": 4500\n    },\n    {\n      \"index\": 6271,\n      \"token_count\": 8486,\n      \"exceeds_limit\": false,\n      \"char_count\": 7659\n    }\n  ],\n  \"total_tokens\": 5244,\n  \"max_token_limit\": 344,\n  \"texts_exceeding_limit\": 4553\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b2b58c4a-cbbe-44a3-81a0-7bcb3a8d5af0",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "token-count"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "6817570a-aac6-4d89-971a-8290fb2ea870",
+              "name": "Server error",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "collections",
+                    "token-count"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "6a0bd145-ed84-4a17-b35b-31ac743474a9",
+    "name": "Bem Buckets Collections API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

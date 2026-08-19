@@ -1,0 +1,59 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Webhooks API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get Webhook Secret",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/webhook-secret"
+          },
+          "docs": "**Get the current webhook signing secret.**\n\nReturns the active secret used to sign outbound webhook deliveries via the `bem-signature`\nheader. Returns 404 if no secret has been generated for this environment yet.\n\nUse the secret to verify incoming webhook payloads:\n1. Parse `bem-signature: t={timestamp},v1={signature}`.\n2. Construct the signed string: `{timestamp}.{raw request body}`.\n3. Compute HMAC-SHA256 of that string using the secret.\n4. Compare the hex digest against `v1`.\n5. Reject reque"
+        },
+        {
+          "info": {
+            "name": "Generate Webhook Secret",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/webhook-secret"
+          },
+          "docs": "**Generate a new webhook signing secret.**\n\nCreates a new signing secret for this environment (or replaces the existing one).\nThe new secret is returned in full exactly once — store it securely.\n\nAfter rotation all newly delivered webhooks will be signed with the new secret.\nUpdate your verification logic before calling this endpoint if you need zero-downtime rotation."
+        },
+        {
+          "info": {
+            "name": "Revoke Webhook Secret",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/webhook-secret"
+          },
+          "docs": "**Revoke the current webhook signing secret.**\n\nDeletes the active signing secret. Webhook deliveries will continue but will no longer\ninclude a `bem-signature` header until a new secret is generated."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

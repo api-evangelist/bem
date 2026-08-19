@@ -1,0 +1,223 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Functions API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Functions",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Functions",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/functions",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "displayName",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "types",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "tags",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowNames",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "**List functions in the current environment.**\n\nReturns each function's current version. Combine filters freely —\nthey AND together.\n\n## Filtering\n\n- `functionIDs` / `functionNames`: exact-match identity filters.\n- `displayName`: case-insensitive substring match.\n- `types`: one or more of `extract`, `classify`, `split`, `join`,\n`enrich`, `payload_shaping`. Legacy `transform`, `analyze`, `route`,\nand `send` types remain readable via this filter.\n- `tags`: returns functions tagged with any of the "
+        },
+        {
+          "info": {
+            "name": "Create a Function",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Create a function.**\n\nThe function `type` determines which configuration fields are\nrequired — see the `CreateFunctionV3` discriminated union and\n[Function types overview](/guide/function-types/overview) for the\nper-type contract.\n\nThe response contains both `functionID` and `functionName`. Either is\na stable handle you can use elsewhere; most workflows reference\nfunctions by `functionName` because it's human-readable.\n\n## Naming rules\n\n- `functionName` must be unique per environment.\n- Allowe"
+        },
+        {
+          "info": {
+            "name": "Copy a Function",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions/copy",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Copy a function to a new name within the same environment.**\n\nForks the source function's current configuration into a brand-new\nfunction. The copy starts at `versionNum: 1` regardless of how many\nversions the source has — version history is not carried over.\n\nUseful for experimenting with schema or prompt changes against a\nstable production function without disturbing existing callers.\n\nThe destination name must be unique in the environment. A copy does\nnot migrate workflows: existing workflo"
+        },
+        {
+          "info": {
+            "name": "Get a Function",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/functions/:functionName",
+            "params": [
+              {
+                "name": "functionName",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Retrieve a function's current version by name.**\n\nReturns the function record with its `currentVersionNum` and the\nconfiguration of that version. To inspect a historical version, use\n`GET /v3/functions/{functionName}/versions/{versionNum}`."
+        },
+        {
+          "info": {
+            "name": "Update a Function",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.bem.ai/v3/functions/:functionName",
+            "params": [
+              {
+                "name": "functionName",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Update a function. Updates create a new version.**\n\nThe previous version remains addressable and immutable. Workflow\nnodes that pinned the function with a `versionNum` continue to use\nthe pinned version; nodes that reference the function by name with\nno version automatically pick up the new version on their next call.\n\n## What you can change\n\nAny field allowed by the function's type. Most commonly:\n`outputSchema` (for `extract`/`join`), `classifications` (for\n`classify`), `displayName`, and `t"
+        },
+        {
+          "info": {
+            "name": "Delete a Function",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/functions/:functionName",
+            "params": [
+              {
+                "name": "functionName",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Delete a function and every one of its versions.**\n\nPermanent. Running and queued calls that reference this function\ncontinue to completion against the version they captured at call\ntime, but no new calls can target it.\n\n## Before deleting\n\nWorkflow nodes that reference this function will fail at call time\nafter deletion. List workflows that reference it first:\n\n```\nGET /v3/workflows?functionNames=my-function\n```\n\nUpdate or remove those workflows, or create a replacement function\nand re-point "
+        },
+        {
+          "info": {
+            "name": "List Function Versions",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/functions/:functionName/versions",
+            "params": [
+              {
+                "name": "functionName",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**List every version of a function.**\n\nReturns the full version history, newest-first. Each row captures\nthe configuration the function had between updates. Useful for\naudits (\"when did this schema change?\") and for diffing two\nversions before promoting an update to production."
+        },
+        {
+          "info": {
+            "name": "Get a Function Version",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/functions/:functionName/versions/:versionNum",
+            "params": [
+              {
+                "name": "functionName",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "versionNum",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Retrieve a specific historical version of a function.**\n\nVersions are immutable. Use this endpoint to inspect what a function\nlooked like at the moment a particular call was made — every event\nand transformation records the function version it ran against."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

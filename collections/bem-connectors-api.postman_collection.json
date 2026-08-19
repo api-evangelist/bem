@@ -1,0 +1,341 @@
+{
+  "item": [
+    {
+      "id": "30566dce-e678-429b-bab4-c9715d6541cf",
+      "name": "Connectors",
+      "description": {
+        "content": "Connectors are integrations that trigger a Bem workflow from an external system.\n\nA connector binds an inbound source — currently Box or a Paragon-managed integration such as\nGoogle Drive — to a specific workflow (by `workflowName` or `workflowID`). When the source\nobserves a new file, Bem invokes the bound workflow against that file.\n\nUse these endpoints to create, list, and remove connectors. The fields used at create time\ndepend on the connector `type`: Box connectors require Box credentials and a folder to watch,\nwhile Paragon connectors carry a `paragonIntegration` identifier and an integration-specific\n`paragonConfiguration` object (for example, `{ \"folderId\": \"...\" }` for Google Drive).",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "5b67976f-328c-41b4-aabc-98c67459b72e",
+          "name": "Create a Connector",
+          "request": {
+            "name": "Create a Connector",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "connectors"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"<string>\",\n  \"name\": \"<string>\",\n  \"workflowID\": \"<string>\",\n  \"workflowName\": \"<string>\",\n  \"boxClientID\": \"<string>\",\n  \"boxClientSecret\": \"<string>\",\n  \"boxEnterpriseID\": \"<string>\",\n  \"boxFolderID\": \"<string>\",\n  \"paragonIntegration\": \"<string>\",\n  \"paragonConfiguration\": \"<object>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "005ed5ce-db4e-4076-adbb-1c61030d388f",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "connectors"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Box → Invoice workflow\",\n  \"workflowID\": \"wf_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\",\n  \"type\": \"paragon\",\n  \"paragonIntegration\": \"googledrive\",\n  \"paragonConfiguration\": {\n    \"folderId\": \"YOUR_GOOGLE_DRIVE_FOLDER_ID\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"type\": \"box\",\n  \"connectorID\": \"string\",\n  \"name\": \"string\",\n  \"workflowID\": \"string\",\n  \"workflowName\": \"string\",\n  \"boxClientID\": \"string\",\n  \"boxClientSecret\": \"string\",\n  \"boxEnterpriseID\": \"string\",\n  \"boxFolderID\": \"string\",\n  \"paragonSyncID\": \"string\",\n  \"paragonIntegration\": \"string\",\n  \"paragonConfiguration\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "539b1265-1776-41fb-8861-e0da5b5ab023",
+          "name": "List Connectors",
+          "request": {
+            "name": "List Connectors",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "connectors"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "workflowID",
+                  "value": "<string>",
+                  "description": "Filter connectors by workflow API ID (e.g. `wf_...`).\n\nIf both `workflowID` and `workflowName` are provided, results must match both."
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowName",
+                  "value": "<string>",
+                  "description": "Filter connectors by workflow name (exact match).\n\nIf both `workflowID` and `workflowName` are provided, results must match both."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "8a01c7f3-26d8-4399-bc26-e4191a08de43",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "connectors"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "workflowID",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowName",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"connectors\": [\n    {\n      \"type\": \"box\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"boxClientID\": \"string\",\n      \"boxClientSecret\": \"string\",\n      \"boxEnterpriseID\": \"string\",\n      \"boxFolderID\": \"string\",\n      \"paragonSyncID\": \"string\",\n      \"paragonIntegration\": \"string\",\n      \"paragonConfiguration\": {}\n    },\n    {\n      \"type\": \"box\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"boxClientID\": \"string\",\n      \"boxClientSecret\": \"string\",\n      \"boxEnterpriseID\": \"string\",\n      \"boxFolderID\": \"string\",\n      \"paragonSyncID\": \"string\",\n      \"paragonIntegration\": \"string\",\n      \"paragonConfiguration\": {}\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1a2693f7-a2c5-46e7-a817-066f39212c02",
+          "name": "Delete a Connector",
+          "request": {
+            "name": "Delete a Connector",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "connectors",
+                ":connectorID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "connectorID",
+                  "description": "(Required) Connector API ID."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/plain"
+              }
+            ],
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "5f75d0ed-d2b2-409e-a5e4-6316cb3a8fe9",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "connectors",
+                    ":connectorID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "connectorID",
+                      "description": "(Required) Connector API ID."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "text/plain"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "string",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "1808dd75-abbe-424e-9aa8-72f75bd8eb9a",
+    "name": "Bem Buckets Connectors API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

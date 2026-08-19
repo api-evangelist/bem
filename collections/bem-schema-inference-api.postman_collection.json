@@ -1,0 +1,217 @@
+{
+  "item": [
+    {
+      "id": "589df9b2-dd94-4cb7-ab3e-cca56c807ed2",
+      "name": "Schema Inference",
+      "description": {
+        "content": "Infer JSON Schemas from uploaded documents using AI.\n\nUpload a file (PDF, image, spreadsheet, email, etc.) and receive a general-purpose JSON Schema\nthat captures the document's structure. The inferred schema can be used directly as the\n`outputSchema` when creating Extract functions.\n\nThe schema is designed to be broadly applicable to documents of the same type, not just\nthe specific file uploaded.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "a800f372-a17a-4fbe-89c0-a998ebc27edc",
+          "name": "Infer Schema from File",
+          "request": {
+            "name": "Infer Schema from File",
+            "description": {
+              "content": "**Analyze a file and infer a JSON Schema from its contents.**\n\nAccepts a file via multipart form upload and uses Gemini to analyze the document,\nreturning a description of its contents, an inferred JSON Schema capturing all\nextractable fields, and document classification metadata.\n\nThe returned schema is designed to be reusable across many similar documents of the\nsame type, not just the specific file uploaded. It can be used directly as the\n`outputSchema` when creating a Transform function.\n\nThe endpoint also detects whether the file contains multiple bundled documents\nand classifies the content nature (textual, visual, audio, video, or mixed).\n\n## Supported file types\n\nPDF, PNG, JPEG, HEIC, HEIF, WebP, CSV, XLS, XLSX, DOCX, JSON, HTML, XML, EML,\nplain text, WAV, MP3, M4A, MP4.\n\n## File size limit\n\nMaximum file size is **20 MB**.\n\n## Examples\n\nUsing curl:\n```bash\ncurl -X POST https://api.bem.ai/v3/infer-schema \\\n  -H \"x-api-key: YOUR_API_KEY\" \\\n  -F \"file=@invoice.pdf\"\n```\n\nUsing the Bem CLI:\n```bash\nbem infer-schema create --file @invoice.pdf\n```",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "infer-schema"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": "{}",
+                  "type": "text",
+                  "contentType": "*/*",
+                  "description": "(Required) The file to analyze and infer a JSON schema from."
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "5806312b-3b40-4fcb-951e-504ad8a5f9cd",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "infer-schema"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) The file to analyze and infer a JSON schema from.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "{}",
+                      "type": "text",
+                      "contentType": "*/*"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"filename\": \"string\",\n  \"analysis\": {\n    \"fileName\": \"string\",\n    \"contentType\": \"string\",\n    \"sizeBytes\": 4128,\n    \"fileType\": \"string\",\n    \"description\": \"string\",\n    \"isMultiDocument\": true,\n    \"documentTypes\": [\n      {\n        \"name\": \"string\",\n        \"count\": 8474,\n        \"description\": \"string\"\n      },\n      {\n        \"name\": \"string\",\n        \"count\": 7501,\n        \"description\": \"string\"\n      }\n    ],\n    \"contentNature\": \"string\",\n    \"schema\": {}\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "9fe03d2a-18e1-4ffc-9321-af22b93dbf3f",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "infer-schema"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) The file to analyze and infer a JSON schema from.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "{}",
+                      "type": "text",
+                      "contentType": "*/*"
+                    }
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"code\": 1412,\n  \"details\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "55e2a587-af68-4c4b-8b37-da53b023fd1a",
+    "name": "Bem Buckets Schema Inference API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

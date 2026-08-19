@@ -1,0 +1,49 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Feedback API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Feedback",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Submit Event Feedback",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/events/:eventID/feedback",
+            "params": [
+              {
+                "name": "eventID",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the event being corrected."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Submit a correction for an event.**\n\nAccepts training corrections for `extract`, `classify`, and `join` events.\nFor extract/join events, `correction` is a JSON object matching the function's\noutput schema. For classify events, `correction` is a JSON string matching\none of the function version's declared classifications.\n\nSubmitting feedback again for the same event overwrites the previous correction.\n\nUnsupported function types (split, enrich) return `400`."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

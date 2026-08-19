@@ -1,0 +1,400 @@
+{
+  "item": [
+    {
+      "id": "87a2f335-f8a7-44db-9024-53abcd42659d",
+      "name": "Outputs",
+      "description": {
+        "content": "Retrieve terminal non-error output events from workflow calls.\n\nOutputs are events produced by successful terminal function steps — steps that completed\nwithout errors and did not spawn further downstream function calls. A single workflow call\nmay produce multiple outputs (e.g. from a split-then-transform pipeline).\n\nOutputs and errors from the same call are not mutually exclusive: a partially-completed\nworkflow may have both.\n\nUse `GET /v3/outputs` to list outputs across calls, or `GET /v3/outputs/{eventID}` to\nretrieve a specific output. To get outputs scoped to a single call, filter by `callIDs`.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "296bba55-f404-4345-996c-fe1144796def",
+          "name": "List Outputs",
+          "request": {
+            "name": "List Outputs",
+            "description": {
+              "content": "**List terminal non-error output events.**\n\nReturns events that represent successful terminal outputs — primary events\n(non-split-collection) that did not trigger any downstream function calls.\nError events are excluded; use `GET /v3/errors` to retrieve those.\n\n## Intermediate Events\n\nBy default, intermediate events (those that spawned a downstream function call in a\nmulti-step workflow) are excluded. Pass `includeIntermediate=true` to include them.\n\n## Filtering\n\nFilter by call, workflow, function, or reference ID. Multiple filters are ANDed together.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "outputs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "disabled": false,
+                  "key": "callIDs",
+                  "value": "<string>",
+                  "description": "Filter to outputs from specific calls."
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowNames",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionNames",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "referenceIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "eventIDs",
+                  "value": "<string>",
+                  "description": "Filter to specific output events by their event IDs (KSUIDs)."
+                },
+                {
+                  "disabled": false,
+                  "key": "eventTypes",
+                  "value": "<string>",
+                  "description": "Filter to specific non-error output event types, e.g. `classify` or `extract`."
+                },
+                {
+                  "disabled": false,
+                  "key": "transformationIDs",
+                  "value": "<string>",
+                  "description": "Filter by legacy transformation IDs. Provided for backwards compatibility\nwith clients migrating from `/v1-beta/transformations`."
+                },
+                {
+                  "disabled": false,
+                  "key": "functionVersionNums",
+                  "value": "<integer>",
+                  "description": "Filter to specific function version numbers."
+                },
+                {
+                  "disabled": false,
+                  "key": "referenceIDSubstring",
+                  "value": "<string>",
+                  "description": "Case-insensitive substring match against `referenceID`."
+                },
+                {
+                  "disabled": false,
+                  "key": "isLabelled",
+                  "value": "<boolean>",
+                  "description": "If `true`, only outputs with a corrected (labelled) payload.\nIf `false`, only outputs that are not labelled. If omitted, no filter is applied."
+                },
+                {
+                  "disabled": false,
+                  "key": "isRegression",
+                  "value": "<boolean>",
+                  "description": "If `true`, only regression-marked outputs. If `false`, only non-regression outputs.\nIf omitted, no filter is applied.\n\nNote: clients migrating from `/v1-beta/transformations` should pass `isRegression=false`\nexplicitly to preserve the legacy default (regressions hidden unless explicitly requested)."
+                },
+                {
+                  "disabled": false,
+                  "key": "includeIntermediate",
+                  "value": "<boolean>",
+                  "description": "When `true`, includes intermediate events (those that spawned a downstream function call).\nDefault: `false`."
+                },
+                {
+                  "disabled": false,
+                  "key": "sortOrder",
+                  "value": "asc"
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "e53f5d67-bf73-499c-949e-c44ea72f7217",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "outputs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "callIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowNames",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionNames",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "referenceIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "eventIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "eventTypes",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "transformationIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionVersionNums",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "referenceIDSubstring",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "isLabelled",
+                      "value": "<boolean>"
+                    },
+                    {
+                      "key": "isRegression",
+                      "value": "<boolean>"
+                    },
+                    {
+                      "key": "includeIntermediate",
+                      "value": "<boolean>"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "asc"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"outputs\": [\n    {\n      \"eventID\": \"string\",\n      \"referenceID\": \"string\",\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"transformedContent\": {},\n      \"itemOffset\": 9906,\n      \"itemCount\": 5296,\n      \"functionCallTryNumber\": 9875,\n      \"createdAt\": \"1951-02-21T12:16:35.597Z\",\n      \"inboundEmail\": {\n        \"to\": \"string\",\n        \"from\": \"string\",\n        \"subject\": \"string\",\n        \"deliveredTo\": \"string\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": 734.2427415257313\n      },\n      \"eventType\": \"transform\",\n      \"functionCallID\": \"string\",\n      \"functionVersionNum\": 6233,\n      \"callID\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"workflowVersionNum\": 3387,\n      \"pipelineID\": \"string\",\n      \"publishedAt\": \"1957-08-16T07:37:35.717Z\",\n      \"lastPublishErrorAt\": \"string\",\n      \"inputType\": \"xml\",\n      \"transformationID\": \"string\",\n      \"s3URL\": \"string\",\n      \"inputs\": [\n        {\n          \"inputType\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"inputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"jsonInputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"s3URL\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        {\n          \"inputType\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"inputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"jsonInputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"s3URL\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      ],\n      \"correctedContent\": {\n        \"output\": [\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        ]\n      },\n      \"invalidProperties\": [\n        \"string\",\n        \"string\"\n      ],\n      \"metrics\": {\n        \"metrics\": {\n          \"accuracy\": 5545.535891901831,\n          \"precision\": 8443.128928714521,\n          \"recall\": 747.0103807233208,\n          \"f1Score\": 8553.88882113956\n        },\n        \"differences\": [\n          {\n            \"category\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"correctedVal\": \"\",\n            \"extractedVal\": \"\",\n            \"jsonPointer\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          {\n            \"category\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"correctedVal\": \"\",\n            \"extractedVal\": \"\",\n            \"jsonPointer\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        ]\n      },\n      \"orderMatching\": false,\n      \"isRegression\": false,\n      \"fieldConfidences\": {},\n      \"avgConfidence\": 1871.5761180418579\n    },\n    {\n      \"eventID\": \"string\",\n      \"referenceID\": \"string\",\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"transformedContent\": {},\n      \"itemOffset\": 553,\n      \"itemCount\": 4894,\n      \"functionCallTryNumber\": 3426,\n      \"createdAt\": \"2001-05-08T15:37:20.170Z\",\n      \"inboundEmail\": {\n        \"to\": \"string\",\n        \"from\": \"string\",\n        \"subject\": \"string\",\n        \"deliveredTo\": \"string\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": 256.42454098410815\n      },\n      \"eventType\": \"transform\",\n      \"functionCallID\": \"string\",\n      \"functionVersionNum\": 2892,\n      \"callID\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"workflowVersionNum\": 6551,\n      \"pipelineID\": \"string\",\n      \"publishedAt\": \"1993-07-01T07:02:18.474Z\",\n      \"lastPublishErrorAt\": \"string\",\n      \"inputType\": \"heic\",\n      \"transformationID\": \"string\",\n      \"s3URL\": \"string\",\n      \"inputs\": [\n        {\n          \"inputType\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"inputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"jsonInputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"s3URL\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        {\n          \"inputType\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"inputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"jsonInputContent\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"s3URL\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      ],\n      \"correctedContent\": {\n        \"output\": [\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        ]\n      },\n      \"invalidProperties\": [\n        \"string\",\n        \"string\"\n      ],\n      \"metrics\": {\n        \"metrics\": {\n          \"accuracy\": 1196.1722904928317,\n          \"precision\": 708.0691079477886,\n          \"recall\": 1756.3108626007406,\n          \"f1Score\": 4613.466962368071\n        },\n        \"differences\": [\n          {\n            \"category\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"correctedVal\": \"\",\n            \"extractedVal\": \"\",\n            \"jsonPointer\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          {\n            \"category\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"correctedVal\": \"\",\n            \"extractedVal\": \"\",\n            \"jsonPointer\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        ]\n      },\n      \"orderMatching\": false,\n      \"isRegression\": false,\n      \"fieldConfidences\": {},\n      \"avgConfidence\": 3839.915188615228\n    }\n  ],\n  \"totalCount\": 1259\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1dfdbd85-6675-4d43-bde1-8b56a8e555c3",
+          "name": "Get an Output",
+          "request": {
+            "name": "Get an Output",
+            "description": {
+              "content": "**Retrieve a single output event by ID.**\n\nFetches any non-error event by its `eventID`. Returns `404` if the event does not exist\nor if it is an error event (use `GET /v3/errors/{eventID}` for those).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "outputs",
+                ":eventID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "eventID",
+                  "description": "(Required) The unique identifier of the output event."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "e9828d16-896f-436e-9a75-d230eca81674",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "outputs",
+                    ":eventID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "eventID",
+                      "description": "(Required) The unique identifier of the output event."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"output\": {\n    \"eventID\": \"string\",\n    \"referenceID\": \"string\",\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"transformedContent\": {},\n    \"itemOffset\": 2344,\n    \"itemCount\": 8710,\n    \"functionCallTryNumber\": 219,\n    \"createdAt\": \"1951-01-13T05:49:10.140Z\",\n    \"inboundEmail\": {\n      \"to\": \"string\",\n      \"from\": \"string\",\n      \"subject\": \"string\",\n      \"deliveredTo\": \"string\"\n    },\n    \"metadata\": {\n      \"durationFunctionToEventSeconds\": 7899.181336139234\n    },\n    \"eventType\": \"transform\",\n    \"functionCallID\": \"string\",\n    \"functionVersionNum\": 1448,\n    \"callID\": \"string\",\n    \"workflowID\": \"string\",\n    \"workflowName\": \"string\",\n    \"workflowVersionNum\": 5671,\n    \"pipelineID\": \"string\",\n    \"publishedAt\": \"1981-03-12T02:25:34.533Z\",\n    \"lastPublishErrorAt\": \"string\",\n    \"inputType\": \"png\",\n    \"transformationID\": \"string\",\n    \"s3URL\": \"string\",\n    \"inputs\": [\n      {\n        \"inputType\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"inputContent\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"jsonInputContent\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"s3URL\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      {\n        \"inputType\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"inputContent\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"jsonInputContent\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"s3URL\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    ],\n    \"correctedContent\": {\n      \"output\": [\n        {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      ]\n    },\n    \"invalidProperties\": [\n      \"string\",\n      \"string\"\n    ],\n    \"metrics\": {\n      \"metrics\": {\n        \"accuracy\": 4899.173199870269,\n        \"precision\": 5507.816560918941,\n        \"recall\": 300.08116239595984,\n        \"f1Score\": 3665.095133734021\n      },\n      \"differences\": [\n        {\n          \"category\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"correctedVal\": \"\",\n          \"extractedVal\": \"\",\n          \"jsonPointer\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        {\n          \"category\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"correctedVal\": \"\",\n          \"extractedVal\": \"\",\n          \"jsonPointer\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      ]\n    },\n    \"orderMatching\": false,\n    \"isRegression\": true,\n    \"fieldConfidences\": {},\n    \"avgConfidence\": 4636.4239679435905\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "242036fe-db2a-4833-a8a8-dd8c0aad8eb1",
+    "name": "Bem Buckets Outputs API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

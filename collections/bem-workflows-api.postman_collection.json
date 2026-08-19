@@ -1,0 +1,1277 @@
+{
+  "item": [
+    {
+      "id": "0e9d3019-3b17-4e49-9f7b-dc4c4b6564f6",
+      "name": "Workflows",
+      "description": {
+        "content": "Workflows orchestrate one or more functions into a directed acyclic graph (DAG) for document processing.\n\nUse these endpoints to create, update, list, and manage workflows, and to invoke them\nwith file input via `POST /v3/workflows/{workflowName}/call`.\n\nThe call endpoint accepts files as either multipart form data or JSON with base64-encoded\ncontent. In the Bem CLI, use `@path/to/file` inside JSON values to automatically read and\nencode files:\n\n```\nbem workflows call --workflow-name my-workflow \\\n  --input.single-file '{\"inputContent\": \"@file.pdf\", \"inputType\": \"pdf\"}' \\\n  --wait\n```",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "87c91ebb-2030-4d13-937e-b3682c187b4a",
+          "name": "List Workflows",
+          "request": {
+            "name": "List Workflows",
+            "description": {
+              "content": "**List workflows in the current environment.**\n\nReturns each workflow's current version, including its node graph\nand main node. Combine filters freely — they AND together.\n\n## Filtering\n\n- `workflowIDs` / `workflowNames`: exact-match identity filters.\n- `displayName`: case-insensitive substring match.\n- `tags`: returns workflows tagged with any of the supplied tags.\n- `functionIDs` / `functionNames`: returns only workflows that\nreference the named functions in any node. Useful for \"which\nworkflows depend on this function?\" lookups before changing or\ndeleting a function.\n\n## Pagination\n\nCursor-based with `startingAfter` and `endingBefore` (workflowIDs).\nDefault limit 50, maximum 100.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowNames",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "displayName",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "sortOrder",
+                  "value": "asc"
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "tags",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionNames",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "bc4ac4df-85b4-45d4-b88f-31ef9ff415d1",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "workflowIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowNames",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "displayName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "asc"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionNames",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"workflows\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"versionNum\": 161,\n      \"mainNodeName\": \"string\",\n      \"nodes\": [\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        },\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        }\n      ],\n      \"edges\": [\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        },\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        }\n      ],\n      \"connectors\": [\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        },\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      ],\n      \"createdAt\": \"1989-04-12T19:43:25.713Z\",\n      \"updatedAt\": \"1961-11-01T21:49:27.969Z\",\n      \"displayName\": \"string\",\n      \"emailAddress\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"workflowCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"workflowLastUpdatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"versionCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"versionNum\": 3004,\n      \"mainNodeName\": \"string\",\n      \"nodes\": [\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        },\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        }\n      ],\n      \"edges\": [\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        },\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        }\n      ],\n      \"connectors\": [\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        },\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      ],\n      \"createdAt\": \"1947-01-15T11:42:46.847Z\",\n      \"updatedAt\": \"1970-11-13T16:41:02.390Z\",\n      \"displayName\": \"string\",\n      \"emailAddress\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"workflowCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"workflowLastUpdatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"versionCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    }\n  ],\n  \"totalCount\": 4847,\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c82c6b36-2105-4df3-af10-b0253fb98e62",
+          "name": "Create a Workflow",
+          "request": {
+            "name": "Create a Workflow",
+            "description": {
+              "content": "**Create a workflow.**\n\nA workflow is a directed acyclic graph of nodes (each pointing at a\nfunction) with one entry point (`mainNodeName`). The graph runs\nend-to-end on every call.\n\n## Required structure\n\n- `name`: unique within the environment, alphanumeric plus hyphens\nand underscores.\n- `mainNodeName`: must match one of the `nodes[].name` values, and\nmust not be the destination of any edge.\n- `nodes`: at least one. Each node has a unique `name` and a\n`function` reference (by `functionName` or `functionID`, optionally\npinned to a `versionNum`).\n- `edges`: optional for single-node workflows. For branching\nsources (Classify, semantic Split), each edge carries a\n`destinationName` matching a `classifications[].name` or\n`itemClasses[].name` on the source function.\n\nThe created workflow is at `versionNum: 1`. Subsequent\n`PATCH /v3/workflows/{workflowName}` calls produce new versions.\n\n## Common patterns\n\n- **Single-node**: one extract/classify function, no edges.\n- **Sequential**: extract → enrich → payload_shaping (linear edges).\n- **Branching**: classify → multiple extracts (one edge per\nclassification name).\n- **Split-then-process**: split → multiple extracts (one edge per\nitem class).\n\nSee [Workflows explained](/guide/workflows-explained) for end-to-end\nexamples of each pattern.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"mainNodeName\": \"<string>\",\n  \"nodes\": [\n    {\n      \"function\": {\n        \"id\": \"<string>\",\n        \"name\": \"<string>\",\n        \"versionNum\": \"<integer>\"\n      },\n      \"name\": \"<string>\",\n      \"metadata\": \"<object>\"\n    }\n  ],\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"edges\": [\n    {\n      \"sourceNodeName\": \"<string>\",\n      \"destinationNodeName\": \"<string>\",\n      \"destinationName\": \"<string>\",\n      \"metadata\": \"<object>\"\n    },\n    {\n      \"sourceNodeName\": \"<string>\",\n      \"destinationNodeName\": \"<string>\",\n      \"destinationName\": \"<string>\",\n      \"metadata\": \"<object>\"\n    }\n  ],\n  \"connectors\": [\n    {\n      \"name\": \"<string>\",\n      \"type\": \"<string>\",\n      \"connectorID\": \"<string>\",\n      \"paragon\": {\n        \"integration\": \"<string>\",\n        \"configuration\": \"<object>\"\n      }\n    },\n    {\n      \"name\": \"<string>\",\n      \"type\": \"<string>\",\n      \"connectorID\": \"<string>\",\n      \"paragon\": {\n        \"integration\": \"<string>\",\n        \"configuration\": \"<object>\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "fc7fa700-84c3-483d-b837-c469815f57dd",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"mainNodeName\": \"<string>\",\n  \"nodes\": [\n    {\n      \"function\": {\n        \"id\": \"string\",\n        \"name\": \"string\",\n        \"versionNum\": 9307\n      },\n      \"name\": \"string\",\n      \"metadata\": {}\n    }\n  ],\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"edges\": [\n    {\n      \"sourceNodeName\": \"string\",\n      \"destinationNodeName\": \"string\",\n      \"destinationName\": \"string\",\n      \"metadata\": {}\n    },\n    {\n      \"sourceNodeName\": \"string\",\n      \"destinationNodeName\": \"string\",\n      \"destinationName\": \"string\",\n      \"metadata\": {}\n    }\n  ],\n  \"connectors\": [\n    {\n      \"name\": \"string\",\n      \"type\": \"paragon\",\n      \"connectorID\": \"string\",\n      \"paragon\": {\n        \"integration\": \"string\",\n        \"configuration\": {}\n      }\n    },\n    {\n      \"name\": \"string\",\n      \"type\": \"paragon\",\n      \"connectorID\": \"string\",\n      \"paragon\": {\n        \"integration\": \"string\",\n        \"configuration\": {}\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 1267,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 8134\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 7369\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      }\n    ],\n    \"createdAt\": \"1950-07-22T01:30:50.587Z\",\n    \"updatedAt\": \"2024-12-20T02:31:13.137Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"2025-05-09T01:21:10.967Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1990-01-12T17:15:52.707Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1985-11-04T19:18:07.208Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      }\n    }\n  },\n  \"error\": \"string\",\n  \"connectorErrors\": [\n    {\n      \"operation\": \"update\",\n      \"message\": \"string\",\n      \"code\": \"string\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"operation\": \"update\",\n      \"message\": \"string\",\n      \"code\": \"string\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5462e6fa-312f-4c22-a0d3-368ba2ab7cc1",
+          "name": "Copy a Workflow",
+          "request": {
+            "name": "Copy a Workflow",
+            "description": {
+              "content": "**Copy a workflow to a new name.**\n\nForks the source workflow's current version into a brand-new\nworkflow at `versionNum: 1`. The full node graph and edges are\ncarried over, but the *functions* the copied nodes reference are\nshared, not duplicated — both workflows now point at the same\nfunctions.\n\nUseful for forking a production workflow to test a topology change\nwithout disturbing the live caller.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                "copy"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceWorkflowName\": \"<string>\",\n  \"targetWorkflowName\": \"<string>\",\n  \"sourceWorkflowVersionNum\": \"<integer>\",\n  \"targetEnvironment\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "0754555c-f65b-46f8-942b-b14ba43266ed",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    "copy"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sourceWorkflowName\": \"<string>\",\n  \"targetWorkflowName\": \"<string>\",\n  \"sourceWorkflowVersionNum\": \"<integer>\",\n  \"targetEnvironment\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"environment\": \"string\",\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 3922,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    ],\n    \"createdAt\": \"1997-05-24T22:15:31.821Z\",\n    \"updatedAt\": \"1988-12-25T19:34:31.967Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    }\n  },\n  \"copiedFunctions\": [\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 226,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 4331\n    },\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 2889,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 1368\n    }\n  ],\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2ba74b83-73d1-4a86-b1e7-db1e4fe6b4c7",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    "copy"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sourceWorkflowName\": \"<string>\",\n  \"targetWorkflowName\": \"<string>\",\n  \"sourceWorkflowVersionNum\": \"<integer>\",\n  \"targetEnvironment\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"environment\": \"string\",\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 3922,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    ],\n    \"createdAt\": \"1997-05-24T22:15:31.821Z\",\n    \"updatedAt\": \"1988-12-25T19:34:31.967Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    }\n  },\n  \"copiedFunctions\": [\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 226,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 4331\n    },\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 2889,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 1368\n    }\n  ],\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "ce7b669b-f080-4635-8ae2-fa9f33edd02d",
+              "name": "The server cannot find the requested resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    "copy"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sourceWorkflowName\": \"<string>\",\n  \"targetWorkflowName\": \"<string>\",\n  \"sourceWorkflowVersionNum\": \"<integer>\",\n  \"targetEnvironment\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"environment\": \"string\",\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 3922,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"name\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"versionNum\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"configuration\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"syncID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    ],\n    \"createdAt\": \"1997-05-24T22:15:31.821Z\",\n    \"updatedAt\": \"1988-12-25T19:34:31.967Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"createdAt\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userID\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"userEmail\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"apiKeyName\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"emailAddress\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    }\n  },\n  \"copiedFunctions\": [\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 226,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 4331\n    },\n    {\n      \"sourceFunctionName\": \"string\",\n      \"sourceFunctionID\": \"string\",\n      \"sourceVersionNum\": 2889,\n      \"targetFunctionName\": \"string\",\n      \"targetFunctionID\": \"string\",\n      \"targetVersionNum\": 1368\n    }\n  ],\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "ec16c1f2-196c-46d3-a101-2e34133a85c4",
+          "name": "Delete a Workflow",
+          "request": {
+            "name": "Delete a Workflow",
+            "description": {
+              "content": "**Delete a workflow and every one of its versions.**\n\nPermanent. Running and queued calls against this workflow continue\nto completion against the version they captured at call time;\nsubsequent attempts to call the workflow return `404 Not Found`.\n\nFunctions referenced by the deleted workflow are not removed — they\nremain available to other workflows or for direct reference.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "893f5533-a045-4f00-b7a5-bef92c1fc682",
+              "name": "There is no content to send for this request, but the headers may be useful. ",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "3d55491d-3831-4f87-92c1-b749c8e9c84c",
+          "name": "Get a Workflow",
+          "request": {
+            "name": "Get a Workflow",
+            "description": {
+              "content": "**Retrieve a workflow's current version by name.**\n\nReturns the full workflow record: `currentVersionNum`, `mainNodeName`,\nthe `nodes` array (with each node's function reference and pinned\n`versionNum` if any), and the `edges` array. To inspect a historical\nversion, use `GET /v3/workflows/{workflowName}/versions/{versionNum}`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "53a605ea-70a9-4526-90ea-64d9514a5500",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 5956,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 7238\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 1773\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      }\n    ],\n    \"createdAt\": \"1965-03-31T04:05:02.205Z\",\n    \"updatedAt\": \"1951-07-31T01:15:19.081Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1975-06-26T09:30:02.867Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1987-09-13T00:47:32.197Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1976-06-08T03:47:34.698Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      }\n    }\n  },\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7f2dc699-6137-4ecb-904d-25f17309b1f8",
+          "name": "Update a Workflow",
+          "request": {
+            "name": "Update a Workflow",
+            "description": {
+              "content": "**Update a workflow. Updates create a new version.**\n\nThe previous version remains addressable and immutable. Pending and\nrunning calls captured at the old version continue against it; new\ncalls run against the new version.\n\n## Topology updates\n\nTo change the graph you must provide `mainNodeName`, `nodes`, AND\n`edges` together — partial topology updates are rejected. The full\ngraph is replaced atomically.\n\n## Metadata-only updates\n\nOmit all three fields to update only `displayName`, `tags`, or\n`name` while keeping the topology of the current version.\n\n## Reverting\n\nTo roll back, fetch the desired prior version and resubmit its\n`mainNodeName`/`nodes`/`edges` as a new update. Versions themselves\nare immutable — there is no \"pin to version N\" operation at the\nworkflow level (use `nodes[].function.versionNum` to pin individual\nfunctions).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"mainNodeName\": \"<string>\",\n  \"nodes\": [\n    {\n      \"function\": {\n        \"id\": \"<string>\",\n        \"name\": \"<string>\",\n        \"versionNum\": \"<integer>\"\n      },\n      \"name\": \"<string>\",\n      \"metadata\": \"<object>\"\n    },\n    {\n      \"function\": {\n        \"id\": \"<string>\",\n        \"name\": \"<string>\",\n        \"versionNum\": \"<integer>\"\n      },\n      \"name\": \"<string>\",\n      \"metadata\": \"<object>\"\n    }\n  ],\n  \"edges\": [\n    {\n      \"sourceNodeName\": \"<string>\",\n      \"destinationNodeName\": \"<string>\",\n      \"destinationName\": \"<string>\",\n      \"metadata\": \"<object>\"\n    },\n    {\n      \"sourceNodeName\": \"<string>\",\n      \"destinationNodeName\": \"<string>\",\n      \"destinationName\": \"<string>\",\n      \"metadata\": \"<object>\"\n    }\n  ],\n  \"connectors\": [\n    {\n      \"name\": \"<string>\",\n      \"type\": \"<string>\",\n      \"connectorID\": \"<string>\",\n      \"paragon\": {\n        \"integration\": \"<string>\",\n        \"configuration\": \"<object>\"\n      }\n    },\n    {\n      \"name\": \"<string>\",\n      \"type\": \"<string>\",\n      \"connectorID\": \"<string>\",\n      \"paragon\": {\n        \"integration\": \"<string>\",\n        \"configuration\": \"<object>\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "5ea4cfac-8ba6-4558-a255-71d180411b34",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"mainNodeName\": \"<string>\",\n  \"nodes\": [\n    {\n      \"function\": {\n        \"id\": \"string\",\n        \"name\": \"string\",\n        \"versionNum\": 3614\n      },\n      \"name\": \"string\",\n      \"metadata\": {}\n    },\n    {\n      \"function\": {\n        \"id\": \"string\",\n        \"name\": \"string\",\n        \"versionNum\": 5646\n      },\n      \"name\": \"string\",\n      \"metadata\": {}\n    }\n  ],\n  \"edges\": [\n    {\n      \"sourceNodeName\": \"string\",\n      \"destinationNodeName\": \"string\",\n      \"destinationName\": \"string\",\n      \"metadata\": {}\n    },\n    {\n      \"sourceNodeName\": \"string\",\n      \"destinationNodeName\": \"string\",\n      \"destinationName\": \"string\",\n      \"metadata\": {}\n    }\n  ],\n  \"connectors\": [\n    {\n      \"name\": \"string\",\n      \"type\": \"paragon\",\n      \"connectorID\": \"string\",\n      \"paragon\": {\n        \"integration\": \"string\",\n        \"configuration\": {}\n      }\n    },\n    {\n      \"name\": \"string\",\n      \"type\": \"paragon\",\n      \"connectorID\": \"string\",\n      \"paragon\": {\n        \"integration\": \"string\",\n        \"configuration\": {}\n      }\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 4632,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 9431\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 4299\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      }\n    ],\n    \"createdAt\": \"1990-06-27T08:41:35.500Z\",\n    \"updatedAt\": \"1981-11-02T03:50:30.605Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1967-08-24T17:52:36.288Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1967-09-12T02:40:59.247Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1959-01-02T16:32:30.578Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      }\n    }\n  },\n  \"error\": \"string\",\n  \"connectorErrors\": [\n    {\n      \"operation\": \"delete\",\n      \"message\": \"string\",\n      \"code\": \"string\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"operation\": \"delete\",\n      \"message\": \"string\",\n      \"code\": \"string\",\n      \"connectorID\": \"string\",\n      \"name\": \"string\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f644d985-5041-4dab-9412-437639b1aaa9",
+          "name": "Call a Workflow Call a Workflow",
+          "request": {
+            "name": "Call a Workflow Call a Workflow",
+            "description": {
+              "content": "**Invoke a workflow.**\n\nSubmit the input file as either a multipart form request or a JSON request with\nbase64-encoded file content. The workflow name is derived from the URL path.\n\n## Input Formats\n\n- **Multipart form** (`multipart/form-data`): attach the file directly via the `file`\nor `files` fields. Set `wait` in the form body to control synchronous behaviour.\n- **JSON** (`application/json`): base64-encode the file content and set it in\n`input.singleFile.inputContent` or `input.batchFiles.inputs[*].inputContent`.\nPass `wait=true` as a query parameter to control synchronous behaviour.\n\n## Synchronous vs Asynchronous\n\nBy default the call is created asynchronously and this endpoint returns `202 Accepted`\nimmediately with a `pending` call object. Set `wait` to `true` to block until\nthe call completes (up to 30 seconds):\n\n- On success: returns `200 OK` with the completed call, `outputs` populated\n- On failure: returns `500 Internal Server Error` with the call and an `error` message\n- On timeout: returns `202 Accepted` with the still-running call\n\n## Tracking\n\nPoll `GET /v3/calls/{callID}` to check status, or configure a webhook subscription\nto receive events when the call finishes.\n\n## CLI Usage\n\nUse `@path/to/file` inside JSON string values to embed file contents automatically.\nBinary files (PDF, images, audio) are base64-encoded; text files are embedded as strings.\n\nSingle file (synchronous):\n```bash\nbem workflows call \\\n  --workflow-name my-workflow \\\n  --input.single-file '{\"inputContent\": \"@invoice.pdf\", \"inputType\": \"pdf\"}' \\\n  --wait\n```\n\nSingle file (asynchronous, returns callID immediately):\n```bash\nbem workflows call \\\n  --workflow-name my-workflow \\\n  --input.single-file '{\"inputContent\": \"@invoice.pdf\", \"inputType\": \"pdf\"}'\n```\n\nBatch files:\n```bash\nbem workflows call \\\n  --workflow-name my-workflow \\\n  --input.batch-files '{\"inputs\": [{\"inputContent\": \"@a.pdf\", \"inputType\": \"pdf\"}, {\"inputContent\": \"@b.png\", \"inputType\": \"png\"}]}'\n```\n\nAlternative: pass the full `--input` flag as JSON:\n```bash\nbem workflows call \\\n  --workflow-name my-workflow \\\n  --input '{\"singleFile\": {\"inputContent\": \"@invoice.pdf\", \"inputType\": \"pdf\"}}' \\\n  --wait\n```\n\n**Important:** `--wait` is a boolean flag. Use `--wait` or `--wait=true`.\nDo **not** use `--wait true` (with a space) — the `true` will be parsed as an\nunexpected positional argument.\n\nSupported `inputType` values: csv, docx, email, heic, heif, html, jpeg, json,\nm4a, mp3, pdf, png, text, wav, webp, xls, xlsx, xml.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName",
+                "call"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "wait",
+                  "value": "<boolean>",
+                  "description": "Block until the call completes (up to 30 seconds) and return the finished\ncall object. Default: `false`. This is a boolean flag — use `--wait` or\n`--wait=true`, not `--wait true`."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) The name of the workflow to invoke."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "callReferenceID",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": "Your reference ID for tracking this call."
+                },
+                {
+                  "key": "wait",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": "Block until the call completes (up to 30 seconds) and return the finished\ncall object. Default: `false`. This is a boolean flag — use `--wait` or\n`--wait=true`, not `--wait true`."
+                },
+                {
+                  "key": "metadata",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": "Arbitrary JSON object (serialized as a string) attached to this call. Stored on\nthe call record and injected into `transformedContent` under the reserved `_metadata`\nkey (alongside `referenceID`). Must be a valid JSON object string. Maximum size: 4 KB.\n\nExample: `{\"customer_id\": \"cust_123\", \"test_flag\": true}`"
+                },
+                {
+                  "key": "file",
+                  "value": "{}",
+                  "type": "text",
+                  "contentType": "*/*",
+                  "description": "Single input file (for extract, classify, and split functions)."
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "75d408bb-7ef0-4018-966c-9f3f47eb384c",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName",
+                    "call"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "wait",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) The name of the workflow to invoke."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "Your reference ID for tracking this call.",
+                        "type": "text/plain"
+                      },
+                      "key": "callReferenceID",
+                      "value": "<string>",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "Block until the call completes (up to 30 seconds) and return the finished\ncall object. Default: `false`. This is a boolean flag — use `--wait` or\n`--wait=true`, not `--wait true`.",
+                        "type": "text/plain"
+                      },
+                      "key": "wait",
+                      "value": "<string>",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "Arbitrary JSON object (serialized as a string) attached to this call. Stored on\nthe call record and injected into `transformedContent` under the reserved `_metadata`\nkey (alongside `referenceID`). Must be a valid JSON object string. Maximum size: 4 KB.\n\nExample: `{\"customer_id\": \"cust_123\", \"test_flag\": true}`",
+                        "type": "text/plain"
+                      },
+                      "key": "metadata",
+                      "value": "<string>",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "Single input file (for extract, classify, and split functions).",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "{}",
+                      "type": "text",
+                      "contentType": "*/*"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"call\": {\n    \"callID\": \"string\",\n    \"createdAt\": \"1986-05-11T03:48:22.469Z\",\n    \"outputs\": [\n      {\n        \"eventID\": \"string\",\n        \"referenceID\": \"string\",\n        \"functionID\": \"string\",\n        \"functionName\": \"string\",\n        \"transformedContent\": {},\n        \"itemOffset\": 3153,\n        \"itemCount\": 3035,\n        \"functionCallTryNumber\": 7063,\n        \"createdAt\": \"1957-10-03T05:12:14.190Z\",\n        \"inboundEmail\": {\n          \"description\": \"The inbound email that triggered this event.\",\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"metadata\": {\n          \"durationFunctionToEventSeconds\": 1038.7579544245818\n        },\n        \"eventType\": \"transform\",\n        \"functionCallID\": \"string\",\n        \"functionVersionNum\": 2302,\n        \"callID\": \"string\",\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"workflowVersionNum\": 7625,\n        \"pipelineID\": \"string\",\n        \"publishedAt\": \"2000-02-20T16:07:53.640Z\",\n        \"lastPublishErrorAt\": \"string\",\n        \"inputType\": \"heif\",\n        \"transformationID\": \"string\",\n        \"s3URL\": \"string\",\n        \"inputs\": [\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        ],\n        \"correctedContent\": {\n          \"output\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"invalidProperties\": [\n          \"string\",\n          \"string\"\n        ],\n        \"metrics\": {\n          \"metrics\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"differences\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"orderMatching\": true,\n        \"isRegression\": true,\n        \"fieldConfidences\": {},\n        \"avgConfidence\": 4901.421187492606\n      },\n      {\n        \"eventID\": \"string\",\n        \"referenceID\": \"string\",\n        \"functionID\": \"string\",\n        \"functionName\": \"string\",\n        \"transformedContent\": {},\n        \"itemOffset\": 4194,\n        \"itemCount\": 2352,\n        \"functionCallTryNumber\": 30,\n        \"createdAt\": \"1999-11-28T18:57:22.408Z\",\n        \"inboundEmail\": {\n          \"description\": \"The inbound email that triggered this event.\",\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"metadata\": {\n          \"durationFunctionToEventSeconds\": 2727.7344750539746\n        },\n        \"eventType\": \"transform\",\n        \"functionCallID\": \"string\",\n        \"functionVersionNum\": 7024,\n        \"callID\": \"string\",\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"workflowVersionNum\": 5874,\n        \"pipelineID\": \"string\",\n        \"publishedAt\": \"1960-09-22T04:23:25.361Z\",\n        \"lastPublishErrorAt\": \"string\",\n        \"inputType\": \"email\",\n        \"transformationID\": \"string\",\n        \"s3URL\": \"string\",\n        \"inputs\": [\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        ],\n        \"correctedContent\": {\n          \"output\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"invalidProperties\": [\n          \"string\",\n          \"string\"\n        ],\n        \"metrics\": {\n          \"metrics\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"differences\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"orderMatching\": false,\n        \"isRegression\": false,\n        \"fieldConfidences\": {},\n        \"avgConfidence\": 14.092591311763991\n      }\n    ],\n    \"errors\": [\n      {\n        \"eventID\": \"string\",\n        \"referenceID\": \"string\",\n        \"functionID\": \"string\",\n        \"functionName\": \"string\",\n        \"message\": \"string\",\n        \"functionCallTryNumber\": 8280,\n        \"createdAt\": \"1994-04-21T10:08:36.983Z\",\n        \"inboundEmail\": {\n          \"to\": \"string\",\n          \"from\": \"string\",\n          \"subject\": \"string\",\n          \"deliveredTo\": \"string\"\n        },\n        \"metadata\": {\n          \"durationFunctionToEventSeconds\": 6829.477964183948\n        },\n        \"eventType\": \"error\",\n        \"functionCallID\": \"string\",\n        \"functionVersionNum\": 6604,\n        \"callID\": \"string\",\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"workflowVersionNum\": 663,\n        \"kind\": \"string\"\n      },\n      {\n        \"eventID\": \"string\",\n        \"referenceID\": \"string\",\n        \"functionID\": \"string\",\n        \"functionName\": \"string\",\n        \"message\": \"string\",\n        \"functionCallTryNumber\": 1399,\n        \"createdAt\": \"1970-06-06T21:38:46.728Z\",\n        \"inboundEmail\": {\n          \"to\": \"string\",\n          \"from\": \"string\",\n          \"subject\": \"string\",\n          \"deliveredTo\": \"string\"\n        },\n        \"metadata\": {\n          \"durationFunctionToEventSeconds\": 7625.811591082562\n        },\n        \"eventType\": \"error\",\n        \"functionCallID\": \"string\",\n        \"functionVersionNum\": 4681,\n        \"callID\": \"string\",\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"workflowVersionNum\": 8479,\n        \"kind\": \"string\"\n      }\n    ],\n    \"url\": \"string\",\n    \"traceUrl\": \"string\",\n    \"status\": \"completed\",\n    \"finishedAt\": \"1957-08-29T15:49:54.398Z\",\n    \"workflowID\": \"string\",\n    \"workflowName\": \"string\",\n    \"workflowVersionNum\": 2065,\n    \"callReferenceID\": \"string\",\n    \"input\": {\n      \"singleFile\": {\n        \"inputType\": \"string\",\n        \"s3URL\": \"string\"\n      },\n      \"batchFiles\": {\n        \"inputs\": [\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        ]\n      }\n    }\n  },\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5b9de757-49de-4460-a17b-53b2c20c147d",
+          "name": "List Workflow Versions",
+          "request": {
+            "name": "List Workflow Versions",
+            "description": {
+              "content": "**List every version of a workflow.**\n\nVersions are immutable. Each row captures what the workflow looked\nlike between updates: graph topology, metadata, and timestamps.\nReturns newest-first by default. Cursor pagination via\n`startingAfter` / `endingBefore` over `versionNum`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName",
+                "versions"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "disabled": false,
+                  "key": "sortOrder",
+                  "value": "asc"
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<integer>"
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<integer>"
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "4de5ee11-e62a-458b-8d24-f922a431e419",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName",
+                    "versions"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "asc"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<integer>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"versions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"versionNum\": 4575,\n      \"mainNodeName\": \"string\",\n      \"nodes\": [\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        },\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        }\n      ],\n      \"edges\": [\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        },\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        }\n      ],\n      \"connectors\": [\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        },\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      ],\n      \"createdAt\": \"1983-10-29T12:38:49.967Z\",\n      \"updatedAt\": \"1993-06-01T00:03:54.818Z\",\n      \"displayName\": \"string\",\n      \"emailAddress\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"workflowCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"workflowLastUpdatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"versionCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"versionNum\": 4027,\n      \"mainNodeName\": \"string\",\n      \"nodes\": [\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        },\n        {\n          \"name\": \"string\",\n          \"function\": {\n            \"id\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"name\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"versionNum\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          },\n          \"metadata\": {}\n        }\n      ],\n      \"edges\": [\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        },\n        {\n          \"sourceNodeName\": \"string\",\n          \"destinationNodeName\": \"string\",\n          \"destinationName\": \"string\",\n          \"metadata\": {}\n        }\n      ],\n      \"connectors\": [\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        },\n        {\n          \"connectorID\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"paragon\",\n          \"paragon\": {\n            \"integration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"configuration\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"syncID\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      ],\n      \"createdAt\": \"1962-10-25T14:32:50.665Z\",\n      \"updatedAt\": \"1975-01-17T21:25:20.819Z\",\n      \"displayName\": \"string\",\n      \"emailAddress\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"workflowCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"workflowLastUpdatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        },\n        \"versionCreatedBy\": {\n          \"userActionID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"createdAt\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userID\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"userEmail\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"apiKeyName\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          },\n          \"emailAddress\": {\n            \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n          }\n        }\n      }\n    }\n  ],\n  \"totalCount\": 3739,\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "fdcb1ff3-6fa3-464c-b2ca-bdb6d03e8b68",
+          "name": "Get a Workflow Version",
+          "request": {
+            "name": "Get a Workflow Version",
+            "description": {
+              "content": "**Retrieve a specific historical version of a workflow.**\n\nVersions are immutable. Use this endpoint to see what a workflow\nlooked like at the moment a particular call was made — every call\nrecord carries the workflow `versionNum` it ran against.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "workflows",
+                ":workflowName",
+                "versions",
+                ":versionNum"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "workflowName",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "versionNum",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "e3def818-e4ea-409a-a6f6-8ff8e65b5dd0",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "workflows",
+                    ":workflowName",
+                    "versions",
+                    ":versionNum"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "workflowName",
+                      "description": "(Required) "
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "versionNum",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"workflow\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"versionNum\": 9450,\n    \"mainNodeName\": \"string\",\n    \"nodes\": [\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 5812\n        },\n        \"metadata\": {}\n      },\n      {\n        \"name\": \"string\",\n        \"function\": {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"versionNum\": 5149\n        },\n        \"metadata\": {}\n      }\n    ],\n    \"edges\": [\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      },\n      {\n        \"sourceNodeName\": \"string\",\n        \"destinationNodeName\": \"string\",\n        \"destinationName\": \"string\",\n        \"metadata\": {}\n      }\n    ],\n    \"connectors\": [\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      },\n      {\n        \"connectorID\": \"string\",\n        \"name\": \"string\",\n        \"type\": \"paragon\",\n        \"paragon\": {\n          \"integration\": \"string\",\n          \"configuration\": {},\n          \"syncID\": \"string\"\n        }\n      }\n    ],\n    \"createdAt\": \"1952-12-13T00:01:13.997Z\",\n    \"updatedAt\": \"1970-10-20T10:03:52.675Z\",\n    \"displayName\": \"string\",\n    \"emailAddress\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"workflowCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1990-11-16T05:28:48.276Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"workflowLastUpdatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"2005-06-06T00:29:52.600Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      },\n      \"versionCreatedBy\": {\n        \"userActionID\": \"string\",\n        \"createdAt\": \"1993-09-29T11:03:20.541Z\",\n        \"userID\": \"string\",\n        \"userEmail\": \"string\",\n        \"apiKeyName\": \"string\",\n        \"emailAddress\": \"string\"\n      }\n    }\n  },\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "6b830f9b-b04d-4097-ae05-a39b59abcdcf",
+    "name": "Bem Buckets Workflows API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

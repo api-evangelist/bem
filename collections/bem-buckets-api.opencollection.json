@@ -1,0 +1,145 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Buckets",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Buckets",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/buckets",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Maximum number of buckets to return (default 50, max 200)."
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return buckets whose `bucketID` sorts after this value."
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return buckets whose `bucketID` sorts before this value."
+              },
+              {
+                "name": "nameSubstring",
+                "value": "",
+                "type": "query",
+                "description": "Case-insensitive substring match on the bucket name."
+              }
+            ]
+          },
+          "docs": "List Buckets"
+        },
+        {
+          "info": {
+            "name": "Create a Bucket",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/buckets",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Create a Bucket"
+        },
+        {
+          "info": {
+            "name": "Get a Bucket",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/buckets/:bucketID",
+            "params": [
+              {
+                "name": "bucketID",
+                "value": "",
+                "type": "path",
+                "description": "Bucket public ID (`bkt_...`)."
+              }
+            ]
+          },
+          "docs": "Get a Bucket"
+        },
+        {
+          "info": {
+            "name": "Update a Bucket",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.bem.ai/v3/buckets/:bucketID",
+            "params": [
+              {
+                "name": "bucketID",
+                "value": "",
+                "type": "path",
+                "description": "Bucket public ID (`bkt_...`)."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Update a Bucket"
+        },
+        {
+          "info": {
+            "name": "Delete a Bucket",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/buckets/:bucketID",
+            "params": [
+              {
+                "name": "bucketID",
+                "value": "",
+                "type": "path",
+                "description": "Bucket public ID (`bkt_...`)."
+              },
+              {
+                "name": "cascade",
+                "value": "",
+                "type": "query",
+                "description": "When `true`, delete the bucket even if it still contains entities\n(the entities are removed along with it). When omitted or `false`, the\nrequest is rejected with `409 Conflict` if the bucket is non-empty.\n\nThe default bucket can never be deleted regardless of this flag."
+              }
+            ]
+          },
+          "docs": "Delete a Bucket"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

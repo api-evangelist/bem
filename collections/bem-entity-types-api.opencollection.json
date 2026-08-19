@@ -1,0 +1,139 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Entity Types API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Entity Types",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Entity Types",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/entity-types",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Maximum number of entity types to return (default 50, max 200)."
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return types whose `typeID` sorts after this value."
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return types whose `typeID` sorts before this value."
+              },
+              {
+                "name": "parentTypeId",
+                "value": "",
+                "type": "query",
+                "description": "Filter to the direct children of this parent type (`ety_...`)."
+              }
+            ]
+          },
+          "docs": "List Entity Types"
+        },
+        {
+          "info": {
+            "name": "Create an Entity Type",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/entity-types",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Create an Entity Type"
+        },
+        {
+          "info": {
+            "name": "Get an Entity Type",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/entity-types/:typeID",
+            "params": [
+              {
+                "name": "typeID",
+                "value": "",
+                "type": "path",
+                "description": "Entity type public ID (`ety_...`)."
+              }
+            ]
+          },
+          "docs": "Get an Entity Type"
+        },
+        {
+          "info": {
+            "name": "Update an Entity Type",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.bem.ai/v3/entity-types/:typeID",
+            "params": [
+              {
+                "name": "typeID",
+                "value": "",
+                "type": "path",
+                "description": "Entity type public ID (`ety_...`)."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Update an Entity Type"
+        },
+        {
+          "info": {
+            "name": "Delete an Entity Type",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/entity-types/:typeID",
+            "params": [
+              {
+                "name": "typeID",
+                "value": "",
+                "type": "path",
+                "description": "Entity type public ID (`ety_...`)."
+              }
+            ]
+          },
+          "docs": "Delete an Entity Type"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

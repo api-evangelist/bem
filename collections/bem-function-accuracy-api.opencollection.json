@@ -1,0 +1,236 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Function Accuracy API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Function Accuracy",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Trigger Transformation Evaluations",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/eval",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Queue evaluation jobs for a batch of transformations.**\n\nEvaluations run asynchronously and score each transformation's output\nagainst the function's schema for confidence, hallucination detection,\nand relevance. Transformations must belong to events of a supported\ntype: `extract`, `transform`, `analyze`, or `join`.\n\nReturns immediately with a summary of queued vs. skipped transformations\nand per-transformation errors. Poll `GET /v3/eval/results` to retrieve\nresults once evaluations complete."
+        },
+        {
+          "info": {
+            "name": "Get Evaluation Results",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/eval/results",
+            "params": [
+              {
+                "name": "eventIDs",
+                "value": "",
+                "type": "query",
+                "description": "Comma-separated list of event KSUIDs to fetch results for. Between\n1 and 100 IDs per request. Mutually exclusive with\n`transformationIDs`."
+              },
+              {
+                "name": "transformationIDs",
+                "value": "",
+                "type": "query",
+                "description": "Comma-separated list of transformation IDs to fetch results for.\nBetween 1 and 100 IDs per request. Mutually exclusive with\n`eventIDs`. Prefer `eventIDs` for new integrations."
+              },
+              {
+                "name": "evaluationVersion",
+                "value": "",
+                "type": "query",
+                "description": "Optional evaluation version filter."
+              }
+            ]
+          },
+          "docs": "**Fetch evaluation results for a batch of events.**\n\nPass either `eventIDs` (preferred — the externally-stable V3\nidentifier) or `transformationIDs` as a comma-separated query\nparameter. Exactly one of the two must be provided. Up to 100 IDs per\nrequest.\n\nFor each requested ID the response reports one of three states: a\ncompleted `result`, still-`pending`, or `failed`. Results, pending,\nand failed entries are all keyed by event KSUID regardless of which\ninput form was used."
+        },
+        {
+          "info": {
+            "name": "Score Function Against (input, expected) Pairs",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/eval/score",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Score a function against a list of (input, expected) pairs.**\n\nSubmits a batch of `(input, expected)` pairs, runs the named function\nover each input, and returns per-pair + aggregate accuracy metrics\ncomparing the function's actual output to the provided expected JSON.\n\nScoring runs asynchronously. The response carries a `scoreRunID`;\npoll `GET /v3/eval/score/{scoreRunID}` until `status` is one of\n`completed`, `error`, or `cancelled`.\n\n`matchConfig` controls comparator behavior:\n- `numericTole"
+        },
+        {
+          "info": {
+            "name": "Get Score Run",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/eval/score/:scoreRunID",
+            "params": [
+              {
+                "name": "scoreRunID",
+                "value": "",
+                "type": "path",
+                "description": "The `scoreRunID` returned by `POST /v3/eval/score`."
+              }
+            ]
+          },
+          "docs": "**Get the status and per-pair results of a score run.**\n\nReturns `aggregate` only once `status` reaches `completed`. `perPair`\nis populated incrementally — each pair's `fieldResults` appears as\nits underlying function call terminates."
+        },
+        {
+          "info": {
+            "name": "Cancel Score Run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/eval/score/:scoreRunID/cancel",
+            "params": [
+              {
+                "name": "scoreRunID",
+                "value": "",
+                "type": "path",
+                "description": "The `scoreRunID` returned by `POST /v3/eval/score`."
+              }
+            ]
+          },
+          "docs": "**Cancel an in-flight score run.**\n\nTransitions the run to `cancelled`. Function calls already in flight\nare allowed to finish (best-effort cancellation via the job queue);\nresults from completed pairs may still appear in subsequent GETs."
+        },
+        {
+          "info": {
+            "name": "Compare Metrics Between Function Versions",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions/compare",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Compare metrics between two function versions.**\n\nComputes aggregate and field-level lift/regression between any two\nversions of a function: accuracy, precision, recall, F1, and PR-AUC.\nField-level changes are returned only for fields whose lift exceeds\n1% in either direction.\n\nSupported for every function type that produces labeled\ntransformations: `extract`, `transform`, `analyze`, `join`. Pass\n`isRegression: true` to compare only the regression dataset (rows\nproduced by `POST /v3/functions/"
+        },
+        {
+          "info": {
+            "name": "Get Function Metrics",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/functions/metrics",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "types",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query",
+                "description": "Sort direction over the result set (default `asc`). Pagination works\nsymmetrically in both directions via `startingAfter` / `endingBefore`."
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query",
+                "description": "Cursor — a `functionID` defining your place in the list."
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query",
+                "description": "Cursor — a `functionID` defining your place in the list."
+              }
+            ]
+          },
+          "docs": "**Retrieve performance metrics for functions based on labeled transformation data.**\n\nCalculates accuracy, precision, recall, F1, and the underlying confusion-matrix\ncounts for each matching function by comparing model outputs against user\ncorrections. Metrics are aggregated across every transformation the function\nhas produced, regardless of function type — `extract`, `transform`, `analyze`,\nand `join` all populate the same `metrics` column on the transformation row,\nso v3 surfaces all of them "
+        },
+        {
+          "info": {
+            "name": "Run Function Regression Testing",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions/regression",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Kick off a regression run between two versions of a function.**\n\nReplays a sample of corrected historical inputs against the comparison\nversion, producing fresh transformations marked `isRegression: true`.\nEach new run returns the workflow `callID`s you can monitor via\n`GET /v3/calls/{callID}`.\n\nSupported for every function type that produces correctable\ntransformations: `extract`, `transform`, `analyze`, `join`. For\n`extract` specifically, the regression sample is dispatched through\nthe same "
+        },
+        {
+          "info": {
+            "name": "Apply Baseline Corrections to Regression Transformations",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions/regression/corrections",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Copy baseline corrections onto regression transformations.**\n\nLooks up regression transformations created against the comparison\nversion (`isRegression: true`, `correctedJSON IS NULL`), finds the\nmatching baseline transformation by `referenceID`, and copies the\nbaseline's `correctedJSON` onto the regression row via the same code\npath used by `POST /v3/events/{eventID}/feedback`. The applied\ncorrections are immediately scored against the regression output,\npopulating the confusion-matrix metric"
+        },
+        {
+          "info": {
+            "name": "Function Review",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/functions/review",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Estimate human review requirements for a function.**\n\nCombines confusion-matrix metrics with the per-transformation evaluation\nscores (confidence / hallucination / relevance produced by the eval service)\nto compute:\n\n- A confidence-bucketed distribution of the function's outputs.\n- Sample-size estimates at configurable margin-of-error and confidence\nlevels (Wald or Wilson intervals).\n- A precision-recall AUC and a per-threshold matrix you can use to\npick a review cutoff.\n\nSupported for every f"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

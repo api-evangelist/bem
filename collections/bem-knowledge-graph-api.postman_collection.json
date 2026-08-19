@@ -1,0 +1,357 @@
+{
+  "item": [
+    {
+      "id": "ac1270f8-5c3b-42f0-9352-1f58438376f6",
+      "name": "Knowledge Graph",
+      "description": {
+        "content": "Read the cross-document knowledge graph — the canonical entities and the\ndirected relations between them that the Parse pipeline populates when\n`linkAcrossDocuments` is enabled.\n\n- **`GET /v3/entities/{id}/relations`** returns the inbound and outbound\n  edges incident to one entity, split by direction. Supports\n  `direction`, an exact `relationType` filter, and cursor pagination over\n  edges. A merged-away entity id transparently resolves to its surviving\n  canonical entity.\n- **`GET /v3/knowledge-graph`** returns the graph as `{ nodes, edges }`,\n  paginating over edges. The `nodes` for a page are the distinct endpoint\n  entities of that page's edges (both endpoints of every edge are\n  included). Filter with `type[]`, `since`, and `search`; an edge is\n  returned only when both of its endpoints survive the entity filters.\n\nBoth endpoints take an optional `bucket` (`bkt_...`) to scope the read to\na single bucket; omit it for the unscoped account+environment view.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "540153a8-923a-4b2d-a706-ca38a055cfba",
+          "name": "Get an Entity's Relations",
+          "request": {
+            "name": "Get an Entity's Relations",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                ":id",
+                "relations"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "direction",
+                  "value": "<string>",
+                  "description": "Which edges to return relative to the entity. Defaults to `both`."
+                },
+                {
+                  "disabled": false,
+                  "key": "relationType",
+                  "value": "<string>",
+                  "description": "Exact-match filter on the relation label."
+                },
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "<integer>",
+                  "description": "Maximum number of edges to return (default 50, max 200)."
+                },
+                {
+                  "disabled": false,
+                  "key": "cursor",
+                  "value": "<string>",
+                  "description": "Cursor: return edges whose KSUID sorts after this value."
+                },
+                {
+                  "disabled": false,
+                  "key": "bucket",
+                  "value": "<string>",
+                  "description": "Optional bucket public ID (`bkt_...`) to scope the read to one bucket.\nOmit for the unscoped (all account+environment) view."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Entity public ID (`ent_...`). A merged-away id transparently resolves to the surviving entity."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "5cc2a4d6-19ab-493d-b53f-a9ccce701145",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    ":id",
+                    "relations"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "direction",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "relationType",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "bucket",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Entity public ID (`ent_...`). A merged-away id transparently resolves to the surviving entity."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"inbound\": [\n    {\n      \"relationType\": \"string\",\n      \"sourceEntity\": {\n        \"id\": \"string\",\n        \"canonical\": \"string\",\n        \"type\": \"string\",\n        \"depth\": 5226\n      },\n      \"mentionCount\": 3099,\n      \"firstSeenAt\": \"2017-12-18T20:58:15.285Z\"\n    },\n    {\n      \"relationType\": \"string\",\n      \"sourceEntity\": {\n        \"id\": \"string\",\n        \"canonical\": \"string\",\n        \"type\": \"string\",\n        \"depth\": 4349\n      },\n      \"mentionCount\": 8254,\n      \"firstSeenAt\": \"2006-03-28T18:38:27.077Z\"\n    }\n  ],\n  \"outbound\": [\n    {\n      \"relationType\": \"string\",\n      \"targetEntity\": {\n        \"id\": \"string\",\n        \"canonical\": \"string\",\n        \"type\": \"string\",\n        \"depth\": 6291\n      },\n      \"mentionCount\": 6927,\n      \"firstSeenAt\": \"1990-01-17T21:43:34.786Z\"\n    },\n    {\n      \"relationType\": \"string\",\n      \"targetEntity\": {\n        \"id\": \"string\",\n        \"canonical\": \"string\",\n        \"type\": \"string\",\n        \"depth\": 1800\n      },\n      \"mentionCount\": 2079,\n      \"firstSeenAt\": \"1993-09-18T01:38:28.248Z\"\n    }\n  ],\n  \"nextCursor\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "41d6ad46-2512-40e6-8965-c6fefb30f6d6",
+          "name": "Retrieve the Knowledge Graph",
+          "request": {
+            "name": "Retrieve the Knowledge Graph",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "knowledge-graph"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "nodeID",
+                  "value": "<string>",
+                  "description": "Center the graph on this entity (`ent_...`) and only return the subgraph\nwithin `maxDepth` hops of it; every node then carries its `depth` (hops\nfrom the center, center = 0). Omit for the uncentered whole-graph view.\n`rootNodeID` and `focusNodeID` are accepted as aliases."
+                },
+                {
+                  "disabled": false,
+                  "key": "maxDepth",
+                  "value": "<integer>",
+                  "description": "Maximum hops from the center node. Only meaningful with `nodeID`. Defaults\nto 2 and is clamped down to a system maximum (5)."
+                },
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "<integer>",
+                  "description": "Maximum number of edges per page (default 50, max 200)."
+                },
+                {
+                  "disabled": false,
+                  "key": "cursor",
+                  "value": "<string>",
+                  "description": "Cursor: return edges whose KSUID sorts after this value."
+                },
+                {
+                  "disabled": false,
+                  "key": "type",
+                  "value": "<string>,<string>",
+                  "description": "Restrict to entities of these types. An edge is returned only when BOTH\nof its endpoints survive the type filter."
+                },
+                {
+                  "disabled": false,
+                  "key": "since",
+                  "value": "<dateTime>",
+                  "description": "Only edges created at/after this RFC 3339 timestamp."
+                },
+                {
+                  "disabled": false,
+                  "key": "search",
+                  "value": "<string>",
+                  "description": "Case-insensitive substring match on canonical names. Both endpoints of an\nedge must match for the edge (and its nodes) to be returned."
+                },
+                {
+                  "disabled": false,
+                  "key": "bucket",
+                  "value": "<string>",
+                  "description": "Optional bucket public ID (`bkt_...`) to scope the read to one bucket.\nOmit for the unscoped (all account+environment) view."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "79016513-0020-4a72-9a2f-9bf297c3e928",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "knowledge-graph"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "nodeID",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "maxDepth",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "type",
+                      "value": "<string>,<string>"
+                    },
+                    {
+                      "key": "since",
+                      "value": "<dateTime>"
+                    },
+                    {
+                      "key": "search",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "bucket",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"nodes\": [\n    {\n      \"id\": \"string\",\n      \"canonical\": \"string\",\n      \"type\": \"string\",\n      \"mentionCount\": 6914,\n      \"depth\": 6282\n    },\n    {\n      \"id\": \"string\",\n      \"canonical\": \"string\",\n      \"type\": \"string\",\n      \"mentionCount\": 3019,\n      \"depth\": 9561\n    }\n  ],\n  \"edges\": [\n    {\n      \"sourceId\": \"string\",\n      \"targetId\": \"string\",\n      \"relationType\": \"string\",\n      \"mentionCount\": 5007\n    },\n    {\n      \"sourceId\": \"string\",\n      \"targetId\": \"string\",\n      \"relationType\": \"string\",\n      \"mentionCount\": 3746\n    }\n  ],\n  \"nextCursor\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "1031a02a-1d6c-4279-b371-8aad44917690",
+    "name": "Bem Buckets Knowledge Graph API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

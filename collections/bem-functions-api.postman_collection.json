@@ -1,0 +1,1008 @@
+{
+  "item": [
+    {
+      "id": "1268af54-50d0-46ef-b9ac-73a0cb6acecd",
+      "name": "Functions",
+      "description": {
+        "content": "Functions are the core building blocks of data transformation in Bem. Each function type serves a specific purpose:\n\n- **Extract**: Extract structured JSON data from unstructured documents (PDFs, emails, images, spreadsheets), with optional layout-aware bounding-box extraction\n- **Route**: Direct data to different processing paths based on conditions\n- **Split**: Break multi-page documents into individual pages for parallel processing\n- **Join**: Combine outputs from multiple function calls into a single result\n- **Parse**: Render documents into a navigable structure of page-aware sections, named entities, and relationships — designed to be walked by an LLM agent via the [File System API](/api/v3/file-system) (`POST /v3/fs`). Two toggles, both `true` by default: `extractEntities` controls per-document entity and relationship extraction; `linkAcrossDocuments` merges entities into one canonical record per real-world thing across the environment, populating cross-document memory.\n- **Payload Shaping**: Transform and restructure data using JMESPath expressions\n- **Enrich**: Enhance data with semantic search against collections\n- **Send**: Deliver workflow outputs to downstream destinations\n\nUse these endpoints to create, update, list, and manage your functions.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "897b1d04-3f8f-4a97-8b19-03ca3c6fc85e",
+          "name": "Create a Function",
+          "request": {
+            "name": "Create a Function",
+            "description": {
+              "content": "**Create a function.**\n\nThe function `type` determines which configuration fields are\nrequired — see the `CreateFunctionV3` discriminated union and\n[Function types overview](/guide/function-types/overview) for the\nper-type contract.\n\nThe response contains both `functionID` and `functionName`. Either is\na stable handle you can use elsewhere; most workflows reference\nfunctions by `functionName` because it's human-readable.\n\n## Naming rules\n\n- `functionName` must be unique per environment.\n- Allowed characters: letters, digits, hyphens, and underscores.\n- Names cannot be reused after deletion within the same environment\nfor at least the retention window of the previous record.\n\nThe new function is created at `versionNum: 1`. Subsequent\n`PATCH /v3/functions/{functionName}` calls produce new versions —\nthe version-1 configuration remains immutable and addressable.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"functionName\": \"<string>\",\n  \"type\": \"<string>\",\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"outputSchemaName\": \"<string>\",\n  \"outputSchema\": \"<object>\",\n  \"tabularChunkingEnabled\": \"<boolean>\",\n  \"enableBoundingBoxes\": \"<boolean>\",\n  \"preCount\": \"<boolean>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "637ffe6e-825a-4cd8-ba11-e40efd19751b",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"functionName\": \"string\",\n  \"type\": \"extract\",\n  \"displayName\": \"string\",\n  \"tags\": [\n    \"string\",\n    \"string\"\n  ],\n  \"outputSchemaName\": \"string\",\n  \"outputSchema\": {},\n  \"tabularChunkingEnabled\": false,\n  \"enableBoundingBoxes\": false,\n  \"preCount\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"function\": {\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"versionNum\": 1480,\n    \"type\": \"transform\",\n    \"outputSchemaName\": \"string\",\n    \"outputSchema\": {},\n    \"emailAddress\": \"string\",\n    \"tabularChunkingEnabled\": true,\n    \"usedInWorkflows\": [\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 2580,\n        \"usedInWorkflowVersionNums\": [\n          2732,\n          4328\n        ]\n      },\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 1781,\n        \"usedInWorkflowVersionNums\": [\n          2683,\n          9949\n        ]\n      }\n    ],\n    \"displayName\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"functionCreatedBy\": {\n        \"description\": \"Information about who created the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"functionLastUpdatedBy\": {\n        \"description\": \"Information about who last updated the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"versionCreatedBy\": {\n        \"description\": \"Information about who created the current version.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      }\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "3c0a45dd-e72d-45bb-b467-a738774c7eab",
+          "name": "List Functions",
+          "request": {
+            "name": "List Functions",
+            "description": {
+              "content": "**List functions in the current environment.**\n\nReturns each function's current version. Combine filters freely —\nthey AND together.\n\n## Filtering\n\n- `functionIDs` / `functionNames`: exact-match identity filters.\n- `displayName`: case-insensitive substring match.\n- `types`: one or more of `extract`, `classify`, `split`, `join`,\n`enrich`, `payload_shaping`. Legacy `transform`, `analyze`, `route`,\nand `send` types remain readable via this filter.\n- `tags`: returns functions tagged with any of the supplied tags.\n- `workflowIDs` / `workflowNames`: returns only functions referenced\nby the named workflows. Useful for \"what functions does this\nworkflow depend on?\" lookups.\n\n## Pagination\n\nCursor-based with `startingAfter` and `endingBefore` (functionIDs).\nDefault limit 50, maximum 100.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionNames",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "displayName",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "types",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "sortOrder",
+                  "value": "asc"
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "tags",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowIDs",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "workflowNames",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "3f01b92f-5076-4a46-aa19-9aca6c5ea061",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "functionIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionNames",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "displayName",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "types",
+                      "value": "route"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "asc"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "workflowNames",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"functions\": [\n    {\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"versionNum\": 3421,\n      \"type\": \"transform\",\n      \"outputSchemaName\": \"string\",\n      \"outputSchema\": {},\n      \"emailAddress\": \"string\",\n      \"tabularChunkingEnabled\": true,\n      \"usedInWorkflows\": [\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 6231,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        },\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 6964,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        }\n      ],\n      \"displayName\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"functionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"functionLastUpdatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"versionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    },\n    {\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"versionNum\": 6309,\n      \"type\": \"transform\",\n      \"outputSchemaName\": \"string\",\n      \"outputSchema\": {},\n      \"emailAddress\": \"string\",\n      \"tabularChunkingEnabled\": false,\n      \"usedInWorkflows\": [\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 1645,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        },\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 2939,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        }\n      ],\n      \"displayName\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"audit\": {\n        \"functionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"functionLastUpdatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"versionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    }\n  ],\n  \"totalCount\": 489\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "b3e0e8bd-7f31-40e0-a7f9-1ae12db405cd",
+          "name": "Copy a Function",
+          "request": {
+            "name": "Copy a Function",
+            "description": {
+              "content": "**Copy a function to a new name within the same environment.**\n\nForks the source function's current configuration into a brand-new\nfunction. The copy starts at `versionNum: 1` regardless of how many\nversions the source has — version history is not carried over.\n\nUseful for experimenting with schema or prompt changes against a\nstable production function without disturbing existing callers.\n\nThe destination name must be unique in the environment. A copy does\nnot migrate workflows: existing workflow nodes continue to reference\nthe original function.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                "copy"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceFunctionName\": \"<string>\",\n  \"targetFunctionName\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"targetEnvironment\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "ac38cce8-be28-4682-8cc0-6b6ae1d711c7",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    "copy"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sourceFunctionName\": \"<string>\",\n  \"targetFunctionName\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"targetEnvironment\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"function\": {\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"versionNum\": 1480,\n    \"type\": \"transform\",\n    \"outputSchemaName\": \"string\",\n    \"outputSchema\": {},\n    \"emailAddress\": \"string\",\n    \"tabularChunkingEnabled\": true,\n    \"usedInWorkflows\": [\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 2580,\n        \"usedInWorkflowVersionNums\": [\n          2732,\n          4328\n        ]\n      },\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 1781,\n        \"usedInWorkflowVersionNums\": [\n          2683,\n          9949\n        ]\n      }\n    ],\n    \"displayName\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"functionCreatedBy\": {\n        \"description\": \"Information about who created the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"functionLastUpdatedBy\": {\n        \"description\": \"Information about who last updated the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"versionCreatedBy\": {\n        \"description\": \"Information about who created the current version.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      }\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "1a68e977-2f06-4a91-a596-99e057c90cfe",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    "copy"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sourceFunctionName\": \"<string>\",\n  \"targetFunctionName\": \"<string>\",\n  \"targetDisplayName\": \"<string>\",\n  \"targetEnvironment\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"code\": 4405,\n  \"details\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e05134a2-6ec8-4566-85a8-960e10166930",
+          "name": "Delete a Function",
+          "request": {
+            "name": "Delete a Function",
+            "description": {
+              "content": "**Delete a function and every one of its versions.**\n\nPermanent. Running and queued calls that reference this function\ncontinue to completion against the version they captured at call\ntime, but no new calls can target it.\n\n## Before deleting\n\nWorkflow nodes that reference this function will fail at call time\nafter deletion. List workflows that reference it first:\n\n```\nGET /v3/workflows?functionNames=my-function\n```\n\nUpdate or remove those workflows, or create a replacement function\nand re-point the workflow nodes, before deleting.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                ":functionName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "functionName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "8cdff52f-eada-4b50-8745-e67a40737bc6",
+              "name": "There is no content to send for this request, but the headers may be useful. ",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    ":functionName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "functionName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e5514f83-3390-47be-b055-c3588e16851a",
+          "name": "Get a Function",
+          "request": {
+            "name": "Get a Function",
+            "description": {
+              "content": "**Retrieve a function's current version by name.**\n\nReturns the function record with its `currentVersionNum` and the\nconfiguration of that version. To inspect a historical version, use\n`GET /v3/functions/{functionName}/versions/{versionNum}`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                ":functionName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "functionName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "99e442a2-41a4-46bd-9062-71ffc8aa3e14",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    ":functionName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "functionName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"function\": {\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"versionNum\": 1480,\n    \"type\": \"transform\",\n    \"outputSchemaName\": \"string\",\n    \"outputSchema\": {},\n    \"emailAddress\": \"string\",\n    \"tabularChunkingEnabled\": true,\n    \"usedInWorkflows\": [\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 2580,\n        \"usedInWorkflowVersionNums\": [\n          2732,\n          4328\n        ]\n      },\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 1781,\n        \"usedInWorkflowVersionNums\": [\n          2683,\n          9949\n        ]\n      }\n    ],\n    \"displayName\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"functionCreatedBy\": {\n        \"description\": \"Information about who created the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"functionLastUpdatedBy\": {\n        \"description\": \"Information about who last updated the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"versionCreatedBy\": {\n        \"description\": \"Information about who created the current version.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      }\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "d28a0ecf-2f95-4b90-83f9-8304e78408d3",
+          "name": "Update a Function",
+          "request": {
+            "name": "Update a Function",
+            "description": {
+              "content": "**Update a function. Updates create a new version.**\n\nThe previous version remains addressable and immutable. Workflow\nnodes that pinned the function with a `versionNum` continue to use\nthe pinned version; nodes that reference the function by name with\nno version automatically pick up the new version on their next call.\n\n## What you can change\n\nAny field allowed by the function's type. Most commonly:\n`outputSchema` (for `extract`/`join`), `classifications` (for\n`classify`), `displayName`, and `tags`.\n\n## Versioning behaviour\n\n- Each successful update increments `currentVersionNum` by 1.\n- `displayName`, `tags`, and `functionName` updates also create a\nnew version, so the version history is a complete record of every\nchange.\n- To revert, fetch the previous version and re-submit its\nconfiguration as a new update — versions themselves are immutable.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                ":functionName"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "functionName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"displayName\": \"<string>\",\n  \"tags\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"outputSchemaName\": \"<string>\",\n  \"outputSchema\": \"<object>\",\n  \"tabularChunkingEnabled\": \"<boolean>\",\n  \"enableBoundingBoxes\": \"<boolean>\",\n  \"preCount\": \"<boolean>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "7245e21a-b8ae-4561-b7cc-d1c8b2c59f79",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    ":functionName"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "functionName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"extract\",\n  \"functionName\": \"string\",\n  \"displayName\": \"string\",\n  \"tags\": [\n    \"string\",\n    \"string\"\n  ],\n  \"outputSchemaName\": \"string\",\n  \"outputSchema\": {},\n  \"tabularChunkingEnabled\": true,\n  \"enableBoundingBoxes\": true,\n  \"preCount\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"function\": {\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"versionNum\": 1480,\n    \"type\": \"transform\",\n    \"outputSchemaName\": \"string\",\n    \"outputSchema\": {},\n    \"emailAddress\": \"string\",\n    \"tabularChunkingEnabled\": true,\n    \"usedInWorkflows\": [\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 2580,\n        \"usedInWorkflowVersionNums\": [\n          2732,\n          4328\n        ]\n      },\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 1781,\n        \"usedInWorkflowVersionNums\": [\n          2683,\n          9949\n        ]\n      }\n    ],\n    \"displayName\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"audit\": {\n      \"functionCreatedBy\": {\n        \"description\": \"Information about who created the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"functionLastUpdatedBy\": {\n        \"description\": \"Information about who last updated the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"versionCreatedBy\": {\n        \"description\": \"Information about who created the current version.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      }\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "2ec1b449-da45-4c8a-9f2d-e6d305a69187",
+          "name": "List Function Versions",
+          "request": {
+            "name": "List Function Versions",
+            "description": {
+              "content": "**List every version of a function.**\n\nReturns the full version history, newest-first. Each row captures\nthe configuration the function had between updates. Useful for\naudits (\"when did this schema change?\") and for diffing two\nversions before promoting an update to production.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                ":functionName",
+                "versions"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "functionName",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "562e090c-eec7-4d6b-b930-f68f491bea17",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    ":functionName",
+                    "versions"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "functionName",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"versions\": [\n    {\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"versionNum\": 443,\n      \"type\": \"transform\",\n      \"outputSchemaName\": \"string\",\n      \"outputSchema\": {},\n      \"emailAddress\": \"string\",\n      \"tabularChunkingEnabled\": false,\n      \"usedInWorkflows\": [\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 1002,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        },\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 1161,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        }\n      ],\n      \"displayName\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"createdAt\": \"2024-06-13T03:57:31.251Z\",\n      \"audit\": {\n        \"functionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"functionLastUpdatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"versionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    },\n    {\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"versionNum\": 9712,\n      \"type\": \"transform\",\n      \"outputSchemaName\": \"string\",\n      \"outputSchema\": {},\n      \"emailAddress\": \"string\",\n      \"tabularChunkingEnabled\": false,\n      \"usedInWorkflows\": [\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 1652,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        },\n        {\n          \"workflowID\": \"string\",\n          \"workflowName\": \"string\",\n          \"currentVersionNum\": 4400,\n          \"usedInWorkflowVersionNums\": [\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          ]\n        }\n      ],\n      \"displayName\": \"string\",\n      \"tags\": [\n        \"string\",\n        \"string\"\n      ],\n      \"createdAt\": \"1949-01-31T04:20:24.001Z\",\n      \"audit\": {\n        \"functionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"functionLastUpdatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        },\n        \"versionCreatedBy\": {\n          \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n        }\n      }\n    }\n  ],\n  \"totalCount\": 9485\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "66bb499d-6812-406c-bd0f-b8789d31fdd7",
+          "name": "Get a Function Version",
+          "request": {
+            "name": "Get a Function Version",
+            "description": {
+              "content": "**Retrieve a specific historical version of a function.**\n\nVersions are immutable. Use this endpoint to inspect what a function\nlooked like at the moment a particular call was made — every event\nand transformation records the function version it ran against.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "functions",
+                ":functionName",
+                "versions",
+                ":versionNum"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "functionName",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "versionNum",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "bd1da9e5-04cf-48d8-8d68-b3c73a4bae3e",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "functions",
+                    ":functionName",
+                    "versions",
+                    ":versionNum"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "functionName",
+                      "description": "(Required) "
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "versionNum",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"function\": {\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"versionNum\": 4931,\n    \"type\": \"transform\",\n    \"outputSchemaName\": \"string\",\n    \"outputSchema\": {},\n    \"emailAddress\": \"string\",\n    \"tabularChunkingEnabled\": false,\n    \"usedInWorkflows\": [\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 4559,\n        \"usedInWorkflowVersionNums\": [\n          3759,\n          260\n        ]\n      },\n      {\n        \"workflowID\": \"string\",\n        \"workflowName\": \"string\",\n        \"currentVersionNum\": 9199,\n        \"usedInWorkflowVersionNums\": [\n          767,\n          749\n        ]\n      }\n    ],\n    \"displayName\": \"string\",\n    \"tags\": [\n      \"string\",\n      \"string\"\n    ],\n    \"createdAt\": \"1995-10-01T16:53:21.455Z\",\n    \"audit\": {\n      \"functionCreatedBy\": {\n        \"description\": \"Information about who created the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"functionLastUpdatedBy\": {\n        \"description\": \"Information about who last updated the function.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      },\n      \"versionCreatedBy\": {\n        \"description\": \"Information about who created the current version.\",\n        \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n      }\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "c92360bf-a246-490a-a633-3d4e8e12ce28",
+    "name": "Bem Buckets Functions API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

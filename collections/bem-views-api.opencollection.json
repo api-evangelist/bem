@@ -1,0 +1,192 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Views API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Views",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Views",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/views",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query",
+                "description": "Return only views that read from at least one of the named functions."
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query",
+                "description": "Return only views that read from at least one of the named functions."
+              },
+              {
+                "name": "viewIDs",
+                "value": "",
+                "type": "query",
+                "description": "Return only the specified view IDs."
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query",
+                "description": "Sort order over view IDs (default `asc`)."
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query",
+                "description": "Cursor — a `viewID` defining your place in the list."
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query",
+                "description": "Cursor — a `viewID` defining your place in the list."
+              },
+              {
+                "name": "viewNameSubstring",
+                "value": "",
+                "type": "query",
+                "description": "Case-insensitive substring search over view names."
+              }
+            ]
+          },
+          "docs": "**List views in the current environment, optionally filtered by the functions they read from.**\n\nViews are tabular projections over `transformations` rows: each view names\none or more functions and a list of columns (JSON-pointer paths into\n`extractedJson`), and produces a uniform table that can be filtered,\npaginated, and aggregated.\n\nFilters AND together when combined. Pagination is cursor-based on\n`viewID`; default limit is 50, maximum 100."
+        },
+        {
+          "info": {
+            "name": "Create a View",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/views",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Create a view.**\n\nA view is a tabular projection over the `transformations` produced by\none or more functions. Each column declares a `valueSchemaPath` — a JSON\nPointer path into the function's output schema — and the view can\nadditionally carry filters and aggregations.\n\nSupported for every function type that produces correctable\ntransformations and an output schema: `extract`, `transform`, `analyze`,\n`join`. Extract works on both vision (PDF/PNG/JPEG/HEIC/HEIF/WebP) and\nOCR-routed inputs — t"
+        },
+        {
+          "info": {
+            "name": "Generate View Aggregation Data",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/views/aggregation-data",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Generate aggregation results for a view.**\n\nExecutes each aggregation declared on the view against the\n`transformations` rows produced by the named functions inside the\nsupplied `timeWindow`, applying the view's filters. Supported\naggregation functions: `count`, `count_distinct`, `sum`, `average`,\n`min`, `max`. Grouped aggregations return up to 200 groups per\naggregation; non-grouped aggregations return a single group with an\nempty `groupName`.\n\nAs with table-data, the `functions` field is req"
+        },
+        {
+          "info": {
+            "name": "Generate View Table Data",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/views/table-data",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Generate paginated table data for a view.**\n\nExecutes the view's query against `transformations` rows produced by the\nnamed functions inside the supplied `timeWindow`, applies the view's\nfilters, and returns matching rows. Each row reports the event\n`eventID` (externally-stable KSUID) plus the projected column values.\n\nThe `functions` field is required — at least one `functionID` or\n`functionName` must be supplied. `limit` defaults to 50 with a maximum\nof 200; `offset` is zero-based. The respo"
+        },
+        {
+          "info": {
+            "name": "Get a View",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/views/:view_id",
+            "params": [
+              {
+                "name": "view_id",
+                "value": "",
+                "type": "path",
+                "description": "Unique identifier of the view."
+              }
+            ]
+          },
+          "docs": "**Retrieve a view by ID.**\n\nReturns the view's current version. To inspect a historical version,\nfetch the list of versions on the View object and re-request with the\ndesired version pinned (versions are immutable once created)."
+        },
+        {
+          "info": {
+            "name": "Update a View",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://api.bem.ai/v3/views/:view_id",
+            "params": [
+              {
+                "name": "view_id",
+                "value": "",
+                "type": "path",
+                "description": "Unique identifier of the view to update."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Update a view. Updates create a new version.**\n\nThe previous version remains addressable and immutable. The new\nconfiguration is fully replacing — pass the complete view body, not a\npatch. The version number is auto-incremented."
+        },
+        {
+          "info": {
+            "name": "Delete a View",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/views/:view_id",
+            "params": [
+              {
+                "name": "view_id",
+                "value": "",
+                "type": "path",
+                "description": "Unique identifier of the view to delete."
+              }
+            ]
+          },
+          "docs": "**Delete a view and every one of its versions.**\n\nPermanent. Any cached data-table or aggregation result clients have\nfetched remains valid, but subsequent calls to\n`POST /v3/views/table-data` or `POST /v3/views/aggregation-data` for\nthis view will fail."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

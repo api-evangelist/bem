@@ -1,0 +1,265 @@
+{
+  "item": [
+    {
+      "id": "d6b234fd-dfec-4a5c-a23e-54b05bf696c6",
+      "name": "Entity Curation",
+      "description": {
+        "content": "Curate the knowledge graph by transitioning entities through their review\nlifecycle and editing their metadata.\n\n- **`PATCH /v3/entities/{id}`** updates a single entity. Every field is\n  optional but at least one is required:\n  - `status` transitions curation state to `approved` or `rejected` (only\n    from `extracted`/`proposed`; any other transition is `409 Conflict`).\n    Approving emits an `entity_validated` webhook; rejecting emits\n    `entity_rejected`.\n  - `assignedTypeID` sets (or, with the empty string, clears) the\n    customer-assigned type that overrides the bem-inferred type.\n  - `canonical` replaces the canonical surface form.\n  - `addSynonyms` / `removeSynonymIDs` attach `customer_defined` synonyms\n    or soft-delete existing ones (an `extracted` synonym cannot be\n    removed — `409 Conflict`).\n\n  A merged-away entity id transparently resolves to its surviving\n  canonical entity.\n- **`POST /v3/entities/bulk-validate`** transitions a batch of entities to\n  `approved` or `rejected` in one request. Each row reports `validated`,\n  `skipped` (not found / not authorized), or `rejected-row` (an illegal\n  transition such as an already-terminal entity), alongside a summary.\n\nOn the dashboard (JWT) surface these actions additionally require the\nacting user to be an assigned reviewer for the entity's effective type, or\nto hold the `admin` role (or higher). On the API-key surface admin-key\nauthorization applies and no per-user reviewer check is made.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "82177431-c5cf-4553-a84f-0b75fd40b29d",
+          "name": "Bulk Validate Entities",
+          "request": {
+            "name": "Bulk Validate Entities",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                "bulk-validate"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entityIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"status\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "71195683-0944-47b4-a7b7-a2b8a51c49de",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    "bulk-validate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"entityIDs\": [\n    \"ent_2abc\",\n    \"ent_2def\"\n  ],\n  \"status\": \"approved\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"results\": [\n    {\n      \"entityID\": \"string\",\n      \"outcome\": \"validated\",\n      \"reason\": \"string\"\n    },\n    {\n      \"entityID\": \"string\",\n      \"outcome\": \"validated\",\n      \"reason\": \"string\"\n    }\n  ],\n  \"summary\": {\n    \"validated\": 8435,\n    \"skipped\": 7993,\n    \"rejectedRow\": 1761\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "ee9d7099-cc22-4642-a5b4-adb038503251",
+          "name": "Update Entity",
+          "request": {
+            "name": "Update Entity",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to its survivor."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"<string>\",\n  \"assignedTypeID\": \"<string>\",\n  \"canonical\": \"<string>\",\n  \"addSynonyms\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"removeSynonymIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"locale\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "7c10a110-6ba1-4649-9022-5e8e18e3f120",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to its survivor."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"approved\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"entityID\": \"string\",\n  \"canonical\": \"string\",\n  \"type\": \"string\",\n  \"mentionCount\": 2406,\n  \"surfaceForms\": [\n    \"string\",\n    \"string\"\n  ],\n  \"createdAt\": \"2021-09-21T03:49:16.193Z\",\n  \"updatedAt\": \"1999-08-07T18:42:24.023Z\",\n  \"status\": \"proposed\",\n  \"description\": \"string\",\n  \"typeID\": \"string\",\n  \"validatedAt\": \"2019-09-06T03:07:27.824Z\",\n  \"validatedByUserID\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "6ca4e637-1bfa-4abe-ba1c-9bea554ad141",
+    "name": "Bem Buckets Entity Curation API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

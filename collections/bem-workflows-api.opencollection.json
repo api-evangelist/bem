@@ -1,0 +1,267 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Workflows API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Workflows",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Workflows",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/workflows",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "displayName",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "tags",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "**List workflows in the current environment.**\n\nReturns each workflow's current version, including its node graph\nand main node. Combine filters freely — they AND together.\n\n## Filtering\n\n- `workflowIDs` / `workflowNames`: exact-match identity filters.\n- `displayName`: case-insensitive substring match.\n- `tags`: returns workflows tagged with any of the supplied tags.\n- `functionIDs` / `functionNames`: returns only workflows that\nreference the named functions in any node. Useful for \"which\nworkfl"
+        },
+        {
+          "info": {
+            "name": "Create a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/workflows",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Create a workflow.**\n\nA workflow is a directed acyclic graph of nodes (each pointing at a\nfunction) with one entry point (`mainNodeName`). The graph runs\nend-to-end on every call.\n\n## Required structure\n\n- `name`: unique within the environment, alphanumeric plus hyphens\nand underscores.\n- `mainNodeName`: must match one of the `nodes[].name` values, and\nmust not be the destination of any edge.\n- `nodes`: at least one. Each node has a unique `name` and a\n`function` reference (by `functionName` o"
+        },
+        {
+          "info": {
+            "name": "Copy a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/workflows/copy",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Copy a workflow to a new name.**\n\nForks the source workflow's current version into a brand-new\nworkflow at `versionNum: 1`. The full node graph and edges are\ncarried over, but the *functions* the copied nodes reference are\nshared, not duplicated — both workflows now point at the same\nfunctions.\n\nUseful for forking a production workflow to test a topology change\nwithout disturbing the live caller."
+        },
+        {
+          "info": {
+            "name": "Get a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Retrieve a workflow's current version by name.**\n\nReturns the full workflow record: `currentVersionNum`, `mainNodeName`,\nthe `nodes` array (with each node's function reference and pinned\n`versionNum` if any), and the `edges` array. To inspect a historical\nversion, use `GET /v3/workflows/{workflowName}/versions/{versionNum}`."
+        },
+        {
+          "info": {
+            "name": "Update a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Update a workflow. Updates create a new version.**\n\nThe previous version remains addressable and immutable. Pending and\nrunning calls captured at the old version continue against it; new\ncalls run against the new version.\n\n## Topology updates\n\nTo change the graph you must provide `mainNodeName`, `nodes`, AND\n`edges` together — partial topology updates are rejected. The full\ngraph is replaced atomically.\n\n## Metadata-only updates\n\nOmit all three fields to update only `displayName`, `tags`, or\n`"
+        },
+        {
+          "info": {
+            "name": "Delete a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Delete a workflow and every one of its versions.**\n\nPermanent. Running and queued calls against this workflow continue\nto completion against the version they captured at call time;\nsubsequent attempts to call the workflow return `404 Not Found`.\n\nFunctions referenced by the deleted workflow are not removed — they\nremain available to other workflows or for direct reference."
+        },
+        {
+          "info": {
+            "name": "Call a Workflow Call a Workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName/call",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path",
+                "description": "The name of the workflow to invoke."
+              },
+              {
+                "name": "wait",
+                "value": "",
+                "type": "query",
+                "description": "Block until the call completes (up to 30 seconds) and return the finished\ncall object. Default: `false`. This is a boolean flag — use `--wait` or\n`--wait=true`, not `--wait true`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Invoke a workflow.**\n\nSubmit the input file as either a multipart form request or a JSON request with\nbase64-encoded file content. The workflow name is derived from the URL path.\n\n## Input Formats\n\n- **Multipart form** (`multipart/form-data`): attach the file directly via the `file`\nor `files` fields. Set `wait` in the form body to control synchronous behaviour.\n- **JSON** (`application/json`): base64-encode the file content and set it in\n`input.singleFile.inputContent` or `input.batchFiles.in"
+        },
+        {
+          "info": {
+            "name": "List Workflow Versions",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName/versions",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "**List every version of a workflow.**\n\nVersions are immutable. Each row captures what the workflow looked\nlike between updates: graph topology, metadata, and timestamps.\nReturns newest-first by default. Cursor pagination via\n`startingAfter` / `endingBefore` over `versionNum`."
+        },
+        {
+          "info": {
+            "name": "Get a Workflow Version",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/workflows/:workflowName/versions/:versionNum",
+            "params": [
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "versionNum",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "**Retrieve a specific historical version of a workflow.**\n\nVersions are immutable. Use this endpoint to see what a workflow\nlooked like at the moment a particular call was made — every call\nrecord carries the workflow `versionNum` it ran against."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

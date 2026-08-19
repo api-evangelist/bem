@@ -1,0 +1,294 @@
+{
+  "item": [
+    {
+      "id": "e0fe1dad-28b3-4d96-b696-e42945c173f2",
+      "name": "Entity Synonyms",
+      "description": {
+        "content": "Manage the human-readable surface forms (synonyms) attached to a canonical\nentity. Synonyms feed the matcher's exact-match path, so adding the right\nsynonyms improves cross-document entity resolution.\n\n- **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`\n  synonym. If the same normalized form already exists as an `extracted`\n  synonym, it is upgraded to `customer_defined` (so the matcher weights it\n  higher); an existing customer/SME synonym is returned unchanged.\n- **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a\n  synonym. Only `customer_defined` and `sme_approved` synonyms are\n  deletable; `extracted` synonyms are resolver-owned and the request is\n  rejected with `409 Conflict`.\n\nA merged-away entity id transparently resolves to its surviving canonical\nentity, so a synonym added to a stale id lands on the entity that persists.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "9f31a980-722b-4a81-bec6-ab5f1c68ed31",
+          "name": "Add a Synonym to an Entity",
+          "request": {
+            "name": "Add a Synonym to an Entity",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                ":id",
+                "synonyms"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "bucket",
+                  "value": "<string>",
+                  "description": "Optional bucket public ID (`bkt_...`) to scope the entity lookup to one\nbucket. Omit for the unscoped (all account+environment) view."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"<string>\",\n  \"locale\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "1febc06c-1216-4ecd-bf9e-f28cfdc9fcb4",
+              "name": "The request has succeeded and a new resource has been created as a result.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    ":id",
+                    "synonyms"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "bucket",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"ACME Corporation\",\n  \"locale\": \"en-US\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"synonymID\": \"string\",\n  \"text\": \"string\",\n  \"normalizedText\": \"string\",\n  \"source\": \"sme_approved\",\n  \"createdAt\": \"1977-03-30T23:06:34.144Z\",\n  \"locale\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "0ce192db-cd29-4e11-91fa-4b1293ae1372",
+          "name": "Remove a Synonym from an Entity",
+          "request": {
+            "name": "Remove a Synonym from an Entity",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                ":id",
+                "synonyms",
+                ":synonymID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "bucket",
+                  "value": "<string>",
+                  "description": "Optional bucket public ID (`bkt_...`) to scope the entity lookup to one\nbucket. Omit for the unscoped (all account+environment) view."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+                },
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "synonymID",
+                  "description": "(Required) Synonym public ID (`esn_...`)."
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "454686c3-a868-4024-909e-eed997fecfa7",
+              "name": "There is no content to send for this request, but the headers may be useful. ",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    ":id",
+                    "synonyms",
+                    ":synonymID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "bucket",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "synonymID",
+                      "description": "(Required) Synonym public ID (`esn_...`)."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "227bf25b-de40-4656-a109-1fc39e7c94bf",
+    "name": "Bem Buckets Entity Synonyms API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

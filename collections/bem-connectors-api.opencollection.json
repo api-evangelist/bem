@@ -1,0 +1,85 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Connectors API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Connectors",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Connectors",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/connectors",
+            "params": [
+              {
+                "name": "workflowID",
+                "value": "",
+                "type": "query",
+                "description": "Filter connectors by workflow API ID (e.g. `wf_...`).\n\nIf both `workflowID` and `workflowName` are provided, results must match both."
+              },
+              {
+                "name": "workflowName",
+                "value": "",
+                "type": "query",
+                "description": "Filter connectors by workflow name (exact match).\n\nIf both `workflowID` and `workflowName` are provided, results must match both."
+              }
+            ]
+          },
+          "docs": "List Connectors"
+        },
+        {
+          "info": {
+            "name": "Create a Connector",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/connectors",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Create a Connector"
+        },
+        {
+          "info": {
+            "name": "Delete a Connector",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/connectors/:connectorID",
+            "params": [
+              {
+                "name": "connectorID",
+                "value": "",
+                "type": "path",
+                "description": "Connector API ID."
+              }
+            ]
+          },
+          "docs": "Delete a Connector"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,136 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Knowledge Graph API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Knowledge Graph",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get an Entity's Relations",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/entities/:id/relations",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "Entity public ID (`ent_...`). A merged-away id transparently resolves to the surviving entity."
+              },
+              {
+                "name": "direction",
+                "value": "",
+                "type": "query",
+                "description": "Which edges to return relative to the entity. Defaults to `both`."
+              },
+              {
+                "name": "relationType",
+                "value": "",
+                "type": "query",
+                "description": "Exact-match filter on the relation label."
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Maximum number of edges to return (default 50, max 200)."
+              },
+              {
+                "name": "cursor",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return edges whose KSUID sorts after this value."
+              },
+              {
+                "name": "bucket",
+                "value": "",
+                "type": "query",
+                "description": "Optional bucket public ID (`bkt_...`) to scope the read to one bucket.\nOmit for the unscoped (all account+environment) view."
+              }
+            ]
+          },
+          "docs": "Get an Entity's Relations"
+        },
+        {
+          "info": {
+            "name": "Retrieve the Knowledge Graph",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/knowledge-graph",
+            "params": [
+              {
+                "name": "nodeID",
+                "value": "",
+                "type": "query",
+                "description": "Center the graph on this entity (`ent_...`) and only return the subgraph\nwithin `maxDepth` hops of it; every node then carries its `depth` (hops\nfrom the center, center = 0). Omit for the uncentered whole-graph view.\n`rootNodeID` and `focusNodeID` are accepted as aliases."
+              },
+              {
+                "name": "maxDepth",
+                "value": "",
+                "type": "query",
+                "description": "Maximum hops from the center node. Only meaningful with `nodeID`. Defaults\nto 2 and is clamped down to a system maximum (5)."
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Maximum number of edges per page (default 50, max 200)."
+              },
+              {
+                "name": "cursor",
+                "value": "",
+                "type": "query",
+                "description": "Cursor: return edges whose KSUID sorts after this value."
+              },
+              {
+                "name": "type",
+                "value": "",
+                "type": "query",
+                "description": "Restrict to entities of these types. An edge is returned only when BOTH\nof its endpoints survive the type filter."
+              },
+              {
+                "name": "since",
+                "value": "",
+                "type": "query",
+                "description": "Only edges created at/after this RFC 3339 timestamp."
+              },
+              {
+                "name": "search",
+                "value": "",
+                "type": "query",
+                "description": "Case-insensitive substring match on canonical names. Both endpoints of an\nedge must match for the edge (and its nodes) to be returned."
+              },
+              {
+                "name": "bucket",
+                "value": "",
+                "type": "query",
+                "description": "Optional bucket public ID (`bkt_...`) to scope the read to one bucket.\nOmit for the unscoped (all account+environment) view."
+              }
+            ]
+          },
+          "docs": "Retrieve the Knowledge Graph"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

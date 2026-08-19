@@ -1,0 +1,204 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Collections API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Collections",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Collections",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/collections",
+            "params": [
+              {
+                "name": "parentCollectionName",
+                "value": "",
+                "type": "query",
+                "description": "Optional filter to list only collections under a specific parent collection path.\nFor example, \"customers\" will return \"customers\", \"customers.premium\", \"customers.premium.vip\", etc."
+              },
+              {
+                "name": "collectionNameSearch",
+                "value": "",
+                "type": "query",
+                "description": "Optional substring search filter for collection names (case-insensitive).\nFor example, \"premium\" will match \"customers.premium\", \"products.premium\", etc."
+              },
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "Page number for pagination"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Number of collections per page"
+              }
+            ]
+          },
+          "docs": "List Collections"
+        },
+        {
+          "info": {
+            "name": "Create a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/collections",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Create a Collection"
+        },
+        {
+          "info": {
+            "name": "Delete a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/collections",
+            "params": [
+              {
+                "name": "collectionName",
+                "value": "",
+                "type": "query",
+                "description": "The name/path of the collection to delete. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+              }
+            ]
+          },
+          "docs": "Delete a Collection"
+        },
+        {
+          "info": {
+            "name": "Get a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/collections/items",
+            "params": [
+              {
+                "name": "collectionName",
+                "value": "",
+                "type": "query",
+                "description": "The name/path of the collection. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+              },
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "Page number for pagination"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query",
+                "description": "Number of items per page"
+              },
+              {
+                "name": "includeSubcollections",
+                "value": "",
+                "type": "query",
+                "description": "When true, includes items from all subcollections under the specified collection path.\nFor example, querying \"customers\" with this flag will return items from \"customers\",\n\"customers.premium\", \"customers.premium.vip\", etc."
+              }
+            ]
+          },
+          "docs": "Get a Collection"
+        },
+        {
+          "info": {
+            "name": "Add new items to a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/collections/items",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Add new items to a Collection"
+        },
+        {
+          "info": {
+            "name": "Update existing items in a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://api.bem.ai/v3/collections/items",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Update existing items in a Collection"
+        },
+        {
+          "info": {
+            "name": "Delete an item from a Collection",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/collections/items",
+            "params": [
+              {
+                "name": "collectionName",
+                "value": "",
+                "type": "query",
+                "description": "The name/path of the collection. Must use only letters, digits, underscores, and dots.\nEach segment must start with a letter or underscore."
+              },
+              {
+                "name": "collectionItemID",
+                "value": "",
+                "type": "query",
+                "description": "The unique identifier of the item to delete"
+              }
+            ]
+          },
+          "docs": "Delete an item from a Collection"
+        },
+        {
+          "info": {
+            "name": "Count tokens for texts",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/collections/token-count",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Count the number of tokens in the provided texts using the BGE M3 tokenizer.\nThis is useful for checking if texts will fit within the embedding model's token limit\n(8,192 tokens per text) before sending them for embedding."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

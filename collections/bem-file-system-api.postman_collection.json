@@ -1,0 +1,150 @@
+{
+  "item": [
+    {
+      "id": "1db1a968-d840-4e15-a79e-dea422b3bc9c",
+      "name": "File System",
+      "description": {
+        "content": "Unix-shell-style nav over parsed documents and the cross-doc memory store.\n\n`POST /v3/fs` is a single op-driven endpoint designed for LLM agents\nand programmatic consumers that want to walk a corpus the way they'd\nwalk a filesystem.\n\n## Doc-level ops (every parsed document)\n\n- `ls` — list parsed documents with rich per-doc metadata.\n- `cat` — read one doc's parse JSON, sliced (`range`) or projected (`select`).\n- `head` — first N sections of one doc.\n- `grep` — substring or regex search; `scope`, `path`, `countOnly` available.\n- `stat` — metadata only (page/section/entity counts, timestamps).\n\n## Memory-level ops (require `linkAcrossDocuments: true` on the parse function)\n\n- `find` — list canonical entities across the corpus.\n- `open` — entity + mentions.\n- `xref` — for one entity, sections across docs that mention it (with content).\n\nMemory ops return an empty list with a `hint` when no docs in this\nenvironment have been memory-linked.\n\n## Pagination\n\nList ops paginate by cursor — pass the previous response's `nextCursor`\nback as `cursor`; `hasMore: false` signals the last page. Same idiom as\n`/v3/calls` and `/v3/outputs`.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "637850ed-a690-404c-ac24-001abb2c84cd",
+          "name": "File System Operations",
+          "request": {
+            "name": "File System Operations",
+            "description": {
+              "content": "**Navigate parsed documents and the cross-doc memory store via Unix-shell verbs.**\n\n`POST /v3/fs` is a single op-driven endpoint that lets an LLM agent\n(or any programmatic client) walk a corpus the way it would walk a\nfilesystem — `ls` to list, `cat` to read, `grep` to search, `head`\nfor a quick peek, `stat` for metadata, and `find` / `open` / `xref`\nfor the cross-doc entity memory layer.\n\nThe body always carries an `op` field; other fields apply per op.\nThe response envelope is uniform: `{op, data, hasMore?, nextCursor?, count?, hint?}`.\n\n## Quick reference\n\n| Op | `path` | Other fields | What it does |\n|----|--------|-------------|--------------|\n| `ls` | — | `filter`, `limit`, `cursor` | List parsed documents |\n| `grep` | referenceID *(optional)* | `pattern`, `scope`, `countOnly` | Search across documents |\n| `cat` | referenceID | `range`, `select` | Read a document's parsed content |\n| `head` | referenceID | `n` | First N sections (default 10) |\n| `stat` | referenceID *or* entityID | — | Metadata only |\n| `find` | — | `filter`, `limit`, `cursor` | List canonical entities |\n| `open` | entityID | — | Entity detail + all mentions |\n| `xref` | entityID | `limit`, `cursor` | Sections across docs mentioning an entity |\n\n**`path`** is the positional identifier. For doc ops (`cat`, `head`,\n`stat`), pass a `referenceID` from `ls`. For entity ops (`open`,\n`xref`), pass an `entityID` from `find`. `grep` optionally takes a\n`path` to scope search to one document.\n\n## Examples\n\n**List documents:**\n`{\"op\": \"ls\"}`\n\n**Search one document:**\n`{\"op\": \"grep\", \"path\": \"my-doc-001\", \"pattern\": \"holiday\", \"scope\": \"sections\"}`\n\n**Read one page:**\n`{\"op\": \"cat\", \"path\": \"my-doc-001\", \"range\": {\"page\": 7}}`\n\n**Read a page range:**\n`{\"op\": \"cat\", \"path\": \"my-doc-001\", \"range\": {\"pageRange\": [5, 10]}}`\n\n**Project section labels and pages only:**\n`{\"op\": \"cat\", \"path\": \"my-doc-001\", \"select\": [\"sections.label\", \"sections.page\", \"sections.type\"]}`\n\n**Preview first 5 sections:**\n`{\"op\": \"head\", \"path\": \"my-doc-001\", \"n\": 5}`\n\n**Document metadata:**\n`{\"op\": \"stat\", \"path\": \"my-doc-001\"}`\n\n**List entities:**\n`{\"op\": \"find\"}`\n\n**Entity detail + mentions:**\n`{\"op\": \"open\", \"path\": \"ent_abc123\"}`\n\n**Cross-document sections for an entity:**\n`{\"op\": \"xref\", \"path\": \"ent_abc123\"}`\n\n## Key details\n\n`range` is an **object** with optional keys: `page` (integer),\n`pageRange` (two-element array `[from, to]`), `sectionTypes`\n(array of strings like `[\"table\", \"heading\"]`).\n\n`select` is an **array of strings** — dotted paths like\n`[\"sections.label\", \"sections.page\"]`.\n\n`scope` (grep) is one of `\"sections\"`, `\"entities\"`,\n`\"relationships\"`, or `\"all\"` (default).\n\n## Pagination\n\nList ops (`ls`, `find`) paginate by cursor: pass the last item's\n`nextCursor` from a previous response to fetch the next page;\n`hasMore: false` signals the last page. Same idiom as `/v3/calls`\nand `/v3/outputs`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "fs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"op\": \"<string>\",\n  \"context\": {\n    \"bucket\": \"<string>\"\n  },\n  \"path\": \"<string>\",\n  \"pattern\": \"<string>\",\n  \"regex\": \"<boolean>\",\n  \"ignoreCase\": \"<boolean>\",\n  \"scope\": \"<string>\",\n  \"countOnly\": \"<boolean>\",\n  \"filter\": {\n    \"type\": \"<string>\",\n    \"search\": \"<string>\",\n    \"functionName\": \"<string>\",\n    \"since\": \"<dateTime>\"\n  },\n  \"range\": {\n    \"page\": \"<integer>\",\n    \"pageRange\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"sectionTypes\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  },\n  \"select\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"n\": \"<integer>\",\n  \"limit\": \"<integer>\",\n  \"cursor\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "79bb6a2f-c49f-4259-8b3d-f4d04dbf186a",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "fs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"op\": \"head\",\n  \"context\": {\n    \"bucket\": \"string\"\n  },\n  \"path\": \"<string>\",\n  \"pattern\": \"<string>\",\n  \"regex\": \"<boolean>\",\n  \"ignoreCase\": \"<boolean>\",\n  \"scope\": \"<string>\",\n  \"countOnly\": \"<boolean>\",\n  \"filter\": {\n    \"type\": \"string\",\n    \"search\": \"string\",\n    \"functionName\": \"string\",\n    \"since\": \"1977-08-05T02:50:13.437Z\"\n  },\n  \"range\": {\n    \"page\": 2672,\n    \"pageRange\": [\n      7179,\n      6497\n    ],\n    \"sectionTypes\": [\n      \"string\",\n      \"string\"\n    ]\n  },\n  \"select\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"n\": \"<integer>\",\n  \"limit\": \"<integer>\",\n  \"cursor\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"op\": \"xref\",\n  \"data\": {},\n  \"hasMore\": true,\n  \"nextCursor\": \"string\",\n  \"count\": 584,\n  \"hint\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "0670b086-ae47-464e-b0d7-f86204cd53fc",
+    "name": "Bem Buckets File System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

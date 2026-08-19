@@ -1,0 +1,115 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Errors API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Errors",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Errors",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/errors",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "callIDs",
+                "value": "",
+                "type": "query",
+                "description": "Filter to errors from specific calls."
+              },
+              {
+                "name": "workflowIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "referenceIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "referenceIDSubstring",
+                "value": "",
+                "type": "query",
+                "description": "Case-insensitive substring match against `referenceID`."
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "**List terminal error events.**\n\nReturns error events produced by failed function calls within workflow executions.\nNon-error output events are excluded; use `GET /v3/outputs` to retrieve those.\n\n## Filtering\n\nFilter by call, workflow, function, or reference ID. Multiple filters are ANDed together."
+        },
+        {
+          "info": {
+            "name": "Get an Error",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/errors/:eventID",
+            "params": [
+              {
+                "name": "eventID",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the error event."
+              }
+            ]
+          },
+          "docs": "**Retrieve a single error event by ID.**\n\nReturns `404` if the event does not exist or if it is not an error event\n(use `GET /v3/outputs/{eventID}` for non-error events)."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,86 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Entity Synonyms API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Entity Synonyms",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Add a Synonym to an Entity",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.bem.ai/v3/entities/:id/synonyms",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+              },
+              {
+                "name": "bucket",
+                "value": "",
+                "type": "query",
+                "description": "Optional bucket public ID (`bkt_...`) to scope the entity lookup to one\nbucket. Omit for the unscoped (all account+environment) view."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Add a Synonym to an Entity"
+        },
+        {
+          "info": {
+            "name": "Remove a Synonym from an Entity",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.bem.ai/v3/entities/:id/synonyms/:synonymID",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "Entity public ID (`ent_...`). A merged-away id resolves to the surviving entity."
+              },
+              {
+                "name": "synonymID",
+                "value": "",
+                "type": "path",
+                "description": "Synonym public ID (`esn_...`)."
+              },
+              {
+                "name": "bucket",
+                "value": "",
+                "type": "query",
+                "description": "Optional bucket public ID (`bkt_...`) to scope the entity lookup to one\nbucket. Omit for the unscoped (all account+environment) view."
+              }
+            ]
+          },
+          "docs": "Remove a Synonym from an Entity"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

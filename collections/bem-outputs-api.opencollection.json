@@ -1,0 +1,157 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Bem Buckets Outputs API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-api-key",
+      "value": "{{x-api-key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Outputs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List Outputs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/outputs",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "callIDs",
+                "value": "",
+                "type": "query",
+                "description": "Filter to outputs from specific calls."
+              },
+              {
+                "name": "workflowIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "workflowNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "functionNames",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "referenceIDs",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "eventIDs",
+                "value": "",
+                "type": "query",
+                "description": "Filter to specific output events by their event IDs (KSUIDs)."
+              },
+              {
+                "name": "eventTypes",
+                "value": "",
+                "type": "query",
+                "description": "Filter to specific non-error output event types, e.g. `classify` or `extract`."
+              },
+              {
+                "name": "transformationIDs",
+                "value": "",
+                "type": "query",
+                "description": "Filter by legacy transformation IDs. Provided for backwards compatibility\nwith clients migrating from `/v1-beta/transformations`."
+              },
+              {
+                "name": "functionVersionNums",
+                "value": "",
+                "type": "query",
+                "description": "Filter to specific function version numbers."
+              },
+              {
+                "name": "referenceIDSubstring",
+                "value": "",
+                "type": "query",
+                "description": "Case-insensitive substring match against `referenceID`."
+              },
+              {
+                "name": "isLabelled",
+                "value": "",
+                "type": "query",
+                "description": "If `true`, only outputs with a corrected (labelled) payload.\nIf `false`, only outputs that are not labelled. If omitted, no filter is applied."
+              },
+              {
+                "name": "isRegression",
+                "value": "",
+                "type": "query",
+                "description": "If `true`, only regression-marked outputs. If `false`, only non-regression outputs.\nIf omitted, no filter is applied.\n\nNote: clients migrating from `/v1-beta/transformations` should pass `isRegression=false`\nexplicitly to preserve the legacy default (regressions hidden unless explicitly requested)."
+              },
+              {
+                "name": "includeIntermediate",
+                "value": "",
+                "type": "query",
+                "description": "When `true`, includes intermediate events (those that spawned a downstream function call).\nDefault: `false`."
+              },
+              {
+                "name": "sortOrder",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "startingAfter",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "endingBefore",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "**List terminal non-error output events.**\n\nReturns events that represent successful terminal outputs — primary events\n(non-split-collection) that did not trigger any downstream function calls.\nError events are excluded; use `GET /v3/errors` to retrieve those.\n\n## Intermediate Events\n\nBy default, intermediate events (those that spawned a downstream function call in a\nmulti-step workflow) are excluded. Pass `includeIntermediate=true` to include them.\n\n## Filtering\n\nFilter by call, workflow, funct"
+        },
+        {
+          "info": {
+            "name": "Get an Output",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.bem.ai/v3/outputs/:eventID",
+            "params": [
+              {
+                "name": "eventID",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the output event."
+              }
+            ]
+          },
+          "docs": "**Retrieve a single output event by ID.**\n\nFetches any non-error event by its `eventID`. Returns `404` if the event does not exist\nor if it is an error event (use `GET /v3/errors/{eventID}` for those)."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

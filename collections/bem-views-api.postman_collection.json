@@ -1,0 +1,928 @@
+{
+  "item": [
+    {
+      "id": "fa8b461f-0526-4692-a7b2-6c592836f8de",
+      "name": "Views",
+      "description": {
+        "content": "Views are tabular projections over the `transformations` your functions\nproduce — a saved query that turns raw extracted JSON into a\nfilterable, paginatable, aggregatable table.\n\n## Anatomy\n\nA view declares:\n- One or more **functions** to read from (by `functionID` or `functionName`).\n- A list of **columns**, each pinned to a `valueSchemaPath` (a JSON\n  Pointer into the function's output schema).\n- Optional **filters** (string equality, numeric comparators,\n  null-checks) and **aggregations** (`count`, `count_distinct`,\n  `sum`, `average`, `min`, `max`).\n\nViews are versioned: every update produces a new version, and the\nprevious version remains immutable and addressable. Function types\nthat produce transformations with an output schema — `extract`,\n`transform`, `analyze`, `join` — are all queryable through views;\n`extract` works uniformly across vision and OCR inputs.\n\n## Reading data\n\n- **`POST /v3/views/table-data`** — paginated rows of column values.\n  Each row reports the underlying event's `eventID` (the\n  externally-stable KSUID used everywhere else in V3) plus the\n  projected column values.\n- **`POST /v3/views/aggregation-data`** — group-by-able aggregate\n  values across the same query surface.\n\nBoth endpoints take a `timeWindow` to bound the transformation set\nand require at least one `function` to read from.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "aa4123e7-06a8-4b4a-95d4-674668b70d61",
+          "name": "List Views",
+          "request": {
+            "name": "List Views",
+            "description": {
+              "content": "**List views in the current environment, optionally filtered by the functions they read from.**\n\nViews are tabular projections over `transformations` rows: each view names\none or more functions and a list of columns (JSON-pointer paths into\n`extractedJson`), and produces a uniform table that can be filtered,\npaginated, and aggregated.\n\nFilters AND together when combined. Pagination is cursor-based on\n`viewID`; default limit is 50, maximum 100.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "disabled": false,
+                  "key": "functionIDs",
+                  "value": "<string>",
+                  "description": "Return only views that read from at least one of the named functions."
+                },
+                {
+                  "disabled": false,
+                  "key": "functionNames",
+                  "value": "<string>",
+                  "description": "Return only views that read from at least one of the named functions."
+                },
+                {
+                  "disabled": false,
+                  "key": "viewIDs",
+                  "value": "<string>",
+                  "description": "Return only the specified view IDs."
+                },
+                {
+                  "disabled": false,
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Sort order over view IDs (default `asc`)."
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<string>",
+                  "description": "Cursor — a `viewID` defining your place in the list."
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<string>",
+                  "description": "Cursor — a `viewID` defining your place in the list."
+                },
+                {
+                  "disabled": false,
+                  "key": "viewNameSubstring",
+                  "value": "<string>",
+                  "description": "Case-insensitive substring search over view names."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "354f7910-8694-4d66-a77e-2f7eeb516092",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    },
+                    {
+                      "key": "functionIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "functionNames",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "viewIDs",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "asc"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "viewNameSubstring",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"views\": [\n    {\n      \"viewID\": \"string\",\n      \"name\": \"string\",\n      \"currentVersionNum\": 8686,\n      \"columns\": [\n        {\n          \"name\": \"string\",\n          \"valueSchemaPath\": [\n            \"string\",\n            \"string\"\n          ],\n          \"displayOrderIndex\": 4517\n        },\n        {\n          \"name\": \"string\",\n          \"valueSchemaPath\": [\n            \"string\",\n            \"string\"\n          ],\n          \"displayOrderIndex\": 6444\n        }\n      ],\n      \"filters\": [\n        {\n          \"columnName\": \"string\",\n          \"filterType\": \"equals_number\",\n          \"string\": \"string\",\n          \"number\": 2588.280769000799\n        },\n        {\n          \"columnName\": \"string\",\n          \"filterType\": \"equals_string\",\n          \"string\": \"string\",\n          \"number\": 8940.601817737543\n        }\n      ],\n      \"aggregations\": [\n        {\n          \"name\": \"string\",\n          \"function\": \"min\",\n          \"aggregateColumnName\": \"string\",\n          \"groupByColumnName\": \"string\",\n          \"displayType\": \"table\"\n        },\n        {\n          \"name\": \"string\",\n          \"function\": \"count_distinct\",\n          \"aggregateColumnName\": \"string\",\n          \"groupByColumnName\": \"string\",\n          \"displayType\": \"bar_chart\"\n        }\n      ],\n      \"functions\": [\n        {\n          \"id\": \"string\",\n          \"name\": \"string\"\n        },\n        {\n          \"id\": \"string\",\n          \"name\": \"string\"\n        }\n      ],\n      \"description\": \"string\"\n    },\n    {\n      \"viewID\": \"string\",\n      \"name\": \"string\",\n      \"currentVersionNum\": 9816,\n      \"columns\": [\n        {\n          \"name\": \"string\",\n          \"valueSchemaPath\": [\n            \"string\",\n            \"string\"\n          ],\n          \"displayOrderIndex\": 453\n        },\n        {\n          \"name\": \"string\",\n          \"valueSchemaPath\": [\n            \"string\",\n            \"string\"\n          ],\n          \"displayOrderIndex\": 1951\n        }\n      ],\n      \"filters\": [\n        {\n          \"columnName\": \"string\",\n          \"filterType\": \"equals_string\",\n          \"string\": \"string\",\n          \"number\": 1338.9596998565366\n        },\n        {\n          \"columnName\": \"string\",\n          \"filterType\": \"equals_string\",\n          \"string\": \"string\",\n          \"number\": 3902.042775081671\n        }\n      ],\n      \"aggregations\": [\n        {\n          \"name\": \"string\",\n          \"function\": \"sum\",\n          \"aggregateColumnName\": \"string\",\n          \"groupByColumnName\": \"string\",\n          \"displayType\": \"bar_chart\"\n        },\n        {\n          \"name\": \"string\",\n          \"function\": \"average\",\n          \"aggregateColumnName\": \"string\",\n          \"groupByColumnName\": \"string\",\n          \"displayType\": \"table\"\n        }\n      ],\n      \"functions\": [\n        {\n          \"id\": \"string\",\n          \"name\": \"string\"\n        },\n        {\n          \"id\": \"string\",\n          \"name\": \"string\"\n        }\n      ],\n      \"description\": \"string\"\n    }\n  ],\n  \"totalCount\": 4019\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "0af504ff-a208-49cd-82c6-e4bb478c79e4",
+          "name": "Create a View",
+          "request": {
+            "name": "Create a View",
+            "description": {
+              "content": "**Create a view.**\n\nA view is a tabular projection over the `transformations` produced by\none or more functions. Each column declares a `valueSchemaPath` — a JSON\nPointer path into the function's output schema — and the view can\nadditionally carry filters and aggregations.\n\nSupported for every function type that produces correctable\ntransformations and an output schema: `extract`, `transform`, `analyze`,\n`join`. Extract works on both vision (PDF/PNG/JPEG/HEIC/HEIF/WebP) and\nOCR-routed inputs — the resulting rows surface through views uniformly.\n\nThe new view is created at `versionNum: 1`. Subsequent updates produce\nnew versions; the version-1 configuration remains addressable.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    },\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    },\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    }\n  ],\n  \"description\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "4957e634-0748-4a67-b5dc-4d9d8b597d42",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 7947\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 2996\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 9239.207254715753\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 1247.834333256188\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"count_distinct\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"description\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"viewID\": \"string\",\n  \"name\": \"string\",\n  \"currentVersionNum\": 2790,\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 7484\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 4580\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_number\",\n      \"string\": \"string\",\n      \"number\": 5808.6648794866405\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"is_not_null\",\n      \"string\": \"string\",\n      \"number\": 8109.302725838462\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"min\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"description\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c76ca3b7-4763-44f6-bd8f-c039e964be6c",
+          "name": "Generate View Aggregation Data",
+          "request": {
+            "name": "Generate View Aggregation Data",
+            "description": {
+              "content": "**Generate aggregation results for a view.**\n\nExecutes each aggregation declared on the view against the\n`transformations` rows produced by the named functions inside the\nsupplied `timeWindow`, applying the view's filters. Supported\naggregation functions: `count`, `count_distinct`, `sum`, `average`,\n`min`, `max`. Grouped aggregations return up to 200 groups per\naggregation; non-grouped aggregations return a single group with an\nempty `groupName`.\n\nAs with table-data, the `functions` field is required.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views",
+                "aggregation-data"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    },\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    },\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"<dateTime>\",\n    \"end\": \"<dateTime>\"\n  },\n  \"description\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "b63fb218-0164-40d1-8c82-8c6d46d9d610",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    "aggregation-data"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 5282\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 3899\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"is_null\",\n      \"string\": \"string\",\n      \"number\": 6490.400616372266\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"equals_string\",\n      \"string\": \"string\",\n      \"number\": 1337.4677229415333\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"2014-01-28T16:44:47.947Z\",\n    \"end\": \"1995-04-17T17:07:32.526Z\"\n  },\n  \"description\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"groups\": [\n        {\n          \"groupName\": \"string\",\n          \"value\": 1526.0838555430335\n        },\n        {\n          \"groupName\": \"string\",\n          \"value\": 1201.6664226800567\n        }\n      ]\n    },\n    {\n      \"name\": \"string\",\n      \"groups\": [\n        {\n          \"groupName\": \"string\",\n          \"value\": 6316.194527009284\n        },\n        {\n          \"groupName\": \"string\",\n          \"value\": 7112.957237599939\n        }\n      ]\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "de50230e-b7eb-4334-a932-40c403627718",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    "aggregation-data"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 5282\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 3899\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"is_null\",\n      \"string\": \"string\",\n      \"number\": 6490.400616372266\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"equals_string\",\n      \"string\": \"string\",\n      \"number\": 1337.4677229415333\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"2014-01-28T16:44:47.947Z\",\n    \"end\": \"1995-04-17T17:07:32.526Z\"\n  },\n  \"description\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"code\": 716,\n  \"details\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "01e8b173-ea59-4c05-8edc-312cacb66b65",
+          "name": "Generate View Table Data",
+          "request": {
+            "name": "Generate View Table Data",
+            "description": {
+              "content": "**Generate paginated table data for a view.**\n\nExecutes the view's query against `transformations` rows produced by the\nnamed functions inside the supplied `timeWindow`, applies the view's\nfilters, and returns matching rows. Each row reports the event\n`eventID` (externally-stable KSUID) plus the projected column values.\n\nThe `functions` field is required — at least one `functionID` or\n`functionName` must be supplied. `limit` defaults to 50 with a maximum\nof 200; `offset` is zero-based. The response's `totalCount` reflects\nthe match count before pagination, so paging can be driven off it.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views",
+                "table-data"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    },\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    },\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"<dateTime>\",\n    \"end\": \"<dateTime>\"\n  },\n  \"description\": \"<string>\",\n  \"limit\": \"<integer>\",\n  \"offset\": \"<integer>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "3f1c123f-eee5-418f-bbe8-80d79596c510",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    "table-data"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 2802\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 4061\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 126.80178376350825\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_number\",\n      \"string\": \"string\",\n      \"number\": 9976.161491335431\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"average\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"sum\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"table\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"1989-04-18T02:12:39.101Z\",\n    \"end\": \"2003-10-22T01:30:48.281Z\"\n  },\n  \"description\": \"<string>\",\n  \"limit\": \"<integer>\",\n  \"offset\": \"<integer>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"rows\": [\n    {\n      \"columns\": [\n        {\n          \"columnName\": \"string\",\n          \"value\": \"string\"\n        },\n        {\n          \"columnName\": \"string\",\n          \"value\": \"string\"\n        }\n      ],\n      \"eventID\": \"string\"\n    },\n    {\n      \"columns\": [\n        {\n          \"columnName\": \"string\",\n          \"value\": \"string\"\n        },\n        {\n          \"columnName\": \"string\",\n          \"value\": \"string\"\n        }\n      ],\n      \"eventID\": \"string\"\n    }\n  ],\n  \"totalCount\": 1890\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "9ca142be-28a1-4305-b015-d76b411076b1",
+              "name": "The server could not understand the request due to invalid syntax.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    "table-data"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 2802\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 4061\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 126.80178376350825\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_number\",\n      \"string\": \"string\",\n      \"number\": 9976.161491335431\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"average\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"sum\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"table\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"timeWindow\": {\n    \"start\": \"1989-04-18T02:12:39.101Z\",\n    \"end\": \"2003-10-22T01:30:48.281Z\"\n  },\n  \"description\": \"<string>\",\n  \"limit\": \"<integer>\",\n  \"offset\": \"<integer>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"code\": 716,\n  \"details\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c193a564-3553-4c4d-99a7-1fd48ef23d45",
+          "name": "Delete a View",
+          "request": {
+            "name": "Delete a View",
+            "description": {
+              "content": "**Delete a view and every one of its versions.**\n\nPermanent. Any cached data-table or aggregation result clients have\nfetched remains valid, but subsequent calls to\n`POST /v3/views/table-data` or `POST /v3/views/aggregation-data` for\nthis view will fail.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views",
+                ":view_id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "view_id",
+                  "description": "(Required) Unique identifier of the view to delete."
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "ea631a3b-c91a-4fde-9b8a-80345481eb60",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    ":view_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "view_id",
+                      "description": "(Required) Unique identifier of the view to delete."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "0b21d114-831f-40f4-baf9-86476d5555ac",
+          "name": "Get a View",
+          "request": {
+            "name": "Get a View",
+            "description": {
+              "content": "**Retrieve a view by ID.**\n\nReturns the view's current version. To inspect a historical version,\nfetch the list of versions on the View object and re-request with the\ndesired version pinned (versions are immutable once created).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views",
+                ":view_id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "view_id",
+                  "description": "(Required) Unique identifier of the view."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "8afa9abc-daa8-41c9-8d57-396248579398",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    ":view_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "view_id",
+                      "description": "(Required) Unique identifier of the view."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"viewID\": \"string\",\n  \"name\": \"string\",\n  \"currentVersionNum\": 2790,\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 7484\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 4580\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_number\",\n      \"string\": \"string\",\n      \"number\": 5808.6648794866405\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"is_not_null\",\n      \"string\": \"string\",\n      \"number\": 8109.302725838462\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"min\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"description\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7cbcb842-9686-49f6-ad53-4e74763bcffd",
+          "name": "Update a View",
+          "request": {
+            "name": "Update a View",
+            "description": {
+              "content": "**Update a view. Updates create a new version.**\n\nThe previous version remains addressable and immutable. The new\nconfiguration is fully replacing — pass the complete view body, not a\npatch. The version number is auto-incremented.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v3",
+                "views",
+                ":view_id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "view_id",
+                  "description": "(Required) Unique identifier of the view to update."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"valueSchemaPath\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"displayOrderIndex\": \"<integer>\"\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    },\n    {\n      \"columnName\": \"<string>\",\n      \"filterType\": \"<string>\",\n      \"string\": \"<string>\",\n      \"number\": \"<float>\"\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\",\n      \"function\": \"<string>\",\n      \"aggregateColumnName\": \"<string>\",\n      \"groupByColumnName\": \"<string>\",\n      \"displayType\": \"<string>\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    },\n    {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\"\n    }\n  ],\n  \"description\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "9907f4c9-3126-49ff-9ce3-893f1491d13a",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "views",
+                    ":view_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "view_id",
+                      "description": "(Required) Unique identifier of the view to update."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 7947\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 2996\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 9239.207254715753\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_equal_number\",\n      \"string\": \"string\",\n      \"number\": 1247.834333256188\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"pie_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"count_distinct\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"description\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"viewID\": \"string\",\n  \"name\": \"string\",\n  \"currentVersionNum\": 2790,\n  \"columns\": [\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 7484\n    },\n    {\n      \"name\": \"string\",\n      \"valueSchemaPath\": [\n        \"string\",\n        \"string\"\n      ],\n      \"displayOrderIndex\": 4580\n    }\n  ],\n  \"filters\": [\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"greater_than_number\",\n      \"string\": \"string\",\n      \"number\": 5808.6648794866405\n    },\n    {\n      \"columnName\": \"string\",\n      \"filterType\": \"is_not_null\",\n      \"string\": \"string\",\n      \"number\": 8109.302725838462\n    }\n  ],\n  \"aggregations\": [\n    {\n      \"name\": \"string\",\n      \"function\": \"count\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    },\n    {\n      \"name\": \"string\",\n      \"function\": \"min\",\n      \"aggregateColumnName\": \"string\",\n      \"groupByColumnName\": \"string\",\n      \"displayType\": \"bar_chart\"\n    }\n  ],\n  \"functions\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"name\": \"string\"\n    }\n  ],\n  \"description\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "394cf96c-a764-4a53-8f7a-a16ed447f74c",
+    "name": "Bem Buckets Views API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

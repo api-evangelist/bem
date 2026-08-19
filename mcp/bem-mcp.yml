@@ -12,13 +12,17 @@ server:
   - http
   run: npx -y bem-ai-sdk-mcp
   mode: code-mode
-  description: >-
-    The bem MCP server exposes the bem API to Claude, Cursor, and other
-    MCP-compatible agents. It operates in "Code Mode": rather than one tool per
-    endpoint, the agent writes and runs TypeScript against the bem SDK to chain
-    operations, lowering token cost.
+  description: 'The bem MCP server exposes the bem API to Claude, Cursor, and other MCP-compatible agents.
+    It operates in "Code Mode": rather than one tool per endpoint, the agent writes and runs TypeScript
+    against the bem SDK to chain operations, lowering token cost.'
 tools:
 - name: docs
   description: Search bem's API and SDK documentation to discover what methods exist and how to call them.
 - name: code
   description: Execute TypeScript against the bem SDK in a sandbox (no network or filesystem access).
+deployment:
+  mode: local-stdio
+  verified: searched
+  tools: 2
+  checked: '2026-08-12'
+  source: catalog MCP census

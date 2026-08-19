@@ -1,0 +1,562 @@
+{
+  "item": [
+    {
+      "id": "263128d1-e9e9-4539-bc22-d07404fed36f",
+      "name": "Entity Types",
+      "description": {
+        "content": "Entity Types are the customer-defined taxonomy for the knowledge graph,\nscoped to an account+environment. Each type has a unique, immutable name\nand can be organised into hierarchies via `parentTypeID`. A type may\ncarry per-type structured attribute metadata in `attributeSchema` (for\nexample `{\"unit\": \"mg\", \"range\": [0, 100]}`).\n\nUse these endpoints to create, list, fetch, update, and delete entity\ntypes:\n\n- **`POST /v3/entity-types`** creates a type, optionally under a parent.\n- **`GET /v3/entity-types`** lists types with cursor pagination\n  (`startingAfter` / `endingBefore` over `typeID`) and an optional\n  `parentTypeId` filter for direct children.\n- **`PATCH /v3/entity-types/{typeID}`** updates `description`,\n  `parentTypeID`, and/or `attributeSchema`. The `name` is immutable.\n- **`DELETE /v3/entity-types/{typeID}`** soft-deletes a type. The request\n  is rejected with `409 Conflict` while any live entity is assigned to\n  the type or any live child type points at it.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "4193223b-9edb-4d35-b3c1-0d59febb59eb",
+          "name": "Create an Entity Type",
+          "request": {
+            "name": "Create an Entity Type",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entity-types"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\",\n  \"parentTypeID\": \"<string>\",\n  \"attributeSchema\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "227954cc-48b0-49df-a1cc-1192b1773697",
+              "name": "The request has succeeded and a new resource has been created as a result.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entity-types"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Drug\",\n  \"description\": \"A pharmaceutical compound\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"typeID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentTypeID\": \"string\",\n  \"createdAt\": \"2013-01-30T19:53:18.936Z\",\n  \"updatedAt\": \"1955-07-26T02:08:05.970Z\",\n  \"attributeSchema\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5b92ff9e-4c73-4209-a98b-2a47d61ccb9b",
+          "name": "List Entity Types",
+          "request": {
+            "name": "List Entity Types",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entity-types"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "limit",
+                  "value": "<integer>",
+                  "description": "Maximum number of entity types to return (default 50, max 200)."
+                },
+                {
+                  "disabled": false,
+                  "key": "startingAfter",
+                  "value": "<string>",
+                  "description": "Cursor: return types whose `typeID` sorts after this value."
+                },
+                {
+                  "disabled": false,
+                  "key": "endingBefore",
+                  "value": "<string>",
+                  "description": "Cursor: return types whose `typeID` sorts before this value."
+                },
+                {
+                  "disabled": false,
+                  "key": "parentTypeId",
+                  "value": "<string>",
+                  "description": "Filter to the direct children of this parent type (`ety_...`)."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "feb0bf75-990a-4c69-8d50-796e257732b0",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entity-types"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "parentTypeId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"entityTypes\": [\n    {\n      \"typeID\": \"string\",\n      \"name\": \"string\",\n      \"description\": \"string\",\n      \"parentTypeID\": \"string\",\n      \"createdAt\": \"1974-12-13T00:31:45.962Z\",\n      \"updatedAt\": \"1984-08-15T16:38:49.630Z\",\n      \"attributeSchema\": {}\n    },\n    {\n      \"typeID\": \"string\",\n      \"name\": \"string\",\n      \"description\": \"string\",\n      \"parentTypeID\": \"string\",\n      \"createdAt\": \"2012-05-28T02:09:32.400Z\",\n      \"updatedAt\": \"1991-12-10T18:41:47.695Z\",\n      \"attributeSchema\": {}\n    }\n  ],\n  \"totalCount\": 3365\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "54bd4bf0-2af8-49f0-980c-37fb0b976b56",
+          "name": "Get an Entity Type",
+          "request": {
+            "name": "Get an Entity Type",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entity-types",
+                ":typeID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "typeID",
+                  "description": "(Required) Entity type public ID (`ety_...`)."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "f395ba4c-726b-41a1-baee-be0ebfc58557",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entity-types",
+                    ":typeID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "typeID",
+                      "description": "(Required) Entity type public ID (`ety_...`)."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"typeID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentTypeID\": \"string\",\n  \"createdAt\": \"2013-01-30T19:53:18.936Z\",\n  \"updatedAt\": \"1955-07-26T02:08:05.970Z\",\n  \"attributeSchema\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6a03cd57-6381-4161-9bac-f8d998010f9f",
+          "name": "Update an Entity Type",
+          "request": {
+            "name": "Update an Entity Type",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entity-types",
+                ":typeID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "typeID",
+                  "description": "(Required) Entity type public ID (`ety_...`)."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"<string>\",\n  \"parentTypeID\": \"<string>\",\n  \"attributeSchema\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "7b72eeb4-3360-4b09-b433-c4c94f8b4632",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entity-types",
+                    ":typeID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "typeID",
+                      "description": "(Required) Entity type public ID (`ety_...`)."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"<string>\",\n  \"parentTypeID\": \"<string>\",\n  \"attributeSchema\": {}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"typeID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentTypeID\": \"string\",\n  \"createdAt\": \"2013-01-30T19:53:18.936Z\",\n  \"updatedAt\": \"1955-07-26T02:08:05.970Z\",\n  \"attributeSchema\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bc08ac4b-3a5f-4f56-b4f9-dd30c1265356",
+          "name": "Delete an Entity Type",
+          "request": {
+            "name": "Delete an Entity Type",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entity-types",
+                ":typeID"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "typeID",
+                  "description": "(Required) Entity type public ID (`ety_...`)."
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "ec041a42-c99f-4ab8-a2f9-48607e2da9bb",
+              "name": "There is no content to send for this request, but the headers may be useful. ",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entity-types",
+                    ":typeID"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "typeID",
+                      "description": "(Required) Entity type public ID (`ety_...`)."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "975b8d31-bf83-4122-9b15-ceb17551ed2e",
+    "name": "Bem Buckets Entity Types API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}

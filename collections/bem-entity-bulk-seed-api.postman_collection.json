@@ -1,0 +1,299 @@
+{
+  "item": [
+    {
+      "id": "6b8e7d3a-f92c-4078-8f83-c9a3529ed857",
+      "name": "Entity Bulk Seed",
+      "description": {
+        "content": "Seed the knowledge graph with a batch of customer-authored canonical\nentities in one request — their types, descriptions, synonyms, and\nper-entity attributes.\n\n- **`POST /v3/entities/bulk`** creates or merges each entity into a single\n  bucket (the optional `bucket` reference, else the account+environment\n  default). For each row the entity's `type` is resolved or created in\n  your taxonomy, the entity is upserted on its normalized canonical, and\n  any `synonyms` are attached as `customer_defined`. An entity that\n  already exists is **merged** (`onConflict: \"merge\"`): synonyms are added\n  additively, a longer `description` replaces the old one, and\n  `attributes` are merged with new keys winning.\n- Small batches (fewer than 100 entities) process **synchronously** and\n  return `200` with a per-row `results` array and a `summary`.\n- Larger batches process **asynchronously**: the call returns `202` with a\n  `seedJobID` and a `statusURL`. Poll **`GET /v3/entities/seed/{id}`**\n  until `status` is `completed` (or `failed`); the completed response\n  includes the per-row `results`.\n\nEach row's outcome is one of `created`, `merged-with`, or `rejected` (with\na `reason`, e.g. an attribute key not declared in the type's schema).",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "e51e4bd2-fe47-41b4-870f-23fc41ef628d",
+          "name": "Bulk Seed Entities",
+          "request": {
+            "name": "Bulk Seed Entities",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                "bulk"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": \"<object>\"\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": \"<object>\"\n    }\n  ],\n  \"bucket\": \"<string>\",\n  \"onConflict\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "0a138088-8b1a-431b-a949-5a3fa8a43dd1",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    "bulk"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"Acme Corporation\",\n      \"type\": \"organization\",\n      \"description\": \"Industrial conglomerate\",\n      \"synonyms\": [\n        \"ACME\",\n        \"Acme Corp\"\n      ],\n      \"attributes\": {\n        \"headquarters\": \"Springfield\"\n      }\n    }\n  ],\n  \"onConflict\": \"merge\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"results\": [\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"merged-with\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    },\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    }\n  ],\n  \"summary\": {\n    \"created\": 6055,\n    \"merged\": 361,\n    \"rejected\": 2429\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "22605839-0e15-4e79-b4ad-4bbf7992110f",
+              "name": "The request has been accepted for processing, but processing has not yet completed.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    "bulk"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"Acme Corporation\",\n      \"type\": \"organization\",\n      \"description\": \"Industrial conglomerate\",\n      \"synonyms\": [\n        \"ACME\",\n        \"Acme Corp\"\n      ],\n      \"attributes\": {\n        \"headquarters\": \"Springfield\"\n      }\n    }\n  ],\n  \"onConflict\": \"merge\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"seedJobID\": \"string\",\n  \"status\": \"string\",\n  \"statusURL\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "30d3771d-6a00-43f1-837e-1eeeb3f3f225",
+          "name": "Get Seed Job Status",
+          "request": {
+            "name": "Get Seed Job Status",
+            "description": {},
+            "url": {
+              "path": [
+                "v3",
+                "entities",
+                "seed",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Seed job public ID (`esj_...`)."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "41e939bc-027d-4ac8-ac83-a1ebc69b5fa6",
+              "name": "The request has succeeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v3",
+                    "entities",
+                    "seed",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Seed job public ID (`esj_...`)."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-api-key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"seedJobID\": \"string\",\n  \"status\": \"completed\",\n  \"totalRows\": 7194,\n  \"createdCount\": 8718,\n  \"mergedCount\": 9988,\n  \"rejectedCount\": 331,\n  \"results\": [\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    },\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    }\n  ],\n  \"error\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://api.bem.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "0af10f15-3dc1-4045-ab32-5e56e132f540",
+    "name": "Bem Buckets Entity Bulk Seed API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
+      "type": "text/plain"
+    }
+  }
+}
