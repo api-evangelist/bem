@@ -43,6 +43,16 @@ tags:
 - LLM
 - ETL
 - Schema Inference
+- Webhook
+tags_raw:
+- Company
+- Document Processing
+- Unstructured Data
+- Data Extraction
+- Artificial Intelligence
+- LLM
+- ETL
+- Schema Inference
 - Webhooks
 maintainers:
 - FN: Kin Lane
@@ -163,6 +173,8 @@ apis:
   humanURL: https://docs.bem.ai
   baseURL: https://api.bem.ai
   tags:
+  - Collection
+  tags_raw:
   - Collections
   properties:
   - type: OpenAPI
@@ -467,6 +479,8 @@ apis:
   humanURL: https://docs.bem.ai
   baseURL: https://api.bem.ai
   tags:
+  - Filesystem
+  tags_raw:
   - File System
   properties:
   - type: OpenAPI
@@ -744,6 +758,8 @@ apis:
   humanURL: https://docs.bem.ai
   baseURL: https://api.bem.ai
   tags:
+  - Subscription
+  tags_raw:
   - Subscriptions
   properties:
   - type: OpenAPI
@@ -899,6 +915,8 @@ apis:
   humanURL: https://docs.bem.ai
   baseURL: https://api.bem.ai
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
