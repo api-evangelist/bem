@@ -11,6 +11,18 @@ description: >-
   human-in-the-loop review, webhooks, and a knowledge graph. It offers US and EU
   regional endpoints, official SDKs, a CLI, a Terraform provider, and an MCP
   server, and is SOC 2 Type II, HIPAA, and GDPR compliant.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: high
+  source:
+  - openapi
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 accessModel:
   pricing: unknown
   onboarding: self-serve
