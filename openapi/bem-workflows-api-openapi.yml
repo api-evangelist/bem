@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Workflows API
+  title: Bem Workflows API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: "Workflows orchestrate one or more functions into a directed acyclic graph (DAG) for document processing.\n\nUse these endpoints to create, update, list, and manage workflows, and to invoke them\nwith file input via `POST /v3/workflows/{workflowName}/call`.\n\nThe call endpoint accepts files as either multipart form data or JSON with base64-encoded\ncontent. In the Bem CLI, use `@path/to/file` inside JSON values to automatically read and\nencode files:\n\n```\nbem workflows call --workflow-name my-workflow \\\n  --input.single-file '{\"inputContent\": \"@file.pdf\", \"inputType\": \"pdf\"}' \\\n  --wait\n```"
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -524,48 +524,71 @@ paths:
       - Workflows
 components:
   schemas:
-    WorkflowV3CreateResponse:
+    SendEventS3Output:
       type: object
+      required:
+      - bucketName
+      - key
       properties:
-        workflow:
-          $ref: '#/components/schemas/WorkflowV3'
-        error:
+        bucketName:
           type: string
-          description: Error message if the workflow creation failed.
-        connectorErrors:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowConnectorError'
-          description: 'Per-connector failures from the diff/apply phase. Empty or omitted when all
-
-            operations succeeded.'
-    FunctionCallCreateInput:
+          description: Name of the S3 bucket the payload was written to.
+        key:
+          type: string
+          description: Object key under which the payload was stored.
+      description: Metadata returned when a Send function delivers to an S3 bucket.
+    SendEventWebhookOutput:
+      type: object
+      required:
+      - httpStatusCode
+      - httpResponseBody
+      properties:
+        httpStatusCode:
+          type: integer
+          description: HTTP status code returned by the webhook endpoint.
+        httpResponseBody:
+          type: string
+          description: Raw HTTP response body returned by the webhook endpoint.
+      description: Metadata returned when a Send function delivers to a webhook.
+    SendDestinationType:
+      type: string
+      enum:
+      - webhook
+      - s3
+      - google_drive
+      description: Destination type for a Send function.
+    BatchFilesInputItemResponse:
       type: object
       properties:
-        singleFile:
-          allOf:
-          - $ref: '#/components/schemas/FileInput'
-          description: 'A single file to process. Use `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}''` in the CLI.'
-        batchFiles:
-          allOf:
-          - $ref: '#/components/schemas/BatchFilesInput'
-          description: Multiple files to process in one call. Each item in the `inputs` array has its own `inputContent` and `inputType`.
-      description: 'Input file(s) for a call. Provide exactly one of `singleFile` or `batchFiles`.
-
-
-        In the CLI, use the nested flags `--input.single-file` or `--input.batch-files`
-
-        with `@path/to/file` for automatic file embedding:
-
-        `--input.single-file ''{"inputContent": "@invoice.pdf", "inputType": "pdf"}'' --wait`'
-    FunctionCallCreateInputResponse:
+        inputType:
+          type: string
+          description: Input type of the file
+        itemReferenceID:
+          type: string
+          description: Item reference ID
+        s3URL:
+          type: string
+          description: Presigned S3 URL for the file
+    ParagonConnectorConfig:
       type: object
+      required:
+      - integration
+      - configuration
+      - syncID
       properties:
-        singleFile:
-          $ref: '#/components/schemas/SingleFileInputResponse'
-        batchFiles:
-          $ref: '#/components/schemas/BatchFilesInputResponse'
-    PayloadShapingEvent:
+        integration:
+          type: string
+          description: Paragon integration key (e.g. "googledrive").
+        configuration:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Opaque per-integration configuration (e.g. `{"folderId": "..."}`).'
+        syncID:
+          type: string
+          description: Paragon sync ID managed by the server. Read-only.
+          readOnly: true
+      description: Paragon-integration configuration on a workflow connector.
+    ExtractEvent:
       type: object
       required:
       - eventID
@@ -573,6 +596,8 @@ components:
       - functionID
       - functionName
       - transformedContent
+      - itemOffset
+      - itemCount
       properties:
         functionCallTryNumber:
           type: integer
@@ -599,7 +624,7 @@ components:
         eventType:
           type: string
           enum:
-          - payload_shaping
+          - extract
         functionCallID:
           type: string
           description: Unique identifier of function call that this event is associated with.
@@ -624,18 +649,551 @@ components:
         workflowVersionNum:
           type: integer
           description: Version number of workflow that this event is associated with.
+        inputType:
+          $ref: '#/components/schemas/InputType'
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL for the input content uploaded to S3.
+        inputs:
+          anyOf:
+          - type: array
+            items:
+              type: object
+              properties:
+                inputType:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                inputContent:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+                jsonInputContent:
+                  anyOf:
+                  - type: object
+                    unevaluatedProperties: {}
+                  - type: 'null'
+                s3URL:
+                  anyOf:
+                  - type: string
+                  - type: 'null'
+          - type: 'null'
+          description: Array of transformation inputs with their types and S3 URLs.
         transformedContent:
           type: object
           unevaluatedProperties: {}
-          description: 'The reshaped payload produced by applying the function''s JMESPath
+          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+        correctedContent:
+          anyOf:
+          - type: object
+            properties:
+              output:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnyType'
+          - $ref: '#/components/schemas/AnyType'
+          description: Corrected feedback provided for fine-tuning purposes.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were transformed. Used for batch transformations to indicate how many items were transformed.
+        fieldBoundingBoxes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
 
-            expressions to the input data.'
-      description: 'Emitted by `payload_shaping` functions, which restructure JSON payloads
+            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
 
-        using JMESPath expressions configured on the function. The shaped result
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      description: 'V3 event variants that do not exist in the shared `Event` union.
 
-        is carried in `transformedContent`.'
-      title: Payload Shaping Event
+
+        `ExtractEvent` and `ClassifyEvent` are emitted only by V3-era function types
+
+        (`extract` and `classify`). The shared `Event` union in `specs/events/models.tsp`
+
+        predates these types and continues to describe V2 / V1-alpha responses verbatim;
+
+        V3 response payloads add the new variants via the `EventV3` union below while
+
+        keeping every shared variant intact for backward compatibility.'
+      title: Extract Event
+    BatchFilesInput:
+      type: object
+      properties:
+        inputs:
+          type: array
+          items:
+            type: object
+            properties:
+              inputType:
+                allOf:
+                - $ref: '#/components/schemas/InputType'
+                description: 'The input type of the content you''re sending for transformation.
+
+
+                  Must match the actual file format. See `InputType` for allowed values.'
+              inputContent:
+                type: string
+                contentEncoding: base64
+                description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
+              itemReferenceID:
+                type: string
+            required:
+            - inputType
+            - inputContent
+    BatchFilesInputResponse:
+      type: object
+      properties:
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchFilesInputItemResponse'
+    AnyType:
+      anyOf:
+      - type: object
+        unevaluatedProperties: {}
+      - type: array
+        items: {}
+      - type: string
+      - type: number
+      - type: integer
+      - type: boolean
+      - type: 'null'
+    ParagonConnectorRequestConfig:
+      type: object
+      properties:
+        integration:
+          type: string
+          description: Paragon integration key. Required on create.
+        configuration:
+          type: object
+          unevaluatedProperties: {}
+          description: Opaque per-integration configuration. Required on create.
+      description: Request-side config block for a Paragon connector. Fields absent on update are unchanged.
+    CallV3:
+      type: object
+      required:
+      - callID
+      - createdAt
+      - outputs
+      - errors
+      - url
+      - traceUrl
+      properties:
+        callID:
+          type: string
+          description: Unique identifier of the call.
+        status:
+          type: string
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          description: Status of call.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the call was created.
+        finishedAt:
+          type: string
+          format: date-time
+          description: The date and time the call finished. Only set once status is `completed` or `failed`.
+        workflowID:
+          type: string
+          description: Unique identifier of the workflow.
+        workflowName:
+          type: string
+          description: Name of the workflow.
+        workflowVersionNum:
+          type: integer
+          description: Version number of the workflow.
+        callReferenceID:
+          type: string
+          description: Your reference ID for this call, propagated from the original request.
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventV3'
+          description: 'Terminal non-error outputs of this call: primary events (non-split-collection) that did not
+
+            trigger any downstream function calls. Workflow calls are not atomic — `outputs` and `errors`
+
+            may both be non-empty if some enclosed function calls succeeded and others failed.
+
+
+            Each element is a polymorphic event object; inspect `eventType` to determine the type.
+
+            Retrieve individual outputs via `GET /v3/outputs/{eventID}`.'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorEvent'
+          description: 'Terminal error events of this call. Workflow calls are not atomic — `errors` and `outputs`
+
+            may both be non-empty if some enclosed function calls succeeded and others failed.
+
+
+            Retrieve individual errors via `GET /v3/errors/{eventID}`.'
+        input:
+          allOf:
+          - $ref: '#/components/schemas/FunctionCallCreateInputResponse'
+          description: Input to the main function call.
+        url:
+          type: string
+          description: 'Hint URL for retrieving this call: `GET /v3/calls/{callID}`.'
+        traceUrl:
+          type: string
+          description: 'Hint URL for the full execution trace: `GET /v3/calls/{callID}/trace`.'
+      description: 'A workflow call returned by the V3 API.
+
+
+        Compared to the V2 `Call` model:
+
+        - Terminal outputs are split into `outputs` (non-error events) and `errors` (error events)
+
+        - `callType` and function-scoped fields are removed — V3 calls are always workflow calls
+
+        - The deprecated `functionCalls` field is removed (use `GET /v3/calls/{callID}/trace`)
+
+        - `url` and `traceUrl` hint fields are included for resource discovery'
+    WorkflowV3:
+      type: object
+      required:
+      - id
+      - name
+      - versionNum
+      - mainNodeName
+      - nodes
+      - edges
+      - connectors
+      - createdAt
+      - updatedAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the workflow.
+        name:
+          type: string
+          description: Unique name of the workflow within the environment.
+        versionNum:
+          type: integer
+          description: Version number of this workflow version.
+        displayName:
+          type: string
+          description: Human-readable display name.
+        emailAddress:
+          type: string
+          description: Inbound email address associated with the workflow, if any.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags associated with the workflow.
+        mainNodeName:
+          type: string
+          description: Name of the entry-point call-site node.
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowNodeResponse'
+          description: All call-site nodes in this workflow version's DAG.
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowEdgeResponse'
+          description: All directed edges in this workflow version's DAG.
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConnector'
+          description: 'Connectors currently attached to this workflow. For version-scoped reads
+
+            (`/versions/{n}`) this is always empty — connectors are current-state and
+
+            not part of version history.'
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the workflow was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the workflow was last updated.
+        audit:
+          allOf:
+          - $ref: '#/components/schemas/WorkflowAudit'
+          description: Audit trail information.
+      description: V3 read representation of a workflow version.
+    EvaluationEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformId
+      - evaluationVersion
+      - result
+      - status
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - evaluation
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformId:
+          type: string
+          description: Unique ID of the transformation that was evaluated.
+        evaluationVersion:
+          type: string
+          description: Version identifier of the evaluation logic that produced this result.
+        result:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Evaluator output. Shape depends on `evaluationVersion` and includes
+
+            confidence scores, per-field hallucination flags, and relevance metrics.'
+        status:
+          type: string
+          enum:
+          - success
+          - failed
+          description: Terminal status of the evaluation run.
+        errorMessage:
+          type: string
+          description: Failure reason populated when `status` is `failed`.
+      description: 'Emitted when a function-accuracy evaluation completes for a transformation.
+
+        Evaluations are scheduled by `POST /v3/eval` and run asynchronously; this
+
+        event reports the terminal result.'
+      title: Evaluation Event
+    FileInput:
+      type: object
+      required:
+      - inputType
+      - inputContent
+      properties:
+        inputType:
+          allOf:
+          - $ref: '#/components/schemas/InputType'
+          description: 'The input type of the content you''re sending for transformation.
+
+
+            Must match the actual file format. See `InputType` for allowed values.'
+        inputContent:
+          type: string
+          contentEncoding: base64
+          description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
+      description: 'A single file input with base64-encoded content.
+
+
+        When using the Bem CLI, use `@path/to/file` in the `inputContent` field to
+
+        automatically read and base64-encode the file:
+
+        `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}'' --wait`'
+    JoinEventItem:
+      type: object
+      required:
+      - itemReferenceID
+      - itemOffset
+      - itemCount
+      properties:
+        itemReferenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point.
+        itemOffset:
+          type: integer
+          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+        itemCount:
+          type: integer
+          description: The number of items that were transformed.
+        s3URL:
+          type: string
+          description: The presigned S3 URL of the file that was joined.
+    SplitCollectionEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - outputType
+      - printPageOutput
+      - semanticPageOutput
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - split_collection
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        outputType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageOutput:
+          type: object
+          properties:
+            itemCount:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemReferenceID:
+                    type: string
+                  itemOffset:
+                    type: integer
+                  s3URL:
+                    type: string
+        semanticPageOutput:
+          type: object
+          properties:
+            pageCount:
+              type: integer
+            itemCount:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemReferenceID:
+                    type: string
+                  itemOffset:
+                    type: integer
+                  itemClass:
+                    type: string
+                  itemClassCount:
+                    type: integer
+                  itemClassOffset:
+                    type: integer
+                  pageStart:
+                    type: integer
+                  pageEnd:
+                    type: integer
+                  s3URL:
+                    type: string
+      title: Split Collection Event
     SendEvent:
       type: object
       required:
@@ -727,26 +1285,14 @@ components:
           - $ref: '#/components/schemas/SendEventGoogleDriveOutput'
           description: Populated when destinationType is "google_drive".
       title: Send Event
-    AnyType:
-      anyOf:
-      - type: object
-        unevaluatedProperties: {}
-      - type: array
-        items: {}
-      - type: string
-      - type: number
-      - type: integer
-      - type: boolean
-      - type: 'null'
-    AnalyzeEvent:
+    ErrorEvent:
       type: object
       required:
       - eventID
       - referenceID
       - functionID
       - functionName
-      - transformedContent
-      - invalidProperties
+      - message
       properties:
         functionCallTryNumber:
           type: integer
@@ -773,7 +1319,7 @@ components:
         eventType:
           type: string
           enum:
-          - analyze
+          - error
         functionCallID:
           type: string
           description: Unique identifier of function call that this event is associated with.
@@ -798,468 +1344,25 @@ components:
         workflowVersionNum:
           type: integer
           description: Version number of workflow that this event is associated with.
-        transformationID:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
-        transformedContent:
-          type: object
-          unevaluatedProperties: {}
-          description: The extracted content of the input. The structure of this object is defined by the function's `outputSchema`.
-        invalidProperties:
-          type: array
-          items:
-            type: string
-          description: List of properties that were invalid in the input.
-        s3URL:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Presigned S3 URL of the input file that was analyzed.
-        fieldBoundingBoxes:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
+        message:
+          type: string
+          description: Error message.
+        kind:
+          type: string
+          description: 'Open, extensible error-kind label for typed transformation errors. The
 
-            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
-        fieldConfidences:
-          type: object
-          unevaluatedProperties:
-            type: number
-            format: float
-          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
+            platform emits these as plain strings and the set grows over time, so
 
-            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
-        avgConfidence:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Average confidence score across all extracted fields, in the range [0, 1].
-      description: 'Emitted by functions of the legacy `analyze` type (the vision path predecessor of
+            clients must accept unknown values. For render functions the known kinds
 
-        `extract`). Carries the extracted JSON along with per-field bounding-box metadata
+            are `render_source_fetch`, `render_template_fetch`,
 
-        identifying the document regions each value was extracted from.'
-      title: Analyze Event
-    SplitItemEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - outputType
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - split_item
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        outputType:
-          type: string
-          enum:
-          - print_page
-          - semantic_page
-        printPageOutput:
-          type: object
-          properties:
-            collectionReferenceID:
-              type: string
-            itemCount:
-              type: integer
-            itemOffset:
-              type: integer
-            s3URL:
-              type: string
-        semanticPageOutput:
-          type: object
-          properties:
-            collectionReferenceID:
-              type: string
-            pageCount:
-              type: integer
-            itemCount:
-              type: integer
-            itemOffset:
-              type: integer
-            itemClass:
-              type: string
-            itemClassCount:
-              type: integer
-            itemClassOffset:
-              type: integer
-            pageStart:
-              type: integer
-            pageEnd:
-              type: integer
-            s3URL:
-              type: string
-      title: Split Item Event
-    ParagonConnectorRequestConfig:
-      type: object
-      properties:
-        integration:
-          type: string
-          description: Paragon integration key. Required on create.
-        configuration:
-          type: object
-          unevaluatedProperties: {}
-          description: Opaque per-integration configuration. Required on create.
-      description: Request-side config block for a Paragon connector. Fields absent on update are unchanged.
-    WorkflowCallMultipartFormData:
-      type: object
-      properties:
-        callReferenceID:
-          type: string
-          description: Your reference ID for tracking this call.
-        wait:
-          type: string
-          description: 'Block until the call completes (up to 30 seconds) and return the finished
+            `render_image_unresolved`, `render_validation`, `render_exception`,
 
-            call object. Default: `false`. This is a boolean flag — use `--wait` or
+            `render_upload`, and `render_contract`. Omitted for historical events
 
-            `--wait=true`, not `--wait true`.'
-        metadata:
-          type: string
-          description: 'Arbitrary JSON object (serialized as a string) attached to this call. Stored on
-
-            the call record and injected into `transformedContent` under the reserved `_metadata`
-
-            key (alongside `referenceID`). Must be a valid JSON object string. Maximum size: 4 KB.
-
-
-            Example: `{"customer_id": "cust_123", "test_flag": true}`'
-        file:
-          description: Single input file (for extract, classify, and split functions).
-        files:
-          type: array
-          items: {}
-          description: Multiple input files (for join functions).
-      required: []
-    CopiedFunctionInfo:
-      type: object
-      required:
-      - sourceFunctionName
-      - sourceFunctionID
-      - sourceVersionNum
-      - targetFunctionName
-      - targetFunctionID
-      - targetVersionNum
-      properties:
-        sourceFunctionName:
-          type: string
-          description: Name of the source function that was copied.
-        sourceFunctionID:
-          type: string
-          description: ID of the source function that was copied.
-        sourceVersionNum:
-          type: integer
-          minimum: 1
-          description: Version number of the source function that was copied.
-        targetFunctionName:
-          type: string
-          description: Name of the newly created function in the target environment.
-        targetFunctionID:
-          type: string
-          description: ID of the newly created function in the target environment.
-        targetVersionNum:
-          type: integer
-          minimum: 1
-          description: Version number of the newly created function in the target environment.
-    SendEventS3Output:
-      type: object
-      required:
-      - bucketName
-      - key
-      properties:
-        bucketName:
-          type: string
-          description: Name of the S3 bucket the payload was written to.
-        key:
-          type: string
-          description: Object key under which the payload was stored.
-      description: Metadata returned when a Send function delivers to an S3 bucket.
-    WorkflowV3:
-      type: object
-      required:
-      - id
-      - name
-      - versionNum
-      - mainNodeName
-      - nodes
-      - edges
-      - connectors
-      - createdAt
-      - updatedAt
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the workflow.
-        name:
-          type: string
-          description: Unique name of the workflow within the environment.
-        versionNum:
-          type: integer
-          description: Version number of this workflow version.
-        displayName:
-          type: string
-          description: Human-readable display name.
-        emailAddress:
-          type: string
-          description: Inbound email address associated with the workflow, if any.
-        tags:
-          type: array
-          items:
-            type: string
-          description: Tags associated with the workflow.
-        mainNodeName:
-          type: string
-          description: Name of the entry-point call-site node.
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowNodeResponse'
-          description: All call-site nodes in this workflow version's DAG.
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowEdgeResponse'
-          description: All directed edges in this workflow version's DAG.
-        connectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowConnector'
-          description: 'Connectors currently attached to this workflow. For version-scoped reads
-
-            (`/versions/{n}`) this is always empty — connectors are current-state and
-
-            not part of version history.'
-        createdAt:
-          type: string
-          format: date-time
-          description: The date and time the workflow was created.
-        updatedAt:
-          type: string
-          format: date-time
-          description: The date and time the workflow was last updated.
-        audit:
-          allOf:
-          - $ref: '#/components/schemas/WorkflowAudit'
-          description: Audit trail information.
-      description: V3 read representation of a workflow version.
-    WorkflowNodeResponse:
-      type: object
-      required:
-      - name
-      - function
-      properties:
-        name:
-          type: string
-          description: Name of this call site, unique within the workflow version.
-        function:
-          allOf:
-          - $ref: '#/components/schemas/FunctionVersionIdentifier'
-          description: Function (and version) executing at this call site.
-        metadata:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Opaque free-form JSON object attached to this node on create/update.
-
-            Returned verbatim; never interpreted by the server.'
-      description: Read representation of a call-site node.
-    CallV3:
-      type: object
-      required:
-      - callID
-      - createdAt
-      - outputs
-      - errors
-      - url
-      - traceUrl
-      properties:
-        callID:
-          type: string
-          description: Unique identifier of the call.
-        status:
-          type: string
-          enum:
-          - pending
-          - running
-          - completed
-          - failed
-          description: Status of call.
-        createdAt:
-          type: string
-          format: date-time
-          description: The date and time the call was created.
-        finishedAt:
-          type: string
-          format: date-time
-          description: The date and time the call finished. Only set once status is `completed` or `failed`.
-        workflowID:
-          type: string
-          description: Unique identifier of the workflow.
-        workflowName:
-          type: string
-          description: Name of the workflow.
-        workflowVersionNum:
-          type: integer
-          description: Version number of the workflow.
-        callReferenceID:
-          type: string
-          description: Your reference ID for this call, propagated from the original request.
-        outputs:
-          type: array
-          items:
-            $ref: '#/components/schemas/EventV3'
-          description: 'Terminal non-error outputs of this call: primary events (non-split-collection) that did not
-
-            trigger any downstream function calls. Workflow calls are not atomic — `outputs` and `errors`
-
-            may both be non-empty if some enclosed function calls succeeded and others failed.
-
-
-            Each element is a polymorphic event object; inspect `eventType` to determine the type.
-
-            Retrieve individual outputs via `GET /v3/outputs/{eventID}`.'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorEvent'
-          description: 'Terminal error events of this call. Workflow calls are not atomic — `errors` and `outputs`
-
-            may both be non-empty if some enclosed function calls succeeded and others failed.
-
-
-            Retrieve individual errors via `GET /v3/errors/{eventID}`.'
-        input:
-          allOf:
-          - $ref: '#/components/schemas/FunctionCallCreateInputResponse'
-          description: Input to the main function call.
-        url:
-          type: string
-          description: 'Hint URL for retrieving this call: `GET /v3/calls/{callID}`.'
-        traceUrl:
-          type: string
-          description: 'Hint URL for the full execution trace: `GET /v3/calls/{callID}/trace`.'
-      description: 'A workflow call returned by the V3 API.
-
-
-        Compared to the V2 `Call` model:
-
-        - Terminal outputs are split into `outputs` (non-error events) and `errors` (error events)
-
-        - `callType` and function-scoped fields are removed — V3 calls are always workflow calls
-
-        - The deprecated `functionCalls` field is removed (use `GET /v3/calls/{callID}/trace`)
-
-        - `url` and `traceUrl` hint fields are included for resource discovery'
-    CallGetResponseV3:
-      type: object
-      properties:
-        call:
-          $ref: '#/components/schemas/CallV3'
-        error:
-          type: string
-          description: Error message if the call retrieval failed, or if the call itself failed when using `wait=true`.
-    EventInboundEmail:
-      type: object
-      required:
-      - to
-      - from
-      - subject
-      properties:
-        to:
-          type: string
-          description: The email address of the recipient.
-        deliveredTo:
-          type: string
-          description: The email address of the original intended recipient if the email itself was forwarded.
-        from:
-          type: string
-          description: The email address of the sender.
-        subject:
-          type: string
-          description: The subject of the email.
-    JoinEventItem:
-      type: object
-      required:
-      - itemReferenceID
-      - itemOffset
-      - itemCount
-      properties:
-        itemReferenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point.
-        itemOffset:
-          type: integer
-          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
-        itemCount:
-          type: integer
-          description: The number of items that were transformed.
-        s3URL:
-          type: string
-          description: The presigned S3 URL of the file that was joined.
-    ListWorkflowVersionsResponseV3:
-      type: object
-      properties:
-        versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowV3'
-        totalCount:
-          type: integer
-          description: The total number of results available.
-        error:
-          type: string
-          description: Error message if the workflow versions listing failed.
+            that pre-date the kind column and for non-transform errors.'
+      title: Error Event
     WorkflowCreateRequestV3:
       type: object
       required:
@@ -1302,127 +1405,163 @@ components:
           description: 'Connectors to attach to the workflow at creation. If any entry fails to
 
             provision, the entire workflow creation is rolled back.'
-    WorkflowConnector:
+    WorkflowNodeResponse:
       type: object
       required:
-      - connectorID
       - name
-      - type
+      - function
       properties:
-        connectorID:
-          type: string
-          description: Unique connector API ID.
         name:
           type: string
-          description: Human-friendly connector name.
-        type:
+          description: Name of this call site, unique within the workflow version.
+        function:
           allOf:
-          - $ref: '#/components/schemas/WorkflowConnectorType'
-          description: Connector type.
-        paragon:
-          allOf:
-          - $ref: '#/components/schemas/ParagonConnectorConfig'
-          description: Paragon configuration. Present iff `type == "paragon"`.
-      description: A connector attached to a workflow. Ingestion point that triggers the workflow.
-    JoinEvent:
+          - $ref: '#/components/schemas/FunctionVersionIdentifier'
+          description: Function (and version) executing at this call site.
+        metadata:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Opaque free-form JSON object attached to this node on create/update.
+
+            Returned verbatim; never interpreted by the server.'
+      description: Read representation of a call-site node.
+    EventV3:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/TransformEvent'
+      - $ref: '#/components/schemas/ExtractEvent'
+      - $ref: '#/components/schemas/ParseEvent'
+      - $ref: '#/components/schemas/AnalyzeEvent'
+      - $ref: '#/components/schemas/RouteEvent'
+      - $ref: '#/components/schemas/ClassifyEvent'
+      - $ref: '#/components/schemas/SplitCollectionEvent'
+      - $ref: '#/components/schemas/SplitItemEvent'
+      - $ref: '#/components/schemas/ErrorEvent'
+      - $ref: '#/components/schemas/JoinEvent'
+      - $ref: '#/components/schemas/EnrichEvent'
+      - $ref: '#/components/schemas/PayloadShapingEvent'
+      - $ref: '#/components/schemas/EvaluationEvent'
+      - $ref: '#/components/schemas/collectionProcessingEvent'
+      - $ref: '#/components/schemas/SendEvent'
+      - $ref: '#/components/schemas/RenderEvent'
+      discriminator:
+        propertyName: eventType
+        mapping:
+          transform: '#/components/schemas/TransformEvent'
+          extract: '#/components/schemas/ExtractEvent'
+          parse: '#/components/schemas/ParseEvent'
+          analyze: '#/components/schemas/AnalyzeEvent'
+          route: '#/components/schemas/RouteEvent'
+          classify: '#/components/schemas/ClassifyEvent'
+          split_collection: '#/components/schemas/SplitCollectionEvent'
+          split_item: '#/components/schemas/SplitItemEvent'
+          error: '#/components/schemas/ErrorEvent'
+          join: '#/components/schemas/JoinEvent'
+          enrich: '#/components/schemas/EnrichEvent'
+          payload_shaping: '#/components/schemas/PayloadShapingEvent'
+          evaluation: '#/components/schemas/EvaluationEvent'
+          collection_processing: '#/components/schemas/collectionProcessingEvent'
+          send: '#/components/schemas/SendEvent'
+          render: '#/components/schemas/RenderEvent'
+      description: 'V3 read-side event union. Superset of the shared `Event` union: it contains
+
+        every shared variant verbatim (backward compatible) and adds the V3-only
+
+        `extract`, `parse`, `classify`, `analyze`, `payload_shaping`, and
+
+        `evaluation` variants. This is also the union delivered as the body of
+
+        outbound webhook payloads.'
+    EventInboundEmail:
       type: object
       required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - joinType
-      - transformedContent
-      - invalidProperties
-      - items
+      - to
+      - from
+      - subject
       properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
+        to:
           type: string
-          description: Unique ID generated by bem to identify the event.
+          description: The email address of the recipient.
+        deliveredTo:
+          type: string
+          description: The email address of the original intended recipient if the email itself was forwarded.
+        from:
+          type: string
+          description: The email address of the sender.
+        subject:
+          type: string
+          description: The subject of the email.
+    UserActionSummary:
+      type: object
+      required:
+      - userActionID
+      - createdAt
+      properties:
+        userActionID:
+          type: string
+          description: Unique identifier of the user action.
+        userID:
+          type: string
+          description: User's ID. Present for user-initiated actions.
+        userEmail:
+          type: string
+          description: User's email address. Present for user-initiated actions.
+        apiKeyName:
+          type: string
+          description: API key name. Present for API key-initiated actions.
+        emailAddress:
+          type: string
+          description: Email address. Present for email-initiated actions.
         createdAt:
           type: string
           format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
+          description: The date and time the action was created.
+    WorkflowEdgeResponse:
+      type: object
+      required:
+      - sourceNodeName
+      - destinationNodeName
+      properties:
+        sourceNodeName:
           type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
+          description: Name of the source node.
+        destinationName:
+          type: string
+          description: Labelled outlet on the source node, if any.
+        destinationNodeName:
+          type: string
+          description: Name of the destination node.
         metadata:
           type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
+          unevaluatedProperties: {}
+          description: 'Opaque free-form JSON object attached to this edge on create/update.
+
+            Returned verbatim; never interpreted by the server.'
+      description: Read representation of a directed edge between call-site nodes.
+    WorkflowEdgeRequest:
+      type: object
+      required:
+      - sourceNodeName
+      - destinationNodeName
+      properties:
+        sourceNodeName:
           type: string
-          enum:
-          - join
-        functionCallID:
+          description: Name of the source node.
+        destinationName:
           type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
+          description: 'Labelled outlet on the source node that activates this edge.
+
+            Omit for the default (unlabelled) outlet.'
+        destinationNodeName:
           type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        joinType:
-          type: string
-          enum:
-          - standard
-          description: The type of join that was performed.
-        transformationID:
-          type: string
-          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
-        transformedContent:
+          description: Name of the destination node.
+        metadata:
           type: object
           unevaluatedProperties: {}
-          description: The transformed content of the input. The structure of this object is defined by the function configuration.
-        invalidProperties:
-          type: array
-          items:
-            type: string
-          description: List of properties that were invalid in the input.
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/JoinEventItem'
-          description: The items that were joined.
-        fieldConfidences:
-          type: object
-          unevaluatedProperties:
-            type: number
-            format: float
-          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+          description: 'Opaque free-form JSON object attached to this edge. Stored and returned
 
-            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
-        avgConfidence:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Average confidence score across all extracted fields, in the range [0, 1].
-      title: Join Event
+            verbatim; the server does not interpret it.'
+      description: A directed edge between two named call-site nodes.
     WorkflowCopyRequest:
       type: object
       required:
@@ -1456,16 +1595,44 @@ components:
           items:
             type: string
           description: Optional tags for the copied workflow. If not provided, uses the source workflow's tags.
-    ParseEvent:
+    CopiedFunctionInfo:
+      type: object
+      required:
+      - sourceFunctionName
+      - sourceFunctionID
+      - sourceVersionNum
+      - targetFunctionName
+      - targetFunctionID
+      - targetVersionNum
+      properties:
+        sourceFunctionName:
+          type: string
+          description: Name of the source function that was copied.
+        sourceFunctionID:
+          type: string
+          description: ID of the source function that was copied.
+        sourceVersionNum:
+          type: integer
+          minimum: 1
+          description: Version number of the source function that was copied.
+        targetFunctionName:
+          type: string
+          description: Name of the newly created function in the target environment.
+        targetFunctionID:
+          type: string
+          description: ID of the newly created function in the target environment.
+        targetVersionNum:
+          type: integer
+          minimum: 1
+          description: Version number of the newly created function in the target environment.
+    EnrichEvent:
       type: object
       required:
       - eventID
       - referenceID
       - functionID
       - functionName
-      - transformedContent
-      - itemOffset
-      - itemCount
+      - enrichedContent
       properties:
         functionCallTryNumber:
           type: integer
@@ -1492,7 +1659,7 @@ components:
         eventType:
           type: string
           enum:
-          - parse
+          - enrich
         functionCallID:
           type: string
           description: Unique identifier of function call that this event is associated with.
@@ -1517,201 +1684,19 @@ components:
         workflowVersionNum:
           type: integer
           description: Version number of workflow that this event is associated with.
-        inputType:
-          $ref: '#/components/schemas/InputType'
-        transformationID:
-          type: string
-          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
-        s3URL:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Presigned S3 URL for the input content uploaded to S3.
-        inputs:
-          anyOf:
-          - type: array
-            items:
-              type: object
-              properties:
-                inputType:
-                  anyOf:
-                  - type: string
-                  - type: 'null'
-                inputContent:
-                  anyOf:
-                  - type: string
-                  - type: 'null'
-                jsonInputContent:
-                  anyOf:
-                  - type: object
-                    unevaluatedProperties: {}
-                  - type: 'null'
-                s3URL:
-                  anyOf:
-                  - type: string
-                  - type: 'null'
-          - type: 'null'
-          description: Array of parse inputs with their types and S3 URLs.
-        transformedContent:
+        enrichedContent:
           type: object
           unevaluatedProperties: {}
-          description: 'The parsed content of the input. Top-level keys are `sections`, `entities`,
-
-            and `relationships`; the precise shape is determined by the parse function''s
-
-            configuration.'
-        correctedContent:
-          anyOf:
-          - type: object
-            properties:
-              output:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AnyType'
-          - $ref: '#/components/schemas/AnyType'
-          description: Corrected feedback provided for fine-tuning purposes.
-        invalidProperties:
-          type: array
-          items:
-            type: string
-          description: List of properties that were invalid in the input.
-        itemOffset:
-          type: integer
-          description: The offset of the first item that was parsed. Used for batch parsing to indicate which item in the batch this event corresponds to.
-        itemCount:
-          type: integer
-          description: The number of items that were parsed. Used for batch parsing to indicate how many items were parsed.
-        fieldBoundingBoxes:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths
-
-            to the document regions from which each parsed value was sourced.'
-        fieldConfidences:
-          type: object
-          unevaluatedProperties:
-            type: number
-            format: float
-          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
-
-            to float values in the range [0, 1] indicating the model''s confidence in each parsed field value.'
-        avgConfidence:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Average confidence score across all parsed fields, in the range [0, 1].
-      description: 'Emitted when a `parse` function completes. Reuses the `extract` event shape
-
-        on the wire — both wrap a Transformation and downstream consumers care
-
-        about the same `transformedContent` payload — but uses a distinct
-
-        `eventType` discriminator so receivers can dispatch on the function type
-
-        that produced it.'
-      title: Parse Event
-    EvaluationEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - transformId
-      - evaluationVersion
-      - result
-      - status
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - evaluation
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        transformId:
-          type: string
-          description: Unique ID of the transformation that was evaluated.
-        evaluationVersion:
-          type: string
-          description: Version identifier of the evaluation logic that produced this result.
-        result:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Evaluator output. Shape depends on `evaluationVersion` and includes
-
-            confidence scores, per-field hallucination flags, and relevance metrics.'
-        status:
-          type: string
-          enum:
-          - success
-          - failed
-          description: Terminal status of the evaluation run.
-        errorMessage:
-          type: string
-          description: Failure reason populated when `status` is `failed`.
-      description: 'Emitted when a function-accuracy evaluation completes for a transformation.
-
-        Evaluations are scheduled by `POST /v3/eval` and run asynchronously; this
-
-        event reports the terminal result.'
-      title: Evaluation Event
-    FunctionVersionIdentifier:
+          description: The enriched content produced by the enrich function. Contains the input data augmented with results from semantic search against collections.
+      title: Enrich Event
+    WorkflowV3GetResponse:
       type: object
       properties:
-        id:
+        workflow:
+          $ref: '#/components/schemas/WorkflowV3'
+        error:
           type: string
-          description: Unique identifier of function. Provide either id or name, not both.
-        name:
-          type: string
-          description: Name of function. Must be UNIQUE on a per-environment basis. Provide either id or name, not both.
-        versionNum:
-          type: integer
-          description: Version number of function.
+          description: Error message if the workflow retrieval failed.
     collectionProcessingEvent:
       type: object
       required:
@@ -1779,19 +1764,200 @@ components:
           type: string
           description: Error message if processing failed.
       title: Collection Processing Event
-    WorkflowsListResponseV3:
+    PayloadShapingEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - payload_shaping
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: 'The reshaped payload produced by applying the function''s JMESPath
+
+            expressions to the input data.'
+      description: 'Emitted by `payload_shaping` functions, which restructure JSON payloads
+
+        using JMESPath expressions configured on the function. The shaped result
+
+        is carried in `transformedContent`.'
+      title: Payload Shaping Event
+    CallGetResponseV3:
       type: object
       properties:
-        workflows:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowV3'
-        totalCount:
-          type: integer
-          description: The total number of results available.
+        call:
+          $ref: '#/components/schemas/CallV3'
         error:
           type: string
-          description: Error message if the workflow listing failed.
+          description: Error message if the call retrieval failed, or if the call itself failed when using `wait=true`.
+    InputType:
+      type: string
+      enum:
+      - csv
+      - docx
+      - email
+      - heic
+      - html
+      - jpeg
+      - json
+      - heif
+      - m4a
+      - mov
+      - mp3
+      - mp4
+      - pdf
+      - png
+      - text
+      - wav
+      - webp
+      - xls
+      - xlsx
+      - xml
+      description: The input type of the content you're sending for transformation.
+    WorkflowConnectorError:
+      type: object
+      required:
+      - operation
+      - message
+      - code
+      properties:
+        connectorID:
+          type: string
+          description: Populated for update/delete failures.
+        name:
+          type: string
+          description: Populated for create failures.
+        operation:
+          type: string
+          enum:
+          - create
+          - update
+          - delete
+          description: Which diff operation was attempted.
+        message:
+          type: string
+          description: Human-readable error message.
+        code:
+          type: string
+          description: Machine-readable error code.
+      description: Per-connector failure surfaced alongside a successful workflow DAG save.
+    WorkflowUpdateRequestV3:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[a-zA-Z0-9_-]{1,128}$
+          description: New name for the workflow (renames it). Must match `^[a-zA-Z0-9_-]{1,128}$`.
+        displayName:
+          type: string
+          description: Human-readable display name.
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags to categorize and organize the workflow.
+        mainNodeName:
+          type: string
+          description: '`mainNodeName`, `nodes`, and `edges` must be provided together to update the DAG
+
+            topology. If none are provided the topology is copied unchanged from the current
+
+            version.'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowNodeRequest'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowEdgeRequest'
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConnectorRequest'
+          description: 'Declarative, full-desired-state array of connectors. If omitted, existing
+
+            connectors are left unchanged. If provided, it replaces the current set:
+
+            entries with `connectorID` are updates, entries without are creates, and
+
+            existing connectors whose `connectorID` is absent are deleted.'
+    WorkflowConnectorRequest:
+      type: object
+      required:
+      - name
+      - type
+      properties:
+        connectorID:
+          type: string
+          description: Present → update. Absent → create.
+        name:
+          type: string
+          description: Human-friendly connector name.
+        type:
+          allOf:
+          - $ref: '#/components/schemas/WorkflowConnectorType'
+          description: Connector type. Must match stored type on update.
+        paragon:
+          allOf:
+          - $ref: '#/components/schemas/ParagonConnectorRequestConfig'
+          description: 'Paragon configuration. Required on create for `type: "paragon"`.'
+      description: Create/update entry for a connector inline with the workflow.
     TransformEvent:
       type: object
       required:
@@ -1974,731 +2140,11 @@ components:
           - type: 'null'
           description: Average confidence score across all extracted fields, in the range [0, 1].
       title: Transform Event
-    WorkflowEdgeRequest:
-      type: object
-      required:
-      - sourceNodeName
-      - destinationNodeName
-      properties:
-        sourceNodeName:
-          type: string
-          description: Name of the source node.
-        destinationName:
-          type: string
-          description: 'Labelled outlet on the source node that activates this edge.
-
-            Omit for the default (unlabelled) outlet.'
-        destinationNodeName:
-          type: string
-          description: Name of the destination node.
-        metadata:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Opaque free-form JSON object attached to this edge. Stored and returned
-
-            verbatim; the server does not interpret it.'
-      description: A directed edge between two named call-site nodes.
-    ParagonConnectorConfig:
-      type: object
-      required:
-      - integration
-      - configuration
-      - syncID
-      properties:
-        integration:
-          type: string
-          description: Paragon integration key (e.g. "googledrive").
-        configuration:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Opaque per-integration configuration (e.g. `{"folderId": "..."}`).'
-        syncID:
-          type: string
-          description: Paragon sync ID managed by the server. Read-only.
-          readOnly: true
-      description: Paragon-integration configuration on a workflow connector.
-    SendDestinationType:
-      type: string
-      enum:
-      - webhook
-      - s3
-      - google_drive
-      description: Destination type for a Send function.
-    WorkflowCallJsonBody:
-      type: object
-      required:
-      - input
-      properties:
-        callReferenceID:
-          type: string
-          description: Your reference ID for tracking this call.
-        metadata:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Arbitrary JSON object attached to this call. Stored on the call record and injected
-
-            into `transformedContent` under the reserved `_metadata` key (alongside `referenceID`).
-
-            Must be a JSON object. Maximum size: 4 KB.'
-        input:
-          allOf:
-          - $ref: '#/components/schemas/FunctionCallCreateInput'
-          description: 'Input file(s) for the workflow. Use nested flags to specify a single file or
-
-            batch:
-
-
-            Single file: `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}''`
-
-            Batch files: `--input.batch-files ''{"inputs": [{"inputContent": "@a.pdf", "inputType": "pdf"}]}''`
-
-
-            The `@path/to/file` syntax reads and base64-encodes the file automatically.
-
-            Provide exactly one of `singleFile` or `batchFiles`.'
-        bucket:
-          type: string
-          description: 'Optional bucket NAME that entities extracted by the workflow''s parse
-
-            function(s) land in. Resolution precedence: this call-level bucket >
-
-            the parse function''s configured `defaultBucket` > the account+environment
-
-            default bucket. A non-existent bucket name returns 400, but only when the
-
-            workflow contains a parse function; on a parse-free workflow it is ignored.'
-      description: JSON request body for POST /v3/workflows/{workflowName}/call.
-    WorkflowConnectorError:
-      type: object
-      required:
-      - operation
-      - message
-      - code
-      properties:
-        connectorID:
-          type: string
-          description: Populated for update/delete failures.
-        name:
-          type: string
-          description: Populated for create failures.
-        operation:
-          type: string
-          enum:
-          - create
-          - update
-          - delete
-          description: Which diff operation was attempted.
-        message:
-          type: string
-          description: Human-readable error message.
-        code:
-          type: string
-          description: Machine-readable error code.
-      description: Per-connector failure surfaced alongside a successful workflow DAG save.
-    SingleFileInputResponse:
-      type: object
-      properties:
-        inputType:
-          type: string
-          description: Input type of the file
-        s3URL:
-          type: string
-          description: Presigned S3 URL for the file
-    EventV3:
-      type: object
-      oneOf:
-      - $ref: '#/components/schemas/TransformEvent'
-      - $ref: '#/components/schemas/ExtractEvent'
-      - $ref: '#/components/schemas/ParseEvent'
-      - $ref: '#/components/schemas/AnalyzeEvent'
-      - $ref: '#/components/schemas/RouteEvent'
-      - $ref: '#/components/schemas/ClassifyEvent'
-      - $ref: '#/components/schemas/SplitCollectionEvent'
-      - $ref: '#/components/schemas/SplitItemEvent'
-      - $ref: '#/components/schemas/ErrorEvent'
-      - $ref: '#/components/schemas/JoinEvent'
-      - $ref: '#/components/schemas/EnrichEvent'
-      - $ref: '#/components/schemas/PayloadShapingEvent'
-      - $ref: '#/components/schemas/EvaluationEvent'
-      - $ref: '#/components/schemas/collectionProcessingEvent'
-      - $ref: '#/components/schemas/SendEvent'
-      - $ref: '#/components/schemas/RenderEvent'
-      discriminator:
-        propertyName: eventType
-        mapping:
-          transform: '#/components/schemas/TransformEvent'
-          extract: '#/components/schemas/ExtractEvent'
-          parse: '#/components/schemas/ParseEvent'
-          analyze: '#/components/schemas/AnalyzeEvent'
-          route: '#/components/schemas/RouteEvent'
-          classify: '#/components/schemas/ClassifyEvent'
-          split_collection: '#/components/schemas/SplitCollectionEvent'
-          split_item: '#/components/schemas/SplitItemEvent'
-          error: '#/components/schemas/ErrorEvent'
-          join: '#/components/schemas/JoinEvent'
-          enrich: '#/components/schemas/EnrichEvent'
-          payload_shaping: '#/components/schemas/PayloadShapingEvent'
-          evaluation: '#/components/schemas/EvaluationEvent'
-          collection_processing: '#/components/schemas/collectionProcessingEvent'
-          send: '#/components/schemas/SendEvent'
-          render: '#/components/schemas/RenderEvent'
-      description: 'V3 read-side event union. Superset of the shared `Event` union: it contains
-
-        every shared variant verbatim (backward compatible) and adds the V3-only
-
-        `extract`, `parse`, `classify`, `analyze`, `payload_shaping`, and
-
-        `evaluation` variants. This is also the union delivered as the body of
-
-        outbound webhook payloads.'
     WorkflowConnectorType:
       type: string
       enum:
       - paragon
       description: Discriminator for a workflow connector. V3 supports `paragon` only.
-    GetWorkflowVersionResponseV3:
-      type: object
-      properties:
-        workflow:
-          $ref: '#/components/schemas/WorkflowV3'
-        error:
-          type: string
-          description: Error message if the workflow version retrieval failed.
-    BatchFilesInputItemResponse:
-      type: object
-      properties:
-        inputType:
-          type: string
-          description: Input type of the file
-        itemReferenceID:
-          type: string
-          description: Item reference ID
-        s3URL:
-          type: string
-          description: Presigned S3 URL for the file
-    SendEventGoogleDriveOutput:
-      type: object
-      required:
-      - folderID
-      - fileName
-      properties:
-        folderID:
-          type: string
-          description: ID of the Google Drive folder the file was placed in.
-        fileName:
-          type: string
-          description: Name of the file created in Google Drive.
-      description: Metadata returned when a Send function delivers to Google Drive.
-    WorkflowNodeRequest:
-      type: object
-      required:
-      - function
-      properties:
-        name:
-          type: string
-          description: 'Name for this call site. Must be unique within the workflow version.
-
-            Defaults to the function''s own name when omitted.'
-        function:
-          allOf:
-          - $ref: '#/components/schemas/FunctionVersionIdentifier'
-          description: The function (and version) to execute at this call site.
-        metadata:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Opaque free-form JSON object attached to this node. Stored and returned
-
-            verbatim; the server does not interpret it. Intended for client-side
-
-            concerns such as canvas display properties (position, color, collapsed
-
-            state, etc.).'
-      description: A single function call-site node in a workflow DAG.
-    EnrichEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - enrichedContent
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - enrich
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        enrichedContent:
-          type: object
-          unevaluatedProperties: {}
-          description: The enriched content produced by the enrich function. Contains the input data augmented with results from semantic search against collections.
-      title: Enrich Event
-    ClassifyEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - choice
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - classify
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        choice:
-          type: string
-          description: The classification chosen by the classify function.
-        s3URL:
-          type: string
-          description: The presigned S3 URL of the file that was classified.
-      title: Classify Event
-    UserActionSummary:
-      type: object
-      required:
-      - userActionID
-      - createdAt
-      properties:
-        userActionID:
-          type: string
-          description: Unique identifier of the user action.
-        userID:
-          type: string
-          description: User's ID. Present for user-initiated actions.
-        userEmail:
-          type: string
-          description: User's email address. Present for user-initiated actions.
-        apiKeyName:
-          type: string
-          description: API key name. Present for API key-initiated actions.
-        emailAddress:
-          type: string
-          description: Email address. Present for email-initiated actions.
-        createdAt:
-          type: string
-          format: date-time
-          description: The date and time the action was created.
-    SendEventWebhookOutput:
-      type: object
-      required:
-      - httpStatusCode
-      - httpResponseBody
-      properties:
-        httpStatusCode:
-          type: integer
-          description: HTTP status code returned by the webhook endpoint.
-        httpResponseBody:
-          type: string
-          description: Raw HTTP response body returned by the webhook endpoint.
-      description: Metadata returned when a Send function delivers to a webhook.
-    WorkflowAudit:
-      type: object
-      properties:
-        workflowCreatedBy:
-          allOf:
-          - $ref: '#/components/schemas/UserActionSummary'
-          description: Information about who created the workflow.
-        workflowLastUpdatedBy:
-          allOf:
-          - $ref: '#/components/schemas/UserActionSummary'
-          description: Information about who last updated the workflow.
-        versionCreatedBy:
-          allOf:
-          - $ref: '#/components/schemas/UserActionSummary'
-          description: Information about who created the current version.
-    SendDeliveryStatus:
-      type: string
-      enum:
-      - success
-      - skip
-      description: Outcome of a Send function's delivery attempt.
-    WorkflowV3UpdateResponse:
-      type: object
-      properties:
-        workflow:
-          $ref: '#/components/schemas/WorkflowV3'
-        error:
-          type: string
-          description: Error message if the workflow update failed.
-        connectorErrors:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowConnectorError'
-          description: 'Per-connector failures from the diff/apply phase. Empty or omitted when all
-
-            operations succeeded.'
-    InputType:
-      type: string
-      enum:
-      - csv
-      - docx
-      - email
-      - heic
-      - html
-      - jpeg
-      - json
-      - heif
-      - m4a
-      - mov
-      - mp3
-      - mp4
-      - pdf
-      - png
-      - text
-      - wav
-      - webp
-      - xls
-      - xlsx
-      - xml
-      description: The input type of the content you're sending for transformation.
-    WorkflowConnectorRequest:
-      type: object
-      required:
-      - name
-      - type
-      properties:
-        connectorID:
-          type: string
-          description: Present → update. Absent → create.
-        name:
-          type: string
-          description: Human-friendly connector name.
-        type:
-          allOf:
-          - $ref: '#/components/schemas/WorkflowConnectorType'
-          description: Connector type. Must match stored type on update.
-        paragon:
-          allOf:
-          - $ref: '#/components/schemas/ParagonConnectorRequestConfig'
-          description: 'Paragon configuration. Required on create for `type: "paragon"`.'
-      description: Create/update entry for a connector inline with the workflow.
-    ErrorEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - message
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - error
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        message:
-          type: string
-          description: Error message.
-        kind:
-          type: string
-          description: 'Open, extensible error-kind label for typed transformation errors. The
-
-            platform emits these as plain strings and the set grows over time, so
-
-            clients must accept unknown values. For render functions the known kinds
-
-            are `render_source_fetch`, `render_template_fetch`,
-
-            `render_image_unresolved`, `render_validation`, `render_exception`,
-
-            `render_upload`, and `render_contract`. Omitted for historical events
-
-            that pre-date the kind column and for non-transform errors.'
-      title: Error Event
-    WorkflowEdgeResponse:
-      type: object
-      required:
-      - sourceNodeName
-      - destinationNodeName
-      properties:
-        sourceNodeName:
-          type: string
-          description: Name of the source node.
-        destinationName:
-          type: string
-          description: Labelled outlet on the source node, if any.
-        destinationNodeName:
-          type: string
-          description: Name of the destination node.
-        metadata:
-          type: object
-          unevaluatedProperties: {}
-          description: 'Opaque free-form JSON object attached to this edge on create/update.
-
-            Returned verbatim; never interpreted by the server.'
-      description: Read representation of a directed edge between call-site nodes.
-    SplitCollectionEvent:
-      type: object
-      required:
-      - eventID
-      - referenceID
-      - functionID
-      - functionName
-      - outputType
-      - printPageOutput
-      - semanticPageOutput
-      properties:
-        functionCallTryNumber:
-          type: integer
-          description: The attempt number of the function call that created this event. 1 indexed.
-        eventID:
-          type: string
-          description: Unique ID generated by bem to identify the event.
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the event was created.
-        referenceID:
-          type: string
-          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
-        inboundEmail:
-          allOf:
-          - $ref: '#/components/schemas/EventInboundEmail'
-          description: The inbound email that triggered this event.
-        metadata:
-          type: object
-          properties:
-            durationFunctionToEventSeconds:
-              type: number
-        eventType:
-          type: string
-          enum:
-          - split_collection
-        functionCallID:
-          type: string
-          description: Unique identifier of function call that this event is associated with.
-        functionID:
-          type: string
-          description: Unique identifier of function that this event is associated with.
-        functionName:
-          type: string
-          description: Unique name of function that this event is associated with.
-        functionVersionNum:
-          type: integer
-          description: Version number of function that this event is associated with.
-        callID:
-          type: string
-          description: Unique identifier of workflow call that this event is associated with.
-        workflowID:
-          type: string
-          description: Unique identifier of workflow that this event is associated with.
-        workflowName:
-          type: string
-          description: Name of workflow that this event is associated with.
-        workflowVersionNum:
-          type: integer
-          description: Version number of workflow that this event is associated with.
-        outputType:
-          type: string
-          enum:
-          - print_page
-          - semantic_page
-        printPageOutput:
-          type: object
-          properties:
-            itemCount:
-              type: integer
-            items:
-              type: array
-              items:
-                type: object
-                properties:
-                  itemReferenceID:
-                    type: string
-                  itemOffset:
-                    type: integer
-                  s3URL:
-                    type: string
-        semanticPageOutput:
-          type: object
-          properties:
-            pageCount:
-              type: integer
-            itemCount:
-              type: integer
-            items:
-              type: array
-              items:
-                type: object
-                properties:
-                  itemReferenceID:
-                    type: string
-                  itemOffset:
-                    type: integer
-                  itemClass:
-                    type: string
-                  itemClassCount:
-                    type: integer
-                  itemClassOffset:
-                    type: integer
-                  pageStart:
-                    type: integer
-                  pageEnd:
-                    type: integer
-                  s3URL:
-                    type: string
-      title: Split Collection Event
-    FileInput:
-      type: object
-      required:
-      - inputType
-      - inputContent
-      properties:
-        inputType:
-          allOf:
-          - $ref: '#/components/schemas/InputType'
-          description: 'The input type of the content you''re sending for transformation.
-
-
-            Must match the actual file format. See `InputType` for allowed values.'
-        inputContent:
-          type: string
-          contentEncoding: base64
-          description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
-      description: 'A single file input with base64-encoded content.
-
-
-        When using the Bem CLI, use `@path/to/file` in the `inputContent` field to
-
-        automatically read and base64-encode the file:
-
-        `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}'' --wait`'
     RenderEvent:
       type: object
       required:
@@ -2780,7 +2226,210 @@ components:
           format: double
           description: Wall-clock seconds spent generating the output docx through the template.
       title: Render Event
-    ExtractEvent:
+    SingleFileInputResponse:
+      type: object
+      properties:
+        inputType:
+          type: string
+          description: Input type of the file
+        s3URL:
+          type: string
+          description: Presigned S3 URL for the file
+    WorkflowsListResponseV3:
+      type: object
+      properties:
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowV3'
+        totalCount:
+          type: integer
+          description: The total number of results available.
+        error:
+          type: string
+          description: Error message if the workflow listing failed.
+    FunctionVersionIdentifier:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of function. Provide either id or name, not both.
+        name:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis. Provide either id or name, not both.
+        versionNum:
+          type: integer
+          description: Version number of function.
+    FunctionCallCreateInput:
+      type: object
+      properties:
+        singleFile:
+          allOf:
+          - $ref: '#/components/schemas/FileInput'
+          description: 'A single file to process. Use `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}''` in the CLI.'
+        batchFiles:
+          allOf:
+          - $ref: '#/components/schemas/BatchFilesInput'
+          description: Multiple files to process in one call. Each item in the `inputs` array has its own `inputContent` and `inputType`.
+      description: 'Input file(s) for a call. Provide exactly one of `singleFile` or `batchFiles`.
+
+
+        In the CLI, use the nested flags `--input.single-file` or `--input.batch-files`
+
+        with `@path/to/file` for automatic file embedding:
+
+        `--input.single-file ''{"inputContent": "@invoice.pdf", "inputType": "pdf"}'' --wait`'
+    WorkflowV3UpdateResponse:
+      type: object
+      properties:
+        workflow:
+          $ref: '#/components/schemas/WorkflowV3'
+        error:
+          type: string
+          description: Error message if the workflow update failed.
+        connectorErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConnectorError'
+          description: 'Per-connector failures from the diff/apply phase. Empty or omitted when all
+
+            operations succeeded.'
+    AnalyzeEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - transformedContent
+      - invalidProperties
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - analyze
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        transformationID:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The extracted content of the input. The structure of this object is defined by the function's `outputSchema`.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        s3URL:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Presigned S3 URL of the input file that was analyzed.
+        fieldBoundingBoxes:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
+
+            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      description: 'Emitted by functions of the legacy `analyze` type (the vision path predecessor of
+
+        `extract`). Carries the extracted JSON along with per-field bounding-box metadata
+
+        identifying the document regions each value was extracted from.'
+      title: Analyze Event
+    WorkflowCallMultipartFormData:
+      type: object
+      properties:
+        callReferenceID:
+          type: string
+          description: Your reference ID for tracking this call.
+        wait:
+          type: string
+          description: 'Block until the call completes (up to 30 seconds) and return the finished
+
+            call object. Default: `false`. This is a boolean flag — use `--wait` or
+
+            `--wait=true`, not `--wait true`.'
+        metadata:
+          type: string
+          description: 'Arbitrary JSON object (serialized as a string) attached to this call. Stored on
+
+            the call record and injected into `transformedContent` under the reserved `_metadata`
+
+            key (alongside `referenceID`). Must be a valid JSON object string. Maximum size: 4 KB.
+
+
+            Example: `{"customer_id": "cust_123", "test_flag": true}`'
+        file:
+          description: Single input file (for extract, classify, and split functions).
+        files:
+          type: array
+          items: {}
+          description: Multiple input files (for join functions).
+      required: []
+    ParseEvent:
       type: object
       required:
       - eventID
@@ -2816,7 +2465,7 @@ components:
         eventType:
           type: string
           enum:
-          - extract
+          - parse
         functionCallID:
           type: string
           description: Unique identifier of function call that this event is associated with.
@@ -2875,11 +2524,15 @@ components:
                   - type: string
                   - type: 'null'
           - type: 'null'
-          description: Array of transformation inputs with their types and S3 URLs.
+          description: Array of parse inputs with their types and S3 URLs.
         transformedContent:
           type: object
           unevaluatedProperties: {}
-          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+          description: 'The parsed content of the input. Top-level keys are `sections`, `entities`,
+
+            and `relationships`; the precise shape is determined by the parse function''s
+
+            configuration.'
         correctedContent:
           anyOf:
           - type: object
@@ -2897,93 +2550,40 @@ components:
           description: List of properties that were invalid in the input.
         itemOffset:
           type: integer
-          description: The offset of the first item that was transformed. Used for batch transformations to indicate which item in the batch this event corresponds to.
+          description: The offset of the first item that was parsed. Used for batch parsing to indicate which item in the batch this event corresponds to.
         itemCount:
           type: integer
-          description: The number of items that were transformed. Used for batch transformations to indicate how many items were transformed.
+          description: The number of items that were parsed. Used for batch parsing to indicate how many items were parsed.
         fieldBoundingBoxes:
           type: object
           unevaluatedProperties: {}
-          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`,
+          description: 'Per-field bounding boxes. A JSON object mapping RFC 6901 JSON Pointer paths
 
-            `"/items/0/price"`) to the document regions from which each extracted value was sourced.'
+            to the document regions from which each parsed value was sourced.'
         fieldConfidences:
           type: object
           unevaluatedProperties:
             type: number
             format: float
-          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths
 
-            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+            to float values in the range [0, 1] indicating the model''s confidence in each parsed field value.'
         avgConfidence:
           anyOf:
           - type: number
             format: float
           - type: 'null'
-          description: Average confidence score across all extracted fields, in the range [0, 1].
-      description: 'V3 event variants that do not exist in the shared `Event` union.
+          description: Average confidence score across all parsed fields, in the range [0, 1].
+      description: 'Emitted when a `parse` function completes. Reuses the `extract` event shape
 
+        on the wire — both wrap a Transformation and downstream consumers care
 
-        `ExtractEvent` and `ClassifyEvent` are emitted only by V3-era function types
+        about the same `transformedContent` payload — but uses a distinct
 
-        (`extract` and `classify`). The shared `Event` union in `specs/events/models.tsp`
+        `eventType` discriminator so receivers can dispatch on the function type
 
-        predates these types and continues to describe V2 / V1-alpha responses verbatim;
-
-        V3 response payloads add the new variants via the `EventV3` union below while
-
-        keeping every shared variant intact for backward compatibility.'
-      title: Extract Event
-    BatchFilesInputResponse:
-      type: object
-      properties:
-        inputs:
-          type: array
-          items:
-            $ref: '#/components/schemas/BatchFilesInputItemResponse'
-    WorkflowUpdateRequestV3:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 128
-          pattern: ^[a-zA-Z0-9_-]{1,128}$
-          description: New name for the workflow (renames it). Must match `^[a-zA-Z0-9_-]{1,128}$`.
-        displayName:
-          type: string
-          description: Human-readable display name.
-        tags:
-          type: array
-          items:
-            type: string
-          description: Tags to categorize and organize the workflow.
-        mainNodeName:
-          type: string
-          description: '`mainNodeName`, `nodes`, and `edges` must be provided together to update the DAG
-
-            topology. If none are provided the topology is copied unchanged from the current
-
-            version.'
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowNodeRequest'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowEdgeRequest'
-        connectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowConnectorRequest'
-          description: 'Declarative, full-desired-state array of connectors. If omitted, existing
-
-            connectors are left unchanged. If provided, it replaces the current set:
-
-            entries with `connectorID` are updates, entries without are creates, and
-
-            existing connectors whose `connectorID` is absent are deleted.'
+        that produced it.'
+      title: Parse Event
     WorkflowCopyResponseV3:
       type: object
       properties:
@@ -3004,30 +2604,51 @@ components:
         error:
           type: string
           description: Error message if the workflow copy failed.
-    BatchFilesInput:
+    ListWorkflowVersionsResponseV3:
       type: object
       properties:
-        inputs:
+        versions:
           type: array
           items:
-            type: object
-            properties:
-              inputType:
-                allOf:
-                - $ref: '#/components/schemas/InputType'
-                description: 'The input type of the content you''re sending for transformation.
+            $ref: '#/components/schemas/WorkflowV3'
+        totalCount:
+          type: integer
+          description: The total number of results available.
+        error:
+          type: string
+          description: Error message if the workflow versions listing failed.
+    WorkflowNodeRequest:
+      type: object
+      required:
+      - function
+      properties:
+        name:
+          type: string
+          description: 'Name for this call site. Must be unique within the workflow version.
 
+            Defaults to the function''s own name when omitted.'
+        function:
+          allOf:
+          - $ref: '#/components/schemas/FunctionVersionIdentifier'
+          description: The function (and version) to execute at this call site.
+        metadata:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Opaque free-form JSON object attached to this node. Stored and returned
 
-                  Must match the actual file format. See `InputType` for allowed values.'
-              inputContent:
-                type: string
-                contentEncoding: base64
-                description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
-              itemReferenceID:
-                type: string
-            required:
-            - inputType
-            - inputContent
+            verbatim; the server does not interpret it. Intended for client-side
+
+            concerns such as canvas display properties (position, color, collapsed
+
+            state, etc.).'
+      description: A single function call-site node in a workflow DAG.
+    FunctionCallCreateInputResponse:
+      type: object
+      properties:
+        singleFile:
+          $ref: '#/components/schemas/SingleFileInputResponse'
+        batchFiles:
+          $ref: '#/components/schemas/BatchFilesInputResponse'
     RouteEvent:
       type: object
       required:
@@ -3094,16 +2715,395 @@ components:
           type: string
           description: The presigned S3 URL of the file that was routed.
       title: Route Event
-    WorkflowV3GetResponse:
+    SendEventGoogleDriveOutput:
+      type: object
+      required:
+      - folderID
+      - fileName
+      properties:
+        folderID:
+          type: string
+          description: ID of the Google Drive folder the file was placed in.
+        fileName:
+          type: string
+          description: Name of the file created in Google Drive.
+      description: Metadata returned when a Send function delivers to Google Drive.
+    WorkflowAudit:
+      type: object
+      properties:
+        workflowCreatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who created the workflow.
+        workflowLastUpdatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who last updated the workflow.
+        versionCreatedBy:
+          allOf:
+          - $ref: '#/components/schemas/UserActionSummary'
+          description: Information about who created the current version.
+    GetWorkflowVersionResponseV3:
       type: object
       properties:
         workflow:
           $ref: '#/components/schemas/WorkflowV3'
         error:
           type: string
-          description: Error message if the workflow retrieval failed.
+          description: Error message if the workflow version retrieval failed.
+    WorkflowConnector:
+      type: object
+      required:
+      - connectorID
+      - name
+      - type
+      properties:
+        connectorID:
+          type: string
+          description: Unique connector API ID.
+        name:
+          type: string
+          description: Human-friendly connector name.
+        type:
+          allOf:
+          - $ref: '#/components/schemas/WorkflowConnectorType'
+          description: Connector type.
+        paragon:
+          allOf:
+          - $ref: '#/components/schemas/ParagonConnectorConfig'
+          description: Paragon configuration. Present iff `type == "paragon"`.
+      description: A connector attached to a workflow. Ingestion point that triggers the workflow.
+    ClassifyEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - choice
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - classify
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        choice:
+          type: string
+          description: The classification chosen by the classify function.
+        s3URL:
+          type: string
+          description: The presigned S3 URL of the file that was classified.
+      title: Classify Event
+    SendDeliveryStatus:
+      type: string
+      enum:
+      - success
+      - skip
+      description: Outcome of a Send function's delivery attempt.
+    SplitItemEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - outputType
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - split_item
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        outputType:
+          type: string
+          enum:
+          - print_page
+          - semantic_page
+        printPageOutput:
+          type: object
+          properties:
+            collectionReferenceID:
+              type: string
+            itemCount:
+              type: integer
+            itemOffset:
+              type: integer
+            s3URL:
+              type: string
+        semanticPageOutput:
+          type: object
+          properties:
+            collectionReferenceID:
+              type: string
+            pageCount:
+              type: integer
+            itemCount:
+              type: integer
+            itemOffset:
+              type: integer
+            itemClass:
+              type: string
+            itemClassCount:
+              type: integer
+            itemClassOffset:
+              type: integer
+            pageStart:
+              type: integer
+            pageEnd:
+              type: integer
+            s3URL:
+              type: string
+      title: Split Item Event
+    WorkflowCallJsonBody:
+      type: object
+      required:
+      - input
+      properties:
+        callReferenceID:
+          type: string
+          description: Your reference ID for tracking this call.
+        metadata:
+          type: object
+          unevaluatedProperties: {}
+          description: 'Arbitrary JSON object attached to this call. Stored on the call record and injected
+
+            into `transformedContent` under the reserved `_metadata` key (alongside `referenceID`).
+
+            Must be a JSON object. Maximum size: 4 KB.'
+        input:
+          allOf:
+          - $ref: '#/components/schemas/FunctionCallCreateInput'
+          description: 'Input file(s) for the workflow. Use nested flags to specify a single file or
+
+            batch:
+
+
+            Single file: `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}''`
+
+            Batch files: `--input.batch-files ''{"inputs": [{"inputContent": "@a.pdf", "inputType": "pdf"}]}''`
+
+
+            The `@path/to/file` syntax reads and base64-encodes the file automatically.
+
+            Provide exactly one of `singleFile` or `batchFiles`.'
+        bucket:
+          type: string
+          description: 'Optional bucket NAME that entities extracted by the workflow''s parse
+
+            function(s) land in. Resolution precedence: this call-level bucket >
+
+            the parse function''s configured `defaultBucket` > the account+environment
+
+            default bucket. A non-existent bucket name returns 400, but only when the
+
+            workflow contains a parse function; on a parse-free workflow it is ignored.'
+      description: JSON request body for POST /v3/workflows/{workflowName}/call.
+    JoinEvent:
+      type: object
+      required:
+      - eventID
+      - referenceID
+      - functionID
+      - functionName
+      - joinType
+      - transformedContent
+      - invalidProperties
+      - items
+      properties:
+        functionCallTryNumber:
+          type: integer
+          description: The attempt number of the function call that created this event. 1 indexed.
+        eventID:
+          type: string
+          description: Unique ID generated by bem to identify the event.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the event was created.
+        referenceID:
+          type: string
+          description: The unique ID you use internally to refer to this data point, propagated from the original function input.
+        inboundEmail:
+          allOf:
+          - $ref: '#/components/schemas/EventInboundEmail'
+          description: The inbound email that triggered this event.
+        metadata:
+          type: object
+          properties:
+            durationFunctionToEventSeconds:
+              type: number
+        eventType:
+          type: string
+          enum:
+          - join
+        functionCallID:
+          type: string
+          description: Unique identifier of function call that this event is associated with.
+        functionID:
+          type: string
+          description: Unique identifier of function that this event is associated with.
+        functionName:
+          type: string
+          description: Unique name of function that this event is associated with.
+        functionVersionNum:
+          type: integer
+          description: Version number of function that this event is associated with.
+        callID:
+          type: string
+          description: Unique identifier of workflow call that this event is associated with.
+        workflowID:
+          type: string
+          description: Unique identifier of workflow that this event is associated with.
+        workflowName:
+          type: string
+          description: Name of workflow that this event is associated with.
+        workflowVersionNum:
+          type: integer
+          description: Version number of workflow that this event is associated with.
+        joinType:
+          type: string
+          enum:
+          - standard
+          description: The type of join that was performed.
+        transformationID:
+          type: string
+          description: Unique ID for each transformation output generated by bem following Segment's KSUID conventions.
+        transformedContent:
+          type: object
+          unevaluatedProperties: {}
+          description: The transformed content of the input. The structure of this object is defined by the function configuration.
+        invalidProperties:
+          type: array
+          items:
+            type: string
+          description: List of properties that were invalid in the input.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoinEventItem'
+          description: The items that were joined.
+        fieldConfidences:
+          type: object
+          unevaluatedProperties:
+            type: number
+            format: float
+          description: 'Per-field confidence scores. A JSON object mapping RFC 6901 JSON Pointer paths (e.g. `"/invoiceNumber"`)
+
+            to float values in the range [0, 1] indicating the model''s confidence in each extracted field value.'
+        avgConfidence:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Average confidence score across all extracted fields, in the range [0, 1].
+      title: Join Event
+    WorkflowV3CreateResponse:
+      type: object
+      properties:
+        workflow:
+          $ref: '#/components/schemas/WorkflowV3'
+        error:
+          type: string
+          description: Error message if the workflow creation failed.
+        connectorErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConnectorError'
+          description: 'Per-connector failures from the diff/apply phase. Empty or omitted when all
+
+            operations succeeded.'
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

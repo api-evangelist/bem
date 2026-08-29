@@ -1,8 +1,53 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Subscriptions API
+  title: Bem Subscriptions API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: 'Subscriptions wire up notifications for the events your functions and collections produce.
+
+
+    Most subscriptions target a single function (by `functionName` or `functionID`) or a single
+
+    collection (by `collectionName` or `collectionID`) and select a `type` corresponding to the
+
+    event you want to receive — for example `transform`, `route`, `join`, `evaluation`, `error`,
+
+    `enrich`, or `collection_processing`.
+
+
+    Entity-lifecycle events are account-wide and target no function or collection. Set `type` to
+
+    one of the following and provide a `webhookURL` (these event types support webhook delivery
+
+    only):
+
+
+    - `entity_proposed` — an entity entered the `proposed` curation status (queued for review).
+
+    - `entity_validated` — an entity was approved/validated by a reviewer.
+
+    - `entity_rejected` — an entity was rejected by a reviewer.
+
+
+    Each entity-lifecycle delivery is a JSON POST describing the transition (`entityID`,
+
+    `typeName`, `priorStatus`, `newStatus`, optional `actorUserID` and `reason`, and a
+
+    `timestamp`).
+
+
+    Deliveries can be sent to any combination of:
+
+
+    - `webhookURL` — HTTPS endpoint that receives a JSON POST per event.
+
+    - `s3Bucket` + `s3FilePath` — sync output JSON into an AWS S3 prefix you own.
+
+    - `googleDriveFolderID` — drop output JSON into a Google Drive folder.
+
+
+    Use `disabled: true` to pause delivery without deleting the subscription. Updates follow
+
+    conventional PATCH semantics — only the fields you include are changed.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -246,6 +291,57 @@ components:
         googleDriveFolderID:
           type: string
           description: Google Drive folder ID for syncing output data to Google Drive.
+    CreateSubscriptionV3:
+      type: object
+      required:
+      - name
+      - type
+      properties:
+        name:
+          type: string
+          description: Name of subscription.
+        type:
+          type: string
+          enum:
+          - transform
+          - analyze
+          - route
+          - join
+          - split_collection
+          - split_item
+          - evaluation
+          - error
+          - payload_shaping
+          - enrich
+          - collection_processing
+          description: Type of subscription.
+        functionName:
+          type: string
+          description: Unique name of function this subscription listens to (required for function-based subscriptions).
+        functionID:
+          type: string
+          description: Unique identifier of function this subscription listens to (alternative to functionName).
+        collectionName:
+          type: string
+          description: Name of collection this subscription listens to (required for collection-based subscriptions).
+        collectionID:
+          type: string
+          description: Unique identifier of collection this subscription listens to (alternative to collectionName).
+        disabled:
+          type: boolean
+          description: Toggles whether subscription is active or not.
+        webhookURL:
+          type: string
+          description: URL bem will send webhook requests to.
+        s3Bucket:
+          type: string
+          description: S3 bucket name for syncing output data to AWS S3.
+        s3FilePath:
+          type: string
+          description: S3 file path for syncing output data to AWS S3.
+        googleDriveFolderID:
+          type: string
+          description: Google Drive folder ID for syncing output data to Google Drive.
     SubscriptionV3:
       type: object
       required:
@@ -302,59 +398,8 @@ components:
           type: string
           description: Google Drive folder ID for syncing output data to Google Drive.
       title: Subscription
-    CreateSubscriptionV3:
-      type: object
-      required:
-      - name
-      - type
-      properties:
-        name:
-          type: string
-          description: Name of subscription.
-        type:
-          type: string
-          enum:
-          - transform
-          - analyze
-          - route
-          - join
-          - split_collection
-          - split_item
-          - evaluation
-          - error
-          - payload_shaping
-          - enrich
-          - collection_processing
-          description: Type of subscription.
-        functionName:
-          type: string
-          description: Unique name of function this subscription listens to (required for function-based subscriptions).
-        functionID:
-          type: string
-          description: Unique identifier of function this subscription listens to (alternative to functionName).
-        collectionName:
-          type: string
-          description: Name of collection this subscription listens to (required for collection-based subscriptions).
-        collectionID:
-          type: string
-          description: Unique identifier of collection this subscription listens to (alternative to collectionName).
-        disabled:
-          type: boolean
-          description: Toggles whether subscription is active or not.
-        webhookURL:
-          type: string
-          description: URL bem will send webhook requests to.
-        s3Bucket:
-          type: string
-          description: S3 bucket name for syncing output data to AWS S3.
-        s3FilePath:
-          type: string
-          description: S3 file path for syncing output data to AWS S3.
-        googleDriveFolderID:
-          type: string
-          description: Google Drive folder ID for syncing output data to Google Drive.
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

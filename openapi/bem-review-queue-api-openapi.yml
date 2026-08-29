@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Review Queue API
+  title: Bem Review Queue API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: "The reviewer-facing read surface for entity curation, available on the\ndashboard (JWT) only.\n\n- **`GET /v3/review-queue`** returns a cursor-paginated set of entities\n  awaiting curation, scoped to your account+environment (and optional\n  `bucket`). Each row is a full entity plus a small preview (up to 2) of\n  its first mentions, so a reviewer can triage without opening every\n  entity.\n\nFilters AND together. `status` (repeatable) defaults to the pre-terminal\nstates `extracted` + `proposed` when omitted. `type` (repeatable `ety_…`\nIDs) matches the entity's *effective* type — its assigned type id, or, for\nentities with no assigned type, its bem-inferred type name. `assignedTo`\n(`me` or a `usr_…` ID) restricts to entities whose effective type the user\nreviews. `since` (RFC3339) filters by creation time. Pagination is\ncursor-based on `entityID` ascending; default limit 50, maximum 200."
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -120,6 +120,24 @@ paths:
       - Review Queue
 components:
   schemas:
+    ReviewQueueResponseV3:
+      type: object
+      required:
+      - entities
+      - hasMore
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueEntityV3'
+          description: The page of entities awaiting curation.
+        hasMore:
+          type: boolean
+          description: Whether more rows exist beyond this page.
+        nextCursor:
+          type: string
+          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
+      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
     ReviewQueueMentionV3:
       type: object
       required:
@@ -220,26 +238,8 @@ components:
 
             page then time, so a reviewer can triage without opening each entity.'
       description: 'One row of the review queue: an entity plus a small preview of its mentions.'
-    ReviewQueueResponseV3:
-      type: object
-      required:
-      - entities
-      - hasMore
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReviewQueueEntityV3'
-          description: The page of entities awaiting curation.
-        hasMore:
-          type: boolean
-          description: Whether more rows exist beyond this page.
-        nextCursor:
-          type: string
-          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
-      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

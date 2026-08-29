@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Bem Buckets API
   version: 1.0.0
@@ -160,45 +160,6 @@ paths:
       - Buckets
 components:
   schemas:
-    BucketListResponseV3:
-      type: object
-      required:
-      - buckets
-      - totalCount
-      properties:
-        buckets:
-          type: array
-          items:
-            $ref: '#/components/schemas/BucketV3'
-        totalCount:
-          type: integer
-          format: int64
-          description: Total number of buckets matching the query, ignoring pagination.
-      description: Response body for listing buckets.
-    BucketUpdateRequestV3:
-      type: object
-      properties:
-        name:
-          type: string
-          description: New name.
-        description:
-          type: string
-          description: New description.
-      description: 'Request body to update a bucket. Only the fields present are changed; the
-
-        default bucket is renameable.'
-    BucketCreateRequestV3:
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          description: Bucket name. Required and unique within the account+environment.
-        description:
-          type: string
-          description: Optional description.
-      description: Request body to create a (non-default) bucket.
     BucketV3:
       type: object
       required:
@@ -239,8 +200,47 @@ components:
         Every account+environment has exactly one default bucket. The default
 
         bucket can be renamed but never deleted.'
+    BucketCreateRequestV3:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Bucket name. Required and unique within the account+environment.
+        description:
+          type: string
+          description: Optional description.
+      description: Request body to create a (non-default) bucket.
+    BucketListResponseV3:
+      type: object
+      required:
+      - buckets
+      - totalCount
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/BucketV3'
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of buckets matching the query, ignoring pagination.
+      description: Response body for listing buckets.
+    BucketUpdateRequestV3:
+      type: object
+      properties:
+        name:
+          type: string
+          description: New name.
+        description:
+          type: string
+          description: New description.
+      description: 'Request body to update a bucket. Only the fields present are changed; the
+
+        default bucket is renameable.'
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

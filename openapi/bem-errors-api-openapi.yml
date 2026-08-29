@@ -1,8 +1,23 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Errors API
+  title: Bem Errors API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: 'Retrieve terminal error events from workflow calls.
+
+
+    Errors are events produced by function steps that failed during processing. A single workflow
+
+    call may produce multiple error events if several steps fail independently.
+
+
+    Errors and outputs from the same call are not mutually exclusive: a partially-completed
+
+    workflow may have both.
+
+
+    Use `GET /v3/errors` to list errors across calls, or `GET /v3/errors/{eventID}` to retrieve
+
+    a specific error. To get errors scoped to a single call, filter by `callIDs`.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -174,20 +189,6 @@ paths:
       - Errors
 components:
   schemas:
-    ListErrorsResponseV3:
-      type: object
-      required:
-      - errors
-      - totalCount
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorEvent'
-          description: Array of terminal error events.
-        totalCount:
-          type: integer
-          description: The total number of results available.
     ErrorEvent:
       type: object
       required:
@@ -294,8 +295,22 @@ components:
         subject:
           type: string
           description: The subject of the email.
+    ListErrorsResponseV3:
+      type: object
+      required:
+      - errors
+      - totalCount
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorEvent'
+          description: Array of terminal error events.
+        totalCount:
+          type: integer
+          description: The total number of results available.
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

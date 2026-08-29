@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Knowledge Graph API
+  title: Bem Knowledge Graph API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: "Read the cross-document knowledge graph — the canonical entities and the\ndirected relations between them that the Parse pipeline populates when\n`linkAcrossDocuments` is enabled.\n\n- **`GET /v3/entities/{id}/relations`** returns the inbound and outbound\n  edges incident to one entity, split by direction. Supports\n  `direction`, an exact `relationType` filter, and cursor pagination over\n  edges. A merged-away entity id transparently resolves to its surviving\n  canonical entity.\n- **`GET /v3/knowledge-graph`** returns the graph as `{ nodes, edges }`,\n  paginating over edges. The `nodes` for a page are the distinct endpoint\n  entities of that page's edges (both endpoints of every edge are\n  included). Filter with `type[]`, `since`, and `search`; an edge is\n  returned only when both of its endpoints survive the entity filters.\n\nBoth endpoints take an optional `bucket` (`bkt_...`) to scope the read to\na single bucket; omit it for the unscoped account+environment view."
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -169,6 +169,30 @@ paths:
       - Knowledge Graph
 components:
   schemas:
+    InboundRelationV3:
+      type: object
+      required:
+      - relationType
+      - sourceEntity
+      - mentionCount
+      - firstSeenAt
+      properties:
+        relationType:
+          type: string
+          description: Free-form relation label (e.g. `author_of`, `affiliated_with`).
+        sourceEntity:
+          allOf:
+          - $ref: '#/components/schemas/RelatedEntityV3'
+          description: The entity at the tail of the edge.
+        mentionCount:
+          type: integer
+          format: int32
+          description: How many times this edge has been observed across parsed documents.
+        firstSeenAt:
+          type: string
+          format: date-time
+          description: First-seen timestamp of the edge (RFC 3339).
+      description: One edge pointing AT the queried entity (some other entity is the source).
     EntityRelationsResponseV3:
       type: object
       required:
@@ -213,58 +237,6 @@ components:
           format: int32
           description: How many times this edge has been observed.
       description: One directed edge between two entities, addressed by their public ids.
-    RelatedEntityV3:
-      type: object
-      required:
-      - id
-      - canonical
-      - type
-      - depth
-      properties:
-        id:
-          type: string
-          description: Stable public identifier for the entity (`ent_...`).
-        canonical:
-          type: string
-          description: Canonical (most descriptive) surface form of the entity.
-        type:
-          type: string
-          description: Effective entity type.
-        depth:
-          type: integer
-          format: int32
-          description: 'Hops from the queried entity. This endpoint returns direct relations, so
-
-            this is 1 (a self-loop''s far end is the queried entity itself, 0).'
-      description: 'A compact view of an entity sitting on the far end of a relation edge — the
-
-        stable public id, the canonical name, and the effective type. The full
-
-        entity is fetched separately via the entity detail / File System endpoints.'
-    OutboundRelationV3:
-      type: object
-      required:
-      - relationType
-      - targetEntity
-      - mentionCount
-      - firstSeenAt
-      properties:
-        relationType:
-          type: string
-          description: Free-form relation label (e.g. `author_of`, `affiliated_with`).
-        targetEntity:
-          allOf:
-          - $ref: '#/components/schemas/RelatedEntityV3'
-          description: The entity at the head of the edge.
-        mentionCount:
-          type: integer
-          format: int32
-          description: How many times this edge has been observed across parsed documents.
-        firstSeenAt:
-          type: string
-          format: date-time
-          description: First-seen timestamp of the edge (RFC 3339).
-      description: One edge pointing AWAY from the queried entity (it is the source).
     GraphNodeV3:
       type: object
       required:
@@ -322,21 +294,21 @@ components:
         `nodes` are the distinct endpoint entities of the returned edge page (both
 
         endpoints of every edge are included).'
-    InboundRelationV3:
+    OutboundRelationV3:
       type: object
       required:
       - relationType
-      - sourceEntity
+      - targetEntity
       - mentionCount
       - firstSeenAt
       properties:
         relationType:
           type: string
           description: Free-form relation label (e.g. `author_of`, `affiliated_with`).
-        sourceEntity:
+        targetEntity:
           allOf:
           - $ref: '#/components/schemas/RelatedEntityV3'
-          description: The entity at the tail of the edge.
+          description: The entity at the head of the edge.
         mentionCount:
           type: integer
           format: int32
@@ -345,9 +317,37 @@ components:
           type: string
           format: date-time
           description: First-seen timestamp of the edge (RFC 3339).
-      description: One edge pointing AT the queried entity (some other entity is the source).
+      description: One edge pointing AWAY from the queried entity (it is the source).
+    RelatedEntityV3:
+      type: object
+      required:
+      - id
+      - canonical
+      - type
+      - depth
+      properties:
+        id:
+          type: string
+          description: Stable public identifier for the entity (`ent_...`).
+        canonical:
+          type: string
+          description: Canonical (most descriptive) surface form of the entity.
+        type:
+          type: string
+          description: Effective entity type.
+        depth:
+          type: integer
+          format: int32
+          description: 'Hops from the queried entity. This endpoint returns direct relations, so
+
+            this is 1 (a self-loop''s far end is the queried entity itself, 0).'
+      description: 'A compact view of an entity sitting on the far end of a relation edge — the
+
+        stable public id, the canonical name, and the effective type. The full
+
+        entity is fetched separately via the entity detail / File System endpoints.'
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

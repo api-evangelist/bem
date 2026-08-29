@@ -1,28 +1,7 @@
 {
   "provider": "bem",
   "sources": [
-    "bem-buckets-api-openapi.yml",
-    "bem-calls-api-openapi.yml",
-    "bem-collections-api-openapi.yml",
-    "bem-connectors-api-openapi.yml",
-    "bem-entity-bulk-seed-api-openapi.yml",
-    "bem-entity-curation-api-openapi.yml",
-    "bem-entity-synonyms-api-openapi.yml",
-    "bem-entity-type-reviewers-api-openapi.yml",
-    "bem-entity-types-api-openapi.yml",
-    "bem-errors-api-openapi.yml",
-    "bem-feedback-api-openapi.yml",
-    "bem-file-system-api-openapi.yml",
-    "bem-function-accuracy-api-openapi.yml",
-    "bem-functions-api-openapi.yml",
-    "bem-knowledge-graph-api-openapi.yml",
-    "bem-outputs-api-openapi.yml",
-    "bem-review-queue-api-openapi.yml",
-    "bem-schema-inference-api-openapi.yml",
-    "bem-subscriptions-api-openapi.yml",
-    "bem-views-api-openapi.yml",
-    "bem-webhooks-api-openapi.yml",
-    "bem-workflows-api-openapi.yml"
+    "_original/bem-openapi-original.yml"
   ],
   "outputs": [
     "bem-buckets-api-openapi.yml",
@@ -51,6 +30,32 @@
   "archived": [],
   "errors": [],
   "warnings": [],
-  "notes": [],
-  "skipped": []
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "bem-openapi-original.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0; renamed 1 component key(s) illegal in 3.x (e.g. API Key)"
+  ],
+  "skipped": [
+    "bem-buckets-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-calls-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-collections-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-connectors-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-entity-bulk-seed-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-entity-curation-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-entity-synonyms-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-entity-type-reviewers-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-entity-types-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-errors-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-feedback-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-file-system-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-function-accuracy-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-functions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-knowledge-graph-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-outputs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-review-queue-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-schema-inference-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-subscriptions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-views-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-webhooks-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-workflows-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }

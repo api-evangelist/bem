@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Entity Synonyms API
+  title: Bem Entity Synonyms API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: "Manage the human-readable surface forms (synonyms) attached to a canonical\nentity. Synonyms feed the matcher's exact-match path, so adding the right\nsynonyms improves cross-document entity resolution.\n\n- **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`\n  synonym. If the same normalized form already exists as an `extracted`\n  synonym, it is upgraded to `customer_defined` (so the matcher weights it\n  higher); an existing customer/SME synonym is returned unchanged.\n- **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a\n  synonym. Only `customer_defined` and `sme_approved` synonyms are\n  deletable; `extracted` synonyms are resolver-owned and the request is\n  rejected with `409 Conflict`.\n\nA merged-away entity id transparently resolves to its surviving canonical\nentity, so a synonym added to a stale id lands on the entity that persists."
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -90,6 +90,22 @@ paths:
       - Entity Synonyms
 components:
   schemas:
+    AddEntitySynonymRequestV3:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
+
+            `ACME`). It is normalized (lowercased, whitespace-folded) for the
+
+            uniqueness key and the matcher''s exact-match path.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
+      description: Request body for `POST /v3/entities/{id}/synonyms`.
     EntitySynonymV3:
       type: object
       required:
@@ -127,24 +143,8 @@ components:
           format: date-time
           description: Creation timestamp of the synonym (RFC 3339).
       description: One synonym attached to an entity.
-    AddEntitySynonymRequestV3:
-      type: object
-      required:
-      - text
-      properties:
-        text:
-          type: string
-          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
-
-            `ACME`). It is normalized (lowercased, whitespace-folded) for the
-
-            uniqueness key and the matcher''s exact-match path.'
-        locale:
-          type: string
-          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
-      description: Request body for `POST /v3/entities/{id}/synonyms`.
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key

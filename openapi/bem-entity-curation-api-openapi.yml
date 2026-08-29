@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Bem Buckets Entity Curation API
+  title: Bem Entity Curation API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: "Curate the knowledge graph by transitioning entities through their review\nlifecycle and editing their metadata.\n\n- **`PATCH /v3/entities/{id}`** updates a single entity. Every field is\n  optional but at least one is required:\n  - `status` transitions curation state to `approved` or `rejected` (only\n    from `extracted`/`proposed`; any other transition is `409 Conflict`).\n    Approving emits an `entity_validated` webhook; rejecting emits\n    `entity_rejected`.\n  - `assignedTypeID` sets (or, with the empty string, clears) the\n    customer-assigned type that overrides the bem-inferred type.\n  - `canonical` replaces the canonical surface form.\n  - `addSynonyms` / `removeSynonymIDs` attach `customer_defined` synonyms\n    or soft-delete existing ones (an `extracted` synonym cannot be\n    removed — `409 Conflict`).\n\n  A merged-away entity id transparently resolves to its surviving\n  canonical entity.\n- **`POST /v3/entities/bulk-validate`** transitions a batch of entities to\n  `approved` or `rejected` in one request. Each row reports `validated`,\n  `skipped` (not found / not authorized), or `rejected-row` (an illegal\n  transition such as an already-terminal entity), alongside a summary.\n\nOn the dashboard (JWT) surface these actions additionally require the\nacting user to be an assigned reviewer for the entity's effective type, or\nto hold the `admin` role (or higher). On the API-key surface admin-key\nauthorization applies and no per-user reviewer check is made."
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -77,50 +77,6 @@ paths:
                   status: approved
 components:
   schemas:
-    BulkValidateRowResultV3:
-      type: object
-      required:
-      - entityID
-      - outcome
-      properties:
-        entityID:
-          type: string
-          description: The `ent_...` ID from the request.
-        outcome:
-          type: string
-          enum:
-          - validated
-          - skipped
-          - rejected-row
-          description: '`validated` (transition applied), `skipped` (not found or not authorized),
-
-            or `rejected-row` (the transition itself was illegal, e.g. already
-
-            terminal).'
-        reason:
-          type: string
-          description: Explanation for a `skipped` or `rejected-row` outcome.
-      description: The outcome of validating one row.
-    BulkValidateSummaryV3:
-      type: object
-      required:
-      - validated
-      - skipped
-      - rejectedRow
-      properties:
-        validated:
-          type: integer
-          format: int32
-          description: Rows whose transition was applied.
-        skipped:
-          type: integer
-          format: int32
-          description: Rows skipped (not found / not authorized).
-        rejectedRow:
-          type: integer
-          format: int32
-          description: Rows whose transition was illegal.
-      description: Per-outcome tally across a bulk-validate batch.
     UpdateEntityRequestV3:
       type: object
       properties:
@@ -162,22 +118,44 @@ components:
       description: 'Request body for `PATCH /v3/entities/{id}`. Every field is optional, but at
 
         least one must be present.'
-    BulkValidateEntitiesResponseV3:
+    BulkValidateSummaryV3:
       type: object
       required:
-      - results
-      - summary
+      - validated
+      - skipped
+      - rejectedRow
       properties:
-        results:
+        validated:
+          type: integer
+          format: int32
+          description: Rows whose transition was applied.
+        skipped:
+          type: integer
+          format: int32
+          description: Rows skipped (not found / not authorized).
+        rejectedRow:
+          type: integer
+          format: int32
+          description: Rows whose transition was illegal.
+      description: Per-outcome tally across a bulk-validate batch.
+    BulkValidateEntitiesRequestV3:
+      type: object
+      required:
+      - entityIDs
+      - status
+      properties:
+        entityIDs:
           type: array
           items:
-            $ref: '#/components/schemas/BulkValidateRowResultV3'
-          description: Per-row outcomes, in request order.
-        summary:
-          allOf:
-          - $ref: '#/components/schemas/BulkValidateSummaryV3'
-          description: Aggregate counts.
-      description: '`200` response for `POST /v3/entities/bulk-validate`.'
+            type: string
+          description: The `ent_...` IDs to transition. Must be non-empty.
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: Terminal status to apply to every entity.
+      description: Request body for `POST /v3/entities/bulk-validate`.
     EntityResponseV3:
       type: object
       required:
@@ -238,26 +216,48 @@ components:
           type: string
           description: '`usr_...` public ID of the validating user (dashboard transitions only).'
       description: An entity record, including its curation status and assigned type.
-    BulkValidateEntitiesRequestV3:
+    BulkValidateRowResultV3:
       type: object
       required:
-      - entityIDs
-      - status
+      - entityID
+      - outcome
       properties:
-        entityIDs:
-          type: array
-          items:
-            type: string
-          description: The `ent_...` IDs to transition. Must be non-empty.
-        status:
+        entityID:
+          type: string
+          description: The `ent_...` ID from the request.
+        outcome:
           type: string
           enum:
-          - approved
-          - rejected
-          description: Terminal status to apply to every entity.
-      description: Request body for `POST /v3/entities/bulk-validate`.
+          - validated
+          - skipped
+          - rejected-row
+          description: '`validated` (transition applied), `skipped` (not found or not authorized),
+
+            or `rejected-row` (the transition itself was illegal, e.g. already
+
+            terminal).'
+        reason:
+          type: string
+          description: Explanation for a `skipped` or `rejected-row` outcome.
+      description: The outcome of validating one row.
+    BulkValidateEntitiesResponseV3:
+      type: object
+      required:
+      - results
+      - summary
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkValidateRowResultV3'
+          description: Per-row outcomes, in request order.
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/BulkValidateSummaryV3'
+          description: Aggregate counts.
+      description: '`200` response for `POST /v3/entities/bulk-validate`.'
   securitySchemes:
-    API Key:
+    API_Key:
       type: apiKey
       in: header
       name: x-api-key
