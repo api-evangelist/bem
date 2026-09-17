@@ -439,65 +439,6 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/bem-feedback-api-openapi.yml
-- aid: bem:bem-file-system-api
-  name: Bem File System API
-  description: >-
-    Unix-shell-style nav over parsed documents and the cross-doc memory store.
-
-
-    `POST /v3/fs` is a single op-driven endpoint designed for LLM agents
-
-    and programmatic consumers that want to walk a corpus the way they'd
-
-    walk a filesystem.
-
-
-    ## Doc-level ops (every parsed document)
-
-
-    - `ls` — list parsed documents with rich per-doc metadata.
-
-    - `cat` — read one doc's parse JSON, sliced (`range`) or projected (`select`).
-
-    - `head` — first N sections of one doc.
-
-    - `grep` — substring or regex search; `scope`, `path`, `countOnly` available.
-
-    - `stat` — metadata only (page/section/entity counts, timestamps).
-
-
-    ## Memory-level ops (require `linkAcrossDocuments: true` on the parse function)
-
-
-    - `find` — list canonical entities across the corpus.
-
-    - `open` — entity + mentions.
-
-    - `xref` — for one entity, sections across docs that mention it (with content).
-
-
-    Memory ops return an empty list with a `hint` when no docs in this
-
-    environment have been memory-linked.
-
-
-    ## Pagination
-
-
-    List ops paginate by cursor — pass the previous response's `nextCursor`
-
-    back as `cursor`; `hasMore: false` signals the last page. Same idiom as
-
-    `/v3/calls` and `/v3/outputs`.
-  humanURL: https://docs.bem.ai
-  baseURL: https://api.bem.ai
-  tags:
-  - Filesystem
-  tags_raw:
-  - File System
-  properties:
-  - type: OpenAPI
-    url: openapi/bem-file-system-api-openapi.yml
 - aid: bem:bem-function-accuracy-api
   name: Bem Function Accuracy API
   description: >-
@@ -965,6 +906,16 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/bem-workflows-api-openapi.yml
+- aid: bem:bem-filesystem-api
+  name: Bem Filesystem API
+  description: Unix-shell-style nav over parsed documents and the cross-doc memory store.
+  humanURL: https://docs.bem.ai
+  baseURL: https://api.bem.ai
+  tags:
+  - Filesystem
+  properties:
+  - type: OpenAPI
+    url: openapi/bem-filesystem-api-openapi.yml
 common:
 - type: Overlay
   url: overlays/bem-openapi-overlay.yaml
