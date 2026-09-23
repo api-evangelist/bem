@@ -27,12 +27,16 @@
     "bem-webhooks-api-openapi.yml",
     "bem-workflows-api-openapi.yml"
   ],
-  "archived": [],
+  "archived": [
+    "deleted 1 superseded output(s) from the previous generation"
+  ],
   "errors": [],
   "warnings": [],
   "notes": [
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
-    "bem-openapi-original.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0; renamed 1 component key(s) illegal in 3.x (e.g. API Key)"
+    "bem-openapi-original.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0; renamed 1 component key(s) illegal in 3.x (e.g. API Key)",
+    "superseded outputs removed: bem-filesystem-api-openapi.yml",
+    "apis.yml register: written (+1 apis, 22 total)"
   ],
   "skipped": [
     "bem-buckets-api-openapi.yml: previously refined output, superseded by openapi/_original/",
@@ -46,7 +50,7 @@
     "bem-entity-types-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "bem-errors-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "bem-feedback-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "bem-file-system-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "bem-filesystem-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "bem-function-accuracy-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "bem-functions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "bem-knowledge-graph-api-openapi.yml: previously refined output, superseded by openapi/_original/",

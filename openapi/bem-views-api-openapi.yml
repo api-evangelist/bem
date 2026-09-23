@@ -2,7 +2,11 @@ openapi: 3.2.0
 info:
   title: Bem Views API
   version: 1.0.0
-  description: "Views are tabular projections over the `transformations` your functions\nproduce — a saved query that turns raw extracted JSON into a\nfilterable, paginatable, aggregatable table.\n\n## Anatomy\n\nA view declares:\n- One or more **functions** to read from (by `functionID` or `functionName`).\n- A list of **columns**, each pinned to a `valueSchemaPath` (a JSON\n  Pointer into the function's output schema).\n- Optional **filters** (string equality, numeric comparators,\n  null-checks) and **aggregations** (`count`, `count_distinct`,\n  `sum`, `average`, `min`, `max`).\n\nViews are versioned: every update produces a new version, and the\nprevious version remains immutable and addressable. Function types\nthat produce transformations with an output schema — `extract`,\n`transform`, `analyze`, `join` — are all queryable through views;\n`extract` works uniformly across vision and OCR inputs.\n\n## Reading data\n\n- **`POST /v3/views/table-data`** — paginated rows of column values.\n  Each row reports the underlying event's `eventID` (the\n  externally-stable KSUID used everywhere else in V3) plus the\n  projected column values.\n- **`POST /v3/views/aggregation-data`** — group-by-able aggregate\n  values across the same query surface.\n\nBoth endpoints take a `timeWindow` to bound the transformation set\nand require at least one `function` to read from."
+  description: 'Views are tabular projections over the `transformations` your functions
+
+    produce — a saved query that turns raw extracted JSON into a
+
+    filterable, paginatable, aggregatable table.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +18,11 @@ security:
 - API Key: []
 tags:
 - name: Views
-  description: "Views are tabular projections over the `transformations` your functions\nproduce — a saved query that turns raw extracted JSON into a\nfilterable, paginatable, aggregatable table.\n\n## Anatomy\n\nA view declares:\n- One or more **functions** to read from (by `functionID` or `functionName`).\n- A list of **columns**, each pinned to a `valueSchemaPath` (a JSON\n  Pointer into the function's output schema).\n- Optional **filters** (string equality, numeric comparators,\n  null-checks) and **aggregations** (`count`, `count_distinct`,\n  `sum`, `average`, `min`, `max`).\n\nViews are versioned: every update produces a new version, and the\nprevious version remains immutable and addressable. Function types\nthat produce transformations with an output schema — `extract`,\n`transform`, `analyze`, `join` — are all queryable through views;\n`extract` works uniformly across vision and OCR inputs.\n\n## Reading data\n\n- **`POST /v3/views/table-data`** — paginated rows of column values.\n  Each row reports the underlying event's `eventID` (the\n  externally-stable KSUID used everywhere else in V3) plus the\n  projected column values.\n- **`POST /v3/views/aggregation-data`** — group-by-able aggregate\n  values across the same query surface.\n\nBoth endpoints take a `timeWindow` to bound the transformation set\nand require at least one `function` to read from."
+  description: 'Views are tabular projections over the `transformations` your functions
+
+    produce — a saved query that turns raw extracted JSON into a
+
+    filterable, paginatable, aggregatable table.'
 paths:
   /v3/views:
     get:
@@ -332,114 +340,18 @@ paths:
               $ref: '#/components/schemas/ViewCreateRequest'
 components:
   schemas:
-    ViewTableDataResponse:
-      type: object
-      required:
-      - rows
-      - totalCount
-      properties:
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/ViewTableDataResponseRow'
-          description: Array of rows matching the view configuration
-        totalCount:
-          type: integer
-          description: Total number of rows matching the view (before pagination)
-      description: Response containing paginated view table data
-    ViewTableDataResponseColumnEntry:
-      type: object
-      required:
-      - columnName
-      - value
-      properties:
-        columnName:
-          type: string
-          description: Name of the column
-        value:
-          oneOf:
-          - type: string
-          - type: number
-          - type: boolean
-          - {}
-          - type: object
-            unevaluatedProperties: {}
-          - type: array
-            items: {}
-          description: Value of the column (can be any JSON type)
-      description: A single column entry in a view table data row
-    ViewAggregationDataResponse:
-      type: object
-      required:
-      - aggregations
-      properties:
-        aggregations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ViewAggregationDataResponseAggregation'
-          description: Array of aggregation results
-      description: Response containing aggregation data for a view
-    ViewAggregationFunction:
+    ViewFilterType:
       type: string
       enum:
-      - count
-      - count_distinct
-      - sum
-      - average
-      - min
-      - max
-      description: Aggregation function to apply to a view column
-    HTTPError:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: Error message describing what went wrong
-        code:
-          type: integer
-          description: HTTP status code
-        details:
-          type: object
-          unevaluatedProperties: {}
-          description: Additional error details (optional)
-          title: Error Details
-      description: Standard HTTP error response
-    ViewColumn:
-      type: object
-      required:
-      - name
-      - valueSchemaPath
-      - displayOrderIndex
-      properties:
-        name:
-          type: string
-          description: Name of the column
-        valueSchemaPath:
-          type: array
-          items:
-            type: string
-          description: JSON path to the value in the transformation output schema (e.g., ["invoiceDetails", "invoiceNumber"])
-        displayOrderIndex:
-          type: integer
-          description: Order in which this column should be displayed (0-based index)
-      description: A column definition in a view
-    TimeWindow:
-      type: object
-      required:
-      - start
-      - end
-      properties:
-        start:
-          type: string
-          format: date-time
-          description: Start of the time window in ISO 8601 (RFC 3339) format in UTC
-        end:
-          type: string
-          format: date-time
-          description: End of the time window in ISO 8601 (RFC 3339) format in UTC
-      description: Time window for filtering transformations in a view
+      - equals_string
+      - equals_number
+      - less_than_number
+      - less_than_equal_number
+      - greater_than_number
+      - greater_than_equal_number
+      - is_null
+      - is_not_null
+      description: Type of filter to apply to a view column
     ViewAggregation:
       type: object
       required:
@@ -484,15 +396,6 @@ components:
             $ref: '#/components/schemas/ViewAggregationDataResponseGroup'
           description: Array of group results (single group for non-grouped aggregations)
       description: Aggregation result for a single aggregation definition
-    FunctionIdentifier:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of function. Provide either id or name, not both.
-        name:
-          type: string
-          description: Name of function. Must be UNIQUE on a per-environment basis. Provide either id or name, not both.
     ViewAggregationDataRequest:
       type: object
       required:
@@ -547,20 +450,71 @@ components:
           format: int64
           description: Total number of views matching the query
       description: Response containing a list of views
-    ViewAggregationDataResponseGroup:
+    View:
       type: object
       required:
-      - groupName
-      - value
+      - viewID
+      - name
+      - currentVersionNum
+      - columns
+      - filters
+      - aggregations
+      - functions
       properties:
-        groupName:
+        viewID:
           type: string
-          description: Name of the group (empty string for non-grouped aggregations)
-        value:
-          type: number
-          format: float
-          description: Aggregated value for this group
-      description: A single group result in an aggregation response
+          description: Unique identifier of the view
+        name:
+          type: string
+          description: Name of the view
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Description of the view
+        currentVersionNum:
+          type: integer
+          description: Current version number of the view
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewColumn'
+          description: List of columns in the view
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewFilter'
+          description: List of filters applied to the view
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewAggregation'
+          description: List of aggregations defined for the view
+        functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionIdentifier'
+          description: List of functions that this view queries transformations from
+      description: A view is a table visualization of transformations that allows customers to have insight into their transformations
+    ViewColumn:
+      type: object
+      required:
+      - name
+      - valueSchemaPath
+      - displayOrderIndex
+      properties:
+        name:
+          type: string
+          description: Name of the column
+        valueSchemaPath:
+          type: array
+          items:
+            type: string
+          description: JSON path to the value in the transformation output schema (e.g., ["invoiceDetails", "invoiceNumber"])
+        displayOrderIndex:
+          type: integer
+          description: Order in which this column should be displayed (0-based index)
+      description: A column definition in a view
     ViewTableDataRequest:
       type: object
       required:
@@ -612,18 +566,80 @@ components:
           - type: 'null'
           minimum: 0
           description: Number of rows to skip for pagination
-    ViewFilterType:
+    ViewTableDataResponse:
+      type: object
+      required:
+      - rows
+      - totalCount
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewTableDataResponseRow'
+          description: Array of rows matching the view configuration
+        totalCount:
+          type: integer
+          description: Total number of rows matching the view (before pagination)
+      description: Response containing paginated view table data
+    ViewAggregationFunction:
       type: string
       enum:
-      - equals_string
-      - equals_number
-      - less_than_number
-      - less_than_equal_number
-      - greater_than_number
-      - greater_than_equal_number
-      - is_null
-      - is_not_null
-      description: Type of filter to apply to a view column
+      - count
+      - count_distinct
+      - sum
+      - average
+      - min
+      - max
+      description: Aggregation function to apply to a view column
+    ViewFilter:
+      type: object
+      required:
+      - columnName
+      - filterType
+      properties:
+        columnName:
+          type: string
+          description: Name of the column to filter on
+        filterType:
+          $ref: '#/components/schemas/ViewFilterType'
+        string:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: String value for the filter (required for string filter types)
+        number:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Numeric value for the filter (required for number filter types)
+      description: A filter to apply to a view column
+    TimeWindow:
+      type: object
+      required:
+      - start
+      - end
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: Start of the time window in ISO 8601 (RFC 3339) format in UTC
+        end:
+          type: string
+          format: date-time
+          description: End of the time window in ISO 8601 (RFC 3339) format in UTC
+      description: Time window for filtering transformations in a view
+    ViewAggregationDataResponse:
+      type: object
+      required:
+      - aggregations
+      properties:
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewAggregationDataResponseAggregation'
+          description: Array of aggregation results
+      description: Response containing aggregation data for a view
     ViewTableDataResponseRow:
       type: object
       required:
@@ -641,6 +657,15 @@ components:
 
             transformation produced this row.'
       description: A single row in the view table data response
+    FunctionIdentifier:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of function. Provide either id or name, not both.
+        name:
+          type: string
+          description: Name of function. Must be UNIQUE on a per-environment basis. Provide either id or name, not both.
     ViewCreateRequest:
       type: object
       required:
@@ -677,75 +702,58 @@ components:
             $ref: '#/components/schemas/FunctionIdentifier'
           description: List of functions that this view queries transformations from
       description: Request to create a new view or update an existing view
-    ViewFilter:
+    ViewTableDataResponseColumnEntry:
       type: object
       required:
       - columnName
-      - filterType
+      - value
       properties:
         columnName:
           type: string
-          description: Name of the column to filter on
-        filterType:
-          $ref: '#/components/schemas/ViewFilterType'
-        string:
-          anyOf:
+          description: Name of the column
+        value:
+          oneOf:
           - type: string
-          - type: 'null'
-          description: String value for the filter (required for string filter types)
-        number:
-          anyOf:
           - type: number
-            format: float
-          - type: 'null'
-          description: Numeric value for the filter (required for number filter types)
-      description: A filter to apply to a view column
-    View:
+          - type: boolean
+          - {}
+          - type: object
+            unevaluatedProperties: {}
+          - type: array
+            items: {}
+          description: Value of the column (can be any JSON type)
+      description: A single column entry in a view table data row
+    ViewAggregationDataResponseGroup:
       type: object
       required:
-      - viewID
-      - name
-      - currentVersionNum
-      - columns
-      - filters
-      - aggregations
-      - functions
+      - groupName
+      - value
       properties:
-        viewID:
+        groupName:
           type: string
-          description: Unique identifier of the view
-        name:
+          description: Name of the group (empty string for non-grouped aggregations)
+        value:
+          type: number
+          format: float
+          description: Aggregated value for this group
+      description: A single group result in an aggregation response
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
           type: string
-          description: Name of the view
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Description of the view
-        currentVersionNum:
+          description: Error message describing what went wrong
+        code:
           type: integer
-          description: Current version number of the view
-        columns:
-          type: array
-          items:
-            $ref: '#/components/schemas/ViewColumn'
-          description: List of columns in the view
-        filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/ViewFilter'
-          description: List of filters applied to the view
-        aggregations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ViewAggregation'
-          description: List of aggregations defined for the view
-        functions:
-          type: array
-          items:
-            $ref: '#/components/schemas/FunctionIdentifier'
-          description: List of functions that this view queries transformations from
-      description: A view is a table visualization of transformations that allows customers to have insight into their transformations
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
   securitySchemes:
     API_Key:
       type: apiKey

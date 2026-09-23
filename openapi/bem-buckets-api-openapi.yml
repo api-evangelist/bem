@@ -2,7 +2,9 @@ openapi: 3.2.0
 info:
   title: Bem Buckets API
   version: 1.0.0
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: 'Buckets are named partitions of the knowledge graph within an
+
+    account+environment.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +16,9 @@ security:
 - API Key: []
 tags:
 - name: Buckets
-  description: "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted."
+  description: 'Buckets are named partitions of the knowledge graph within an
+
+    account+environment.'
 paths:
   /v3/buckets:
     post:
@@ -200,18 +204,6 @@ components:
         Every account+environment has exactly one default bucket. The default
 
         bucket can be renamed but never deleted.'
-    BucketCreateRequestV3:
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          description: Bucket name. Required and unique within the account+environment.
-        description:
-          type: string
-          description: Optional description.
-      description: Request body to create a (non-default) bucket.
     BucketListResponseV3:
       type: object
       required:
@@ -239,6 +231,18 @@ components:
       description: 'Request body to update a bucket. Only the fields present are changed; the
 
         default bucket is renameable.'
+    BucketCreateRequestV3:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Bucket name. Required and unique within the account+environment.
+        description:
+          type: string
+          description: Optional description.
+      description: Request body to create a (non-default) bucket.
   securitySchemes:
     API_Key:
       type: apiKey

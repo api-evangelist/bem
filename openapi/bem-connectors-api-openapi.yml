@@ -2,23 +2,7 @@ openapi: 3.2.0
 info:
   title: Bem Connectors API
   version: 1.0.0
-  description: 'Connectors are integrations that trigger a Bem workflow from an external system.
-
-
-    A connector binds an inbound source — currently Box or a Paragon-managed integration such as
-
-    Google Drive — to a specific workflow (by `workflowName` or `workflowID`). When the source
-
-    observes a new file, Bem invokes the bound workflow against that file.
-
-
-    Use these endpoints to create, list, and remove connectors. The fields used at create time
-
-    depend on the connector `type`: Box connectors require Box credentials and a folder to watch,
-
-    while Paragon connectors carry a `paragonIntegration` identifier and an integration-specific
-
-    `paragonConfiguration` object (for example, `{ "folderId": "..." }` for Google Drive).'
+  description: Connectors are integrations that trigger a Bem workflow from an external system.
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -30,23 +14,7 @@ security:
 - API Key: []
 tags:
 - name: Connectors
-  description: 'Connectors are integrations that trigger a Bem workflow from an external system.
-
-
-    A connector binds an inbound source — currently Box or a Paragon-managed integration such as
-
-    Google Drive — to a specific workflow (by `workflowName` or `workflowID`). When the source
-
-    observes a new file, Bem invokes the bound workflow against that file.
-
-
-    Use these endpoints to create, list, and remove connectors. The fields used at create time
-
-    depend on the connector `type`: Box connectors require Box credentials and a folder to watch,
-
-    while Paragon connectors carry a `paragonIntegration` identifier and an integration-specific
-
-    `paragonConfiguration` object (for example, `{ "folderId": "..." }` for Google Drive).'
+  description: Connectors are integrations that trigger a Bem workflow from an external system.
 paths:
   /v3/connectors:
     post:
@@ -133,22 +101,6 @@ paths:
       - Connectors
 components:
   schemas:
-    ConnectorListResponseV3:
-      type: object
-      required:
-      - connectors
-      properties:
-        connectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConnectorV3'
-      description: Response body for listing connectors.
-    ConnectorTypeV3:
-      type: string
-      enum:
-      - box
-      - paragon
-      description: Connector type.
     ConnectorCreateRequestV3:
       type: object
       required:
@@ -194,6 +146,22 @@ components:
           unevaluatedProperties: {}
           description: Configuration specific to the type of integration.
       description: Request body to create a connector.
+    ConnectorListResponseV3:
+      type: object
+      required:
+      - connectors
+      properties:
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectorV3'
+      description: Response body for listing connectors.
+    ConnectorTypeV3:
+      type: string
+      enum:
+      - box
+      - paragon
+      description: Connector type.
     ConnectorV3:
       type: object
       required:

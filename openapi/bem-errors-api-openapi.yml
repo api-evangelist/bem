@@ -2,22 +2,7 @@ openapi: 3.2.0
 info:
   title: Bem Errors API
   version: 1.0.0
-  description: 'Retrieve terminal error events from workflow calls.
-
-
-    Errors are events produced by function steps that failed during processing. A single workflow
-
-    call may produce multiple error events if several steps fail independently.
-
-
-    Errors and outputs from the same call are not mutually exclusive: a partially-completed
-
-    workflow may have both.
-
-
-    Use `GET /v3/errors` to list errors across calls, or `GET /v3/errors/{eventID}` to retrieve
-
-    a specific error. To get errors scoped to a single call, filter by `callIDs`.'
+  description: Retrieve terminal error events from workflow calls.
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -29,22 +14,7 @@ security:
 - API Key: []
 tags:
 - name: Errors
-  description: 'Retrieve terminal error events from workflow calls.
-
-
-    Errors are events produced by function steps that failed during processing. A single workflow
-
-    call may produce multiple error events if several steps fail independently.
-
-
-    Errors and outputs from the same call are not mutually exclusive: a partially-completed
-
-    workflow may have both.
-
-
-    Use `GET /v3/errors` to list errors across calls, or `GET /v3/errors/{eventID}` to retrieve
-
-    a specific error. To get errors scoped to a single call, filter by `callIDs`.'
+  description: Retrieve terminal error events from workflow calls.
 paths:
   /v3/errors:
     get:
@@ -189,6 +159,15 @@ paths:
       - Errors
 components:
   schemas:
+    ErrorEventResponseV3:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          allOf:
+          - $ref: '#/components/schemas/ErrorEvent'
+          description: The error event.
     ErrorEvent:
       type: object
       required:
@@ -267,15 +246,6 @@ components:
 
             that pre-date the kind column and for non-transform errors.'
       title: Error Event
-    ErrorEventResponseV3:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          allOf:
-          - $ref: '#/components/schemas/ErrorEvent'
-          description: The error event.
     EventInboundEmail:
       type: object
       required:

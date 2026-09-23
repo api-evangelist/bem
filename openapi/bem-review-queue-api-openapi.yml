@@ -2,7 +2,9 @@ openapi: 3.2.0
 info:
   title: Bem Review Queue API
   version: 1.0.0
-  description: "The reviewer-facing read surface for entity curation, available on the\ndashboard (JWT) only.\n\n- **`GET /v3/review-queue`** returns a cursor-paginated set of entities\n  awaiting curation, scoped to your account+environment (and optional\n  `bucket`). Each row is a full entity plus a small preview (up to 2) of\n  its first mentions, so a reviewer can triage without opening every\n  entity.\n\nFilters AND together. `status` (repeatable) defaults to the pre-terminal\nstates `extracted` + `proposed` when omitted. `type` (repeatable `ety_…`\nIDs) matches the entity's *effective* type — its assigned type id, or, for\nentities with no assigned type, its bem-inferred type name. `assignedTo`\n(`me` or a `usr_…` ID) restricts to entities whose effective type the user\nreviews. `since` (RFC3339) filters by creation time. Pagination is\ncursor-based on `entityID` ascending; default limit 50, maximum 200."
+  description: 'The reviewer-facing read surface for entity curation, available on the
+
+    dashboard (JWT) only.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +16,9 @@ security:
 - API Key: []
 tags:
 - name: Review Queue
-  description: "The reviewer-facing read surface for entity curation, available on the\ndashboard (JWT) only.\n\n- **`GET /v3/review-queue`** returns a cursor-paginated set of entities\n  awaiting curation, scoped to your account+environment (and optional\n  `bucket`). Each row is a full entity plus a small preview (up to 2) of\n  its first mentions, so a reviewer can triage without opening every\n  entity.\n\nFilters AND together. `status` (repeatable) defaults to the pre-terminal\nstates `extracted` + `proposed` when omitted. `type` (repeatable `ety_…`\nIDs) matches the entity's *effective* type — its assigned type id, or, for\nentities with no assigned type, its bem-inferred type name. `assignedTo`\n(`me` or a `usr_…` ID) restricts to entities whose effective type the user\nreviews. `since` (RFC3339) filters by creation time. Pagination is\ncursor-based on `entityID` ascending; default limit 50, maximum 200."
+  description: 'The reviewer-facing read surface for entity curation, available on the
+
+    dashboard (JWT) only.'
 paths:
   /v3/review-queue:
     get:
@@ -120,24 +124,6 @@ paths:
       - Review Queue
 components:
   schemas:
-    ReviewQueueResponseV3:
-      type: object
-      required:
-      - entities
-      - hasMore
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReviewQueueEntityV3'
-          description: The page of entities awaiting curation.
-        hasMore:
-          type: boolean
-          description: Whether more rows exist beyond this page.
-        nextCursor:
-          type: string
-          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
-      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
     ReviewQueueMentionV3:
       type: object
       required:
@@ -238,6 +224,24 @@ components:
 
             page then time, so a reviewer can triage without opening each entity.'
       description: 'One row of the review queue: an entity plus a small preview of its mentions.'
+    ReviewQueueResponseV3:
+      type: object
+      required:
+      - entities
+      - hasMore
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueEntityV3'
+          description: The page of entities awaiting curation.
+        hasMore:
+          type: boolean
+          description: Whether more rows exist beyond this page.
+        nextCursor:
+          type: string
+          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
+      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
   securitySchemes:
     API_Key:
       type: apiKey

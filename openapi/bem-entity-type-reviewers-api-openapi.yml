@@ -2,7 +2,9 @@ openapi: 3.2.0
 info:
   title: Bem Entity Type Reviewers API
   version: 1.0.0
-  description: "Reviewer assignments link users to the entity types they are responsible\nfor reviewing, scoped to an account+environment. These are dashboard-only\nendpoints: an assignment needs a user identity, which only the dashboard\n(JWT) surface carries.\n\n- **`POST /v3/entity-types/{typeID}/reviewers`** assigns a user as a\n  reviewer of the type. The assignment is idempotent: re-assigning an\n  existing reviewer returns the existing assignment. Requires the `admin`\n  role.\n- **`GET /v3/entity-types/{typeID}/reviewers`** lists the users assigned\n  to review the type, with each user's email and role. Requires the\n  `operator` role.\n- **`DELETE /v3/entity-types/{typeID}/reviewers/{userID}`** removes an\n  assignment. Requires the `admin` role.\n- **`GET /v3/users/{userID}/reviewer-assignments`** is the reverse lookup:\n  the entity types a user reviews. A user may read their own assignments;\n  reading another user's assignments requires the `admin` role."
+  description: 'Reviewer assignments link users to the entity types they are responsible
+
+    for reviewing, scoped to an account+environment.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +16,9 @@ security:
 - API Key: []
 tags:
 - name: Entity Type Reviewers
-  description: "Reviewer assignments link users to the entity types they are responsible\nfor reviewing, scoped to an account+environment. These are dashboard-only\nendpoints: an assignment needs a user identity, which only the dashboard\n(JWT) surface carries.\n\n- **`POST /v3/entity-types/{typeID}/reviewers`** assigns a user as a\n  reviewer of the type. The assignment is idempotent: re-assigning an\n  existing reviewer returns the existing assignment. Requires the `admin`\n  role.\n- **`GET /v3/entity-types/{typeID}/reviewers`** lists the users assigned\n  to review the type, with each user's email and role. Requires the\n  `operator` role.\n- **`DELETE /v3/entity-types/{typeID}/reviewers/{userID}`** removes an\n  assignment. Requires the `admin` role.\n- **`GET /v3/users/{userID}/reviewer-assignments`** is the reverse lookup:\n  the entity types a user reviews. A user may read their own assignments;\n  reading another user's assignments requires the `admin` role."
+  description: 'Reviewer assignments link users to the entity types they are responsible
+
+    for reviewing, scoped to an account+environment.'
 paths:
   /v3/entity-types/{typeID}/reviewers:
     post:
@@ -120,6 +124,25 @@ components:
           items:
             $ref: '#/components/schemas/ReviewerAssignmentV3'
       description: Response body for the reverse lookup of a user's reviewer assignments.
+    ListReviewersResponseV3:
+      type: object
+      required:
+      - reviewers
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeReviewerV3'
+      description: Response body for listing the reviewers of an entity type.
+    AddReviewerRequestV3:
+      type: object
+      required:
+      - userID
+      properties:
+        userID:
+          type: string
+          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
+      description: Request body to assign a user as a reviewer for an entity type.
     ReviewerAssignmentV3:
       type: object
       required:
@@ -144,16 +167,6 @@ components:
       description: 'One entity type a user reviews, as returned by the reverse-lookup endpoint.
 
         The type is exposed via its public ID plus its name and description.'
-    ListReviewersResponseV3:
-      type: object
-      required:
-      - reviewers
-      properties:
-        reviewers:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityTypeReviewerV3'
-      description: Response body for listing the reviewers of an entity type.
     EntityTypeReviewerV3:
       type: object
       required:
@@ -184,15 +197,6 @@ components:
         for reviewing. The assignment is scoped to an account+environment and is
 
         unique per (entity type, user).'
-    AddReviewerRequestV3:
-      type: object
-      required:
-      - userID
-      properties:
-        userID:
-          type: string
-          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
-      description: Request body to assign a user as a reviewer for an entity type.
   securitySchemes:
     API_Key:
       type: apiKey

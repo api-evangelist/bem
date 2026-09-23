@@ -2,7 +2,9 @@ openapi: 3.2.0
 info:
   title: Bem Entity Synonyms API
   version: 1.0.0
-  description: "Manage the human-readable surface forms (synonyms) attached to a canonical\nentity. Synonyms feed the matcher's exact-match path, so adding the right\nsynonyms improves cross-document entity resolution.\n\n- **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`\n  synonym. If the same normalized form already exists as an `extracted`\n  synonym, it is upgraded to `customer_defined` (so the matcher weights it\n  higher); an existing customer/SME synonym is returned unchanged.\n- **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a\n  synonym. Only `customer_defined` and `sme_approved` synonyms are\n  deletable; `extracted` synonyms are resolver-owned and the request is\n  rejected with `409 Conflict`.\n\nA merged-away entity id transparently resolves to its surviving canonical\nentity, so a synonym added to a stale id lands on the entity that persists."
+  description: 'Manage the human-readable surface forms (synonyms) attached to a canonical
+
+    entity.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +16,9 @@ security:
 - API Key: []
 tags:
 - name: Entity Synonyms
-  description: "Manage the human-readable surface forms (synonyms) attached to a canonical\nentity. Synonyms feed the matcher's exact-match path, so adding the right\nsynonyms improves cross-document entity resolution.\n\n- **`POST /v3/entities/{id}/synonyms`** attaches a `customer_defined`\n  synonym. If the same normalized form already exists as an `extracted`\n  synonym, it is upgraded to `customer_defined` (so the matcher weights it\n  higher); an existing customer/SME synonym is returned unchanged.\n- **`DELETE /v3/entities/{id}/synonyms/{synonymID}`** soft-deletes a\n  synonym. Only `customer_defined` and `sme_approved` synonyms are\n  deletable; `extracted` synonyms are resolver-owned and the request is\n  rejected with `409 Conflict`.\n\nA merged-away entity id transparently resolves to its surviving canonical\nentity, so a synonym added to a stale id lands on the entity that persists."
+  description: 'Manage the human-readable surface forms (synonyms) attached to a canonical
+
+    entity.'
 paths:
   /v3/entities/{id}/synonyms:
     post:
@@ -90,22 +94,6 @@ paths:
       - Entity Synonyms
 components:
   schemas:
-    AddEntitySynonymRequestV3:
-      type: object
-      required:
-      - text
-      properties:
-        text:
-          type: string
-          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
-
-            `ACME`). It is normalized (lowercased, whitespace-folded) for the
-
-            uniqueness key and the matcher''s exact-match path.'
-        locale:
-          type: string
-          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
-      description: Request body for `POST /v3/entities/{id}/synonyms`.
     EntitySynonymV3:
       type: object
       required:
@@ -143,6 +131,22 @@ components:
           format: date-time
           description: Creation timestamp of the synonym (RFC 3339).
       description: One synonym attached to an entity.
+    AddEntitySynonymRequestV3:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
+
+            `ACME`). It is normalized (lowercased, whitespace-folded) for the
+
+            uniqueness key and the matcher''s exact-match path.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
+      description: Request body for `POST /v3/entities/{id}/synonyms`.
   securitySchemes:
     API_Key:
       type: apiKey

@@ -2,7 +2,9 @@ openapi: 3.2.0
 info:
   title: Bem Entity Types API
   version: 1.0.0
-  description: "Entity Types are the customer-defined taxonomy for the knowledge graph,\nscoped to an account+environment. Each type has a unique, immutable name\nand can be organised into hierarchies via `parentTypeID`. A type may\ncarry per-type structured attribute metadata in `attributeSchema` (for\nexample `{\"unit\": \"mg\", \"range\": [0, 100]}`).\n\nUse these endpoints to create, list, fetch, update, and delete entity\ntypes:\n\n- **`POST /v3/entity-types`** creates a type, optionally under a parent.\n- **`GET /v3/entity-types`** lists types with cursor pagination\n  (`startingAfter` / `endingBefore` over `typeID`) and an optional\n  `parentTypeId` filter for direct children.\n- **`PATCH /v3/entity-types/{typeID}`** updates `description`,\n  `parentTypeID`, and/or `attributeSchema`. The `name` is immutable.\n- **`DELETE /v3/entity-types/{typeID}`** soft-deletes a type. The request\n  is rejected with `409 Conflict` while any live entity is assigned to\n  the type or any live child type points at it."
+  description: 'Entity Types are the customer-defined taxonomy for the knowledge graph,
+
+    scoped to an account+environment.'
 servers:
 - url: https://api.bem.ai
   description: US Region API
@@ -14,7 +16,9 @@ security:
 - API Key: []
 tags:
 - name: Entity Types
-  description: "Entity Types are the customer-defined taxonomy for the knowledge graph,\nscoped to an account+environment. Each type has a unique, immutable name\nand can be organised into hierarchies via `parentTypeID`. A type may\ncarry per-type structured attribute metadata in `attributeSchema` (for\nexample `{\"unit\": \"mg\", \"range\": [0, 100]}`).\n\nUse these endpoints to create, list, fetch, update, and delete entity\ntypes:\n\n- **`POST /v3/entity-types`** creates a type, optionally under a parent.\n- **`GET /v3/entity-types`** lists types with cursor pagination\n  (`startingAfter` / `endingBefore` over `typeID`) and an optional\n  `parentTypeId` filter for direct children.\n- **`PATCH /v3/entity-types/{typeID}`** updates `description`,\n  `parentTypeID`, and/or `attributeSchema`. The `name` is immutable.\n- **`DELETE /v3/entity-types/{typeID}`** soft-deletes a type. The request\n  is rejected with `409 Conflict` while any live entity is assigned to\n  the type or any live child type points at it."
+  description: 'Entity Types are the customer-defined taxonomy for the knowledge graph,
+
+    scoped to an account+environment.'
 paths:
   /v3/entity-types:
     post:
@@ -146,47 +150,6 @@ paths:
       - Entity Types
 components:
   schemas:
-    EntityTypeV3:
-      type: object
-      required:
-      - typeID
-      - name
-      - description
-      - parentTypeID
-      - createdAt
-      - updatedAt
-      properties:
-        typeID:
-          type: string
-          description: Stable public identifier for the entity type (`ety_...`).
-        name:
-          type: string
-          description: Human-facing type name. Unique within an account+environment, and immutable once set.
-        description:
-          type: string
-          description: Optional human-facing note about the type.
-        parentTypeID:
-          type: string
-          description: 'Public ID (`ety_...`) of the parent type, or an empty string when the
-
-            type is top-level.'
-        attributeSchema:
-          description: Optional per-type structured attribute metadata.
-        createdAt:
-          type: string
-          format: date-time
-          description: Creation timestamp (RFC 3339).
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last-update timestamp (RFC 3339).
-      description: 'An EntityType is a customer-defined type in the knowledge-graph taxonomy,
-
-        scoped to an account+environment. Types may be organised into hierarchies
-
-        via `parentTypeID`, and may carry per-type structured attribute metadata in
-
-        `attributeSchema` (for example `{"unit": "mg", "range": [0, 100]}`).'
     EntityTypeCreateRequestV3:
       type: object
       required:
@@ -241,6 +204,47 @@ components:
         `name` is intentionally not updatable — it is immutable because external
 
         references key off it.'
+    EntityTypeV3:
+      type: object
+      required:
+      - typeID
+      - name
+      - description
+      - parentTypeID
+      - createdAt
+      - updatedAt
+      properties:
+        typeID:
+          type: string
+          description: Stable public identifier for the entity type (`ety_...`).
+        name:
+          type: string
+          description: Human-facing type name. Unique within an account+environment, and immutable once set.
+        description:
+          type: string
+          description: Optional human-facing note about the type.
+        parentTypeID:
+          type: string
+          description: 'Public ID (`ety_...`) of the parent type, or an empty string when the
+
+            type is top-level.'
+        attributeSchema:
+          description: Optional per-type structured attribute metadata.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp (RFC 3339).
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-update timestamp (RFC 3339).
+      description: 'An EntityType is a customer-defined type in the knowledge-graph taxonomy,
+
+        scoped to an account+environment. Types may be organised into hierarchies
+
+        via `parentTypeID`, and may carry per-type structured attribute metadata in
+
+        `attributeSchema` (for example `{"unit": "mg", "range": [0, 100]}`).'
   securitySchemes:
     API_Key:
       type: apiKey

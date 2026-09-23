@@ -44,7 +44,65 @@ paths:
     post:
       operationId: v3-infer-schema
       summary: Infer Schema from File
-      description: "**Analyze a file and infer a JSON Schema from its contents.**\n\nAccepts a file via multipart form upload and uses Gemini to analyze the document,\nreturning a description of its contents, an inferred JSON Schema capturing all\nextractable fields, and document classification metadata.\n\nThe returned schema is designed to be reusable across many similar documents of the\nsame type, not just the specific file uploaded. It can be used directly as the\n`outputSchema` when creating a Transform function.\n\nThe endpoint also detects whether the file contains multiple bundled documents\nand classifies the content nature (textual, visual, audio, video, or mixed).\n\n## Supported file types\n\nPDF, PNG, JPEG, HEIC, HEIF, WebP, CSV, XLS, XLSX, DOCX, JSON, HTML, XML, EML,\nplain text, WAV, MP3, M4A, MP4.\n\n## File size limit\n\nMaximum file size is **20 MB**.\n\n## Examples\n\nUsing curl:\n```bash\ncurl -X POST https://api.bem.ai/v3/infer-schema \\\n  -H \"x-api-key: YOUR_API_KEY\" \\\n  -F \"file=@invoice.pdf\"\n```\n\nUsing the Bem CLI:\n```bash\nbem infer-schema create --file @invoice.pdf\n```"
+      description: '**Analyze a file and infer a JSON Schema from its contents.**
+
+
+        Accepts a file via multipart form upload and uses Gemini to analyze the document,
+
+        returning a description of its contents, an inferred JSON Schema capturing all
+
+        extractable fields, and document classification metadata.
+
+
+        The returned schema is designed to be reusable across many similar documents of the
+
+        same type, not just the specific file uploaded. It can be used directly as the
+
+        `outputSchema` when creating a Transform function.
+
+
+        The endpoint also detects whether the file contains multiple bundled documents
+
+        and classifies the content nature (textual, visual, audio, video, or mixed).
+
+
+        ## Supported file types
+
+
+        PDF, PNG, JPEG, HEIC, HEIF, WebP, CSV, XLS, XLSX, DOCX, JSON, HTML, XML, EML,
+
+        plain text, WAV, MP3, M4A, MP4.
+
+
+        ## File size limit
+
+
+        Maximum file size is **20 MB**.
+
+
+        ## Examples
+
+
+        Using curl:
+
+        ```bash
+
+        curl -X POST https://api.bem.ai/v3/infer-schema \
+
+        -H "x-api-key: YOUR_API_KEY" \
+
+        -F "file=@invoice.pdf"
+
+        ```
+
+
+        Using the Bem CLI:
+
+        ```bash
+
+        bem infer-schema create --file @invoice.pdf
+
+        ```'
       parameters: []
       responses:
         '200':
@@ -72,6 +130,23 @@ paths:
                 contentType: '*/*'
 components:
   schemas:
+    DocumentTypeInfo:
+      type: object
+      required:
+      - name
+      - count
+      - description
+      properties:
+        name:
+          type: string
+          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
+        count:
+          type: integer
+          description: Number of instances of this document type in the file.
+        description:
+          type: string
+          description: Brief description of this document type.
+      description: Describes a distinct document type found in the file.
     InferSchemaAnalysis:
       type: object
       required:
@@ -121,6 +196,13 @@ components:
 
             One of: `textual`, `visual`, `audio`, `video`, `mixed`.'
       description: Analysis result returned by the infer-schema endpoint.
+    InferSchemaMultipartFormData:
+      type: object
+      properties:
+        file:
+          description: The file to analyze and infer a JSON schema from.
+      required:
+      - file
     InferSchemaResponseV3:
       type: object
       required:
@@ -135,30 +217,6 @@ components:
           - $ref: '#/components/schemas/InferSchemaAnalysis'
           description: Full analysis result including description, schema, and document classification.
       description: Response from the infer-schema endpoint.
-    DocumentTypeInfo:
-      type: object
-      required:
-      - name
-      - count
-      - description
-      properties:
-        name:
-          type: string
-          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
-        count:
-          type: integer
-          description: Number of instances of this document type in the file.
-        description:
-          type: string
-          description: Brief description of this document type.
-      description: Describes a distinct document type found in the file.
-    InferSchemaMultipartFormData:
-      type: object
-      properties:
-        file:
-          description: The file to analyze and infer a JSON schema from.
-      required:
-      - file
     HTTPError:
       type: object
       required:
