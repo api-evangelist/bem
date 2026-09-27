@@ -94,6 +94,22 @@ paths:
       - Entity Synonyms
 components:
   schemas:
+    AddEntitySynonymRequestV3:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
+
+            `ACME`). It is normalized (lowercased, whitespace-folded) for the
+
+            uniqueness key and the matcher''s exact-match path.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
+      description: Request body for `POST /v3/entities/{id}/synonyms`.
     EntitySynonymV3:
       type: object
       required:
@@ -131,22 +147,6 @@ components:
           format: date-time
           description: Creation timestamp of the synonym (RFC 3339).
       description: One synonym attached to an entity.
-    AddEntitySynonymRequestV3:
-      type: object
-      required:
-      - text
-      properties:
-        text:
-          type: string
-          description: 'The human-readable synonym surface form to attach (e.g. `Acme Corp`,
-
-            `ACME`). It is normalized (lowercased, whitespace-folded) for the
-
-            uniqueness key and the matcher''s exact-match path.'
-        locale:
-          type: string
-          description: Optional BCP 47 locale tag (e.g. `en-US`) for language-specific synonyms.
-      description: Request body for `POST /v3/entities/{id}/synonyms`.
   securitySchemes:
     API_Key:
       type: apiKey

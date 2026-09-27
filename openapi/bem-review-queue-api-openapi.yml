@@ -124,6 +124,24 @@ paths:
       - Review Queue
 components:
   schemas:
+    ReviewQueueResponseV3:
+      type: object
+      required:
+      - entities
+      - hasMore
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueEntityV3'
+          description: The page of entities awaiting curation.
+        hasMore:
+          type: boolean
+          description: Whether more rows exist beyond this page.
+        nextCursor:
+          type: string
+          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
+      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
     ReviewQueueMentionV3:
       type: object
       required:
@@ -224,24 +242,6 @@ components:
 
             page then time, so a reviewer can triage without opening each entity.'
       description: 'One row of the review queue: an entity plus a small preview of its mentions.'
-    ReviewQueueResponseV3:
-      type: object
-      required:
-      - entities
-      - hasMore
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReviewQueueEntityV3'
-          description: The page of entities awaiting curation.
-        hasMore:
-          type: boolean
-          description: Whether more rows exist beyond this page.
-        nextCursor:
-          type: string
-          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
-      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
   securitySchemes:
     API_Key:
       type: apiKey

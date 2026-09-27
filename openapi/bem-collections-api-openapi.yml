@@ -317,18 +317,6 @@ paths:
               $ref: '#/components/schemas/CountTokensRequestV3'
 components:
   schemas:
-    CollectionItemInputV3:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          oneOf:
-          - type: string
-          - type: object
-            unevaluatedProperties: {}
-          description: The data to be embedded and stored (string or JSON object)
-      description: Data for creating a new item in a collection
     CollectionResponseV3:
       type: object
       required:
@@ -369,87 +357,6 @@ components:
           format: date-time
           description: When the collection was last updated
       description: Collection details
-    CountTokensResponseV3:
-      type: object
-      properties:
-        token_counts:
-          type: array
-          items:
-            $ref: '#/components/schemas/CountTokensItemV3'
-          description: Per-text tokenization results in the same order as the request.
-        total_tokens:
-          type: integer
-          description: Sum of `token_count` across all texts.
-        max_token_limit:
-          type: integer
-          description: Maximum tokens allowed per text by the embedding model.
-        texts_exceeding_limit:
-          type: integer
-          description: Number of input texts that exceed `max_token_limit`.
-      description: Response for the token count endpoint.
-    CollectionItemV3:
-      type: object
-      required:
-      - collectionItemID
-      - data
-      - createdAt
-      - updatedAt
-      properties:
-        collectionItemID:
-          type: string
-          description: Unique identifier for the item
-        data:
-          oneOf:
-          - type: string
-          - type: object
-            unevaluatedProperties: {}
-          description: The data stored in this item
-        createdAt:
-          type: string
-          format: date-time
-          description: When the item was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the item was last updated
-      description: A single item in a collection
-    CollectionMetadataV3:
-      type: object
-      required:
-      - collectionID
-      - collectionName
-      - itemCount
-      - createdAt
-      properties:
-        collectionID:
-          type: string
-          description: Unique identifier for the collection
-        collectionName:
-          type: string
-          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
-        itemCount:
-          type: integer
-          description: Number of items in the collection
-        createdAt:
-          type: string
-          format: date-time
-          description: When the collection was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the collection was last updated
-      description: Collection metadata without items
-    CountTokensRequestV3:
-      type: object
-      required:
-      - texts
-      properties:
-        texts:
-          type: array
-          items:
-            type: string
-          description: One or more texts to tokenize.
-      description: Request body for counting tokens against the embedding tokenizer.
     ListCollectionsResponseV3:
       type: object
       required:
@@ -477,22 +384,6 @@ components:
           type: integer
           description: Total number of pages
       description: Response for listing collections
-    CountTokensItemV3:
-      type: object
-      properties:
-        index:
-          type: integer
-          description: Zero-based position of this entry in the request `texts` array.
-        token_count:
-          type: integer
-          description: Number of tokens produced by the tokenizer.
-        exceeds_limit:
-          type: boolean
-          description: True if `token_count` exceeds the embedding model's per-text limit.
-        char_count:
-          type: integer
-          description: Character count of the input text.
-      description: Per-text token count result.
     UpdateCollectionItemsResponseV3:
       type: object
       required:
@@ -520,85 +411,6 @@ components:
             $ref: '#/components/schemas/CollectionItemV3'
           description: Array of items that were updated (only present in synchronous mode, deprecated)
       description: Response after queuing items for async update
-    AddCollectionItemsRequestV3:
-      type: object
-      required:
-      - collectionName
-      - items
-      properties:
-        collectionName:
-          type: string
-          description: 'The name/path of the collection. Must use only letters, digits, underscores, and dots.
-
-            Each segment must start with a letter or underscore.'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionItemInputV3'
-          minItems: 1
-          maxItems: 100
-          description: Array of items to add (maximum 100 items per request)
-      description: Request to add new items to a collection
-    CollectionItemUpdateV3:
-      type: object
-      required:
-      - collectionItemID
-      - data
-      properties:
-        collectionItemID:
-          type: string
-          description: Unique identifier for the item to update
-        data:
-          oneOf:
-          - type: string
-          - type: object
-            unevaluatedProperties: {}
-          description: The updated data to be embedded and stored (string or JSON object)
-      description: Data for updating an existing item in a collection
-    CreateCollectionRequestV3:
-      type: object
-      required:
-      - collectionName
-      properties:
-        collectionName:
-          type: string
-          description: 'Unique name/path for the collection. Supports dot notation for hierarchical paths.
-
-
-            - Only letters (a-z, A-Z), digits (0-9), underscores (_), and dots (.) are allowed
-
-            - Each segment (between dots) must start with a letter or underscore (not a digit)
-
-            - Segments cannot consist only of digits
-
-            - Each segment must be 1-256 characters
-
-            - No leading, trailing, or consecutive dots
-
-            - Invalid names are rejected with a 400 Bad Request error
-
-
-            **Valid Examples:**
-
-            - ''product_catalog''
-
-            - ''orders.line_items.sku''
-
-            - ''customer_data''
-
-            - ''price_v2''
-
-
-            **Invalid Examples:**
-
-            - ''product-catalog'' (contains hyphen)
-
-            - ''123items'' (starts with digit)
-
-            - ''items..data'' (consecutive dots)
-
-            - ''order#123'' (contains invalid character #)'
-      description: Request to create a new collection
     AddCollectionItemsResponseV3:
       type: object
       required:
@@ -645,6 +457,194 @@ components:
           maxItems: 100
           description: Array of items to update (maximum 100 items per request)
       description: Request to update existing items in a collection
+    CountTokensItemV3:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: Zero-based position of this entry in the request `texts` array.
+        token_count:
+          type: integer
+          description: Number of tokens produced by the tokenizer.
+        exceeds_limit:
+          type: boolean
+          description: True if `token_count` exceeds the embedding model's per-text limit.
+        char_count:
+          type: integer
+          description: Character count of the input text.
+      description: Per-text token count result.
+    AddCollectionItemsRequestV3:
+      type: object
+      required:
+      - collectionName
+      - items
+      properties:
+        collectionName:
+          type: string
+          description: 'The name/path of the collection. Must use only letters, digits, underscores, and dots.
+
+            Each segment must start with a letter or underscore.'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionItemInputV3'
+          minItems: 1
+          maxItems: 100
+          description: Array of items to add (maximum 100 items per request)
+      description: Request to add new items to a collection
+    CountTokensResponseV3:
+      type: object
+      properties:
+        token_counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountTokensItemV3'
+          description: Per-text tokenization results in the same order as the request.
+        total_tokens:
+          type: integer
+          description: Sum of `token_count` across all texts.
+        max_token_limit:
+          type: integer
+          description: Maximum tokens allowed per text by the embedding model.
+        texts_exceeding_limit:
+          type: integer
+          description: Number of input texts that exceed `max_token_limit`.
+      description: Response for the token count endpoint.
+    CollectionMetadataV3:
+      type: object
+      required:
+      - collectionID
+      - collectionName
+      - itemCount
+      - createdAt
+      properties:
+        collectionID:
+          type: string
+          description: Unique identifier for the collection
+        collectionName:
+          type: string
+          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
+        itemCount:
+          type: integer
+          description: Number of items in the collection
+        createdAt:
+          type: string
+          format: date-time
+          description: When the collection was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the collection was last updated
+      description: Collection metadata without items
+    CollectionItemUpdateV3:
+      type: object
+      required:
+      - collectionItemID
+      - data
+      properties:
+        collectionItemID:
+          type: string
+          description: Unique identifier for the item to update
+        data:
+          oneOf:
+          - type: string
+          - type: object
+            unevaluatedProperties: {}
+          description: The updated data to be embedded and stored (string or JSON object)
+      description: Data for updating an existing item in a collection
+    CollectionItemInputV3:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          oneOf:
+          - type: string
+          - type: object
+            unevaluatedProperties: {}
+          description: The data to be embedded and stored (string or JSON object)
+      description: Data for creating a new item in a collection
+    CollectionItemV3:
+      type: object
+      required:
+      - collectionItemID
+      - data
+      - createdAt
+      - updatedAt
+      properties:
+        collectionItemID:
+          type: string
+          description: Unique identifier for the item
+        data:
+          oneOf:
+          - type: string
+          - type: object
+            unevaluatedProperties: {}
+          description: The data stored in this item
+        createdAt:
+          type: string
+          format: date-time
+          description: When the item was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the item was last updated
+      description: A single item in a collection
+    CountTokensRequestV3:
+      type: object
+      required:
+      - texts
+      properties:
+        texts:
+          type: array
+          items:
+            type: string
+          description: One or more texts to tokenize.
+      description: Request body for counting tokens against the embedding tokenizer.
+    CreateCollectionRequestV3:
+      type: object
+      required:
+      - collectionName
+      properties:
+        collectionName:
+          type: string
+          description: 'Unique name/path for the collection. Supports dot notation for hierarchical paths.
+
+
+            - Only letters (a-z, A-Z), digits (0-9), underscores (_), and dots (.) are allowed
+
+            - Each segment (between dots) must start with a letter or underscore (not a digit)
+
+            - Segments cannot consist only of digits
+
+            - Each segment must be 1-256 characters
+
+            - No leading, trailing, or consecutive dots
+
+            - Invalid names are rejected with a 400 Bad Request error
+
+
+            **Valid Examples:**
+
+            - ''product_catalog''
+
+            - ''orders.line_items.sku''
+
+            - ''customer_data''
+
+            - ''price_v2''
+
+
+            **Invalid Examples:**
+
+            - ''product-catalog'' (contains hyphen)
+
+            - ''123items'' (starts with digit)
+
+            - ''items..data'' (consecutive dots)
+
+            - ''order#123'' (contains invalid character #)'
+      description: Request to create a new collection
   securitySchemes:
     API_Key:
       type: apiKey

@@ -130,23 +130,6 @@ paths:
                 contentType: '*/*'
 components:
   schemas:
-    DocumentTypeInfo:
-      type: object
-      required:
-      - name
-      - count
-      - description
-      properties:
-        name:
-          type: string
-          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
-        count:
-          type: integer
-          description: Number of instances of this document type in the file.
-        description:
-          type: string
-          description: Brief description of this document type.
-      description: Describes a distinct document type found in the file.
     InferSchemaAnalysis:
       type: object
       required:
@@ -196,13 +179,6 @@ components:
 
             One of: `textual`, `visual`, `audio`, `video`, `mixed`.'
       description: Analysis result returned by the infer-schema endpoint.
-    InferSchemaMultipartFormData:
-      type: object
-      properties:
-        file:
-          description: The file to analyze and infer a JSON schema from.
-      required:
-      - file
     InferSchemaResponseV3:
       type: object
       required:
@@ -234,6 +210,30 @@ components:
           description: Additional error details (optional)
           title: Error Details
       description: Standard HTTP error response
+    DocumentTypeInfo:
+      type: object
+      required:
+      - name
+      - count
+      - description
+      properties:
+        name:
+          type: string
+          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
+        count:
+          type: integer
+          description: Number of instances of this document type in the file.
+        description:
+          type: string
+          description: Brief description of this document type.
+      description: Describes a distinct document type found in the file.
+    InferSchemaMultipartFormData:
+      type: object
+      properties:
+        file:
+          description: The file to analyze and infer a JSON schema from.
+      required:
+      - file
   securitySchemes:
     API_Key:
       type: apiKey

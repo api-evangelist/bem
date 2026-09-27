@@ -150,25 +150,6 @@ paths:
       - Entity Types
 components:
   schemas:
-    EntityTypeCreateRequestV3:
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          description: Type name. Required and unique within the account+environment.
-        description:
-          type: string
-          description: Optional description.
-        parentTypeID:
-          type: string
-          description: 'Optional public ID (`ety_...`) of the parent type. Must belong to the
-
-            same account+environment.'
-        attributeSchema:
-          description: Optional per-type structured attribute metadata.
-      description: Request body to create an entity type.
     EntityTypeListResponseV3:
       type: object
       required:
@@ -204,6 +185,25 @@ components:
         `name` is intentionally not updatable — it is immutable because external
 
         references key off it.'
+    EntityTypeCreateRequestV3:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Type name. Required and unique within the account+environment.
+        description:
+          type: string
+          description: Optional description.
+        parentTypeID:
+          type: string
+          description: 'Optional public ID (`ety_...`) of the parent type. Must belong to the
+
+            same account+environment.'
+        attributeSchema:
+          description: Optional per-type structured attribute metadata.
+      description: Request body to create an entity type.
     EntityTypeV3:
       type: object
       required:

@@ -246,6 +246,20 @@ components:
 
             that pre-date the kind column and for non-transform errors.'
       title: Error Event
+    ListErrorsResponseV3:
+      type: object
+      required:
+      - errors
+      - totalCount
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorEvent'
+          description: Array of terminal error events.
+        totalCount:
+          type: integer
+          description: The total number of results available.
     EventInboundEmail:
       type: object
       required:
@@ -265,20 +279,6 @@ components:
         subject:
           type: string
           description: The subject of the email.
-    ListErrorsResponseV3:
-      type: object
-      required:
-      - errors
-      - totalCount
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorEvent'
-          description: Array of terminal error events.
-        totalCount:
-          type: integer
-          description: The total number of results available.
   securitySchemes:
     API_Key:
       type: apiKey

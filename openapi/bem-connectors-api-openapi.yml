@@ -101,51 +101,6 @@ paths:
       - Connectors
 components:
   schemas:
-    ConnectorCreateRequestV3:
-      type: object
-      required:
-      - type
-      - name
-      properties:
-        type:
-          allOf:
-          - $ref: '#/components/schemas/ConnectorTypeV3'
-          description: The connector type.
-        name:
-          type: string
-          description: Human-friendly name for this connector.
-        workflowID:
-          type: string
-          description: 'One of `workflowID` or `workflowName` must be provided.
-
-
-            If both are provided, they must refer to the same workflow.'
-        workflowName:
-          type: string
-          description: 'One of `workflowID` or `workflowName` must be provided.
-
-
-            If both are provided, they must refer to the same workflow.'
-        boxClientID:
-          type: string
-          description: Box client ID (from your Box application).
-        boxClientSecret:
-          type: string
-          description: Box client secret (from your Box application).
-        boxEnterpriseID:
-          type: string
-          description: Box enterprise ID.
-        boxFolderID:
-          type: string
-          description: Box folder ID to watch for new uploads.
-        paragonIntegration:
-          type: string
-          description: Paragon integration, eg. "googledrive".
-        paragonConfiguration:
-          type: object
-          unevaluatedProperties: {}
-          description: Configuration specific to the type of integration.
-      description: Request body to create a connector.
     ConnectorListResponseV3:
       type: object
       required:
@@ -156,12 +111,6 @@ components:
           items:
             $ref: '#/components/schemas/ConnectorV3'
       description: Response body for listing connectors.
-    ConnectorTypeV3:
-      type: string
-      enum:
-      - box
-      - paragon
-      description: Connector type.
     ConnectorV3:
       type: object
       required:
@@ -220,6 +169,57 @@ components:
           unevaluatedProperties: {}
           description: Configuration specific to the type of integration.
       description: A Connector represents an integration that triggers a Bem workflow from an external system.
+    ConnectorCreateRequestV3:
+      type: object
+      required:
+      - type
+      - name
+      properties:
+        type:
+          allOf:
+          - $ref: '#/components/schemas/ConnectorTypeV3'
+          description: The connector type.
+        name:
+          type: string
+          description: Human-friendly name for this connector.
+        workflowID:
+          type: string
+          description: 'One of `workflowID` or `workflowName` must be provided.
+
+
+            If both are provided, they must refer to the same workflow.'
+        workflowName:
+          type: string
+          description: 'One of `workflowID` or `workflowName` must be provided.
+
+
+            If both are provided, they must refer to the same workflow.'
+        boxClientID:
+          type: string
+          description: Box client ID (from your Box application).
+        boxClientSecret:
+          type: string
+          description: Box client secret (from your Box application).
+        boxEnterpriseID:
+          type: string
+          description: Box enterprise ID.
+        boxFolderID:
+          type: string
+          description: Box folder ID to watch for new uploads.
+        paragonIntegration:
+          type: string
+          description: Paragon integration, eg. "googledrive".
+        paragonConfiguration:
+          type: object
+          unevaluatedProperties: {}
+          description: Configuration specific to the type of integration.
+      description: Request body to create a connector.
+    ConnectorTypeV3:
+      type: string
+      enum:
+      - box
+      - paragon
+      description: Connector type.
   securitySchemes:
     API_Key:
       type: apiKey

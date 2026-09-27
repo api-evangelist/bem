@@ -86,6 +86,33 @@ paths:
       - Entity Bulk Seed
 components:
   schemas:
+    BulkSeedEntitiesRequestV3:
+      type: object
+      required:
+      - entities
+      properties:
+        bucket:
+          type: string
+          description: 'Optional bucket public ID (`bkt_...`) to seed into. Omit to use the
+
+            account+environment default bucket.'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkSeedEntityInputV3'
+          description: The entities to seed. Must be non-empty.
+        onConflict:
+          type: string
+          enum:
+          - merge
+          description: 'Conflict strategy for an entity that already exists. Only `merge` is
+
+            supported and it is the default: synonyms are added additively, a longer
+
+            description replaces the old one, and attributes are merged with new keys
+
+            winning.'
+      description: Request body for `POST /v3/entities/bulk`.
     SeedSummaryV3:
       type: object
       required:
@@ -159,75 +186,6 @@ components:
 
             to be rejected.'
       description: One entity to seed in a `POST /v3/entities/bulk` batch.
-    SeedRowResultV3:
-      type: object
-      required:
-      - canonical
-      - outcome
-      properties:
-        canonical:
-          type: string
-          description: The canonical name from the input row.
-        outcome:
-          type: string
-          enum:
-          - created
-          - merged-with
-          - rejected
-          description: 'What happened to this row: `created` (new entity), `merged-with` (matched
-
-            an existing entity), or `rejected` (see `reason`).'
-        entityID:
-          type: string
-          description: Public ID (`ent_...`) of the created or merged entity. Absent when rejected.
-        reason:
-          type: string
-          description: Human-readable explanation when `outcome` is `rejected`.
-      description: The outcome of seeding one row.
-    BulkSeedAsyncResponseV3:
-      type: object
-      required:
-      - seedJobID
-      - status
-      - statusURL
-      properties:
-        seedJobID:
-          type: string
-          description: Public ID (`esj_...`) of the seed job to poll.
-        status:
-          type: string
-          description: Initial status, always `pending`.
-        statusURL:
-          type: string
-          description: Relative URL to poll for completion (`/v3/entities/seed/{id}`).
-      description: '`202` response for an asynchronously processed (large) batch.'
-    BulkSeedEntitiesRequestV3:
-      type: object
-      required:
-      - entities
-      properties:
-        bucket:
-          type: string
-          description: 'Optional bucket public ID (`bkt_...`) to seed into. Omit to use the
-
-            account+environment default bucket.'
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/BulkSeedEntityInputV3'
-          description: The entities to seed. Must be non-empty.
-        onConflict:
-          type: string
-          enum:
-          - merge
-          description: 'Conflict strategy for an entity that already exists. Only `merge` is
-
-            supported and it is the default: synonyms are added additively, a longer
-
-            description replaces the old one, and attributes are merged with new keys
-
-            winning.'
-      description: Request body for `POST /v3/entities/bulk`.
     SeedJobStatusResponseV3:
       type: object
       required:
@@ -274,6 +232,48 @@ components:
           type: string
           description: Terminal error message when `status` is `failed`.
       description: '`GET /v3/entities/seed/{id}` response.'
+    BulkSeedAsyncResponseV3:
+      type: object
+      required:
+      - seedJobID
+      - status
+      - statusURL
+      properties:
+        seedJobID:
+          type: string
+          description: Public ID (`esj_...`) of the seed job to poll.
+        status:
+          type: string
+          description: Initial status, always `pending`.
+        statusURL:
+          type: string
+          description: Relative URL to poll for completion (`/v3/entities/seed/{id}`).
+      description: '`202` response for an asynchronously processed (large) batch.'
+    SeedRowResultV3:
+      type: object
+      required:
+      - canonical
+      - outcome
+      properties:
+        canonical:
+          type: string
+          description: The canonical name from the input row.
+        outcome:
+          type: string
+          enum:
+          - created
+          - merged-with
+          - rejected
+          description: 'What happened to this row: `created` (new entity), `merged-with` (matched
+
+            an existing entity), or `rejected` (see `reason`).'
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the created or merged entity. Absent when rejected.
+        reason:
+          type: string
+          description: Human-readable explanation when `outcome` is `rejected`.
+      description: The outcome of seeding one row.
   securitySchemes:
     API_Key:
       type: apiKey

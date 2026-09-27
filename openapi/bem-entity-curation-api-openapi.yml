@@ -99,67 +99,6 @@ components:
           - rejected
           description: Terminal status to apply to every entity.
       description: Request body for `POST /v3/entities/bulk-validate`.
-    BulkValidateSummaryV3:
-      type: object
-      required:
-      - validated
-      - skipped
-      - rejectedRow
-      properties:
-        validated:
-          type: integer
-          format: int32
-          description: Rows whose transition was applied.
-        skipped:
-          type: integer
-          format: int32
-          description: Rows skipped (not found / not authorized).
-        rejectedRow:
-          type: integer
-          format: int32
-          description: Rows whose transition was illegal.
-      description: Per-outcome tally across a bulk-validate batch.
-    UpdateEntityRequestV3:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - approved
-          - rejected
-          description: 'Transition the entity''s curation status. Only `approved` or `rejected` are
-
-            accepted, and only from `extracted` or `proposed` (any other transition is
-
-            rejected with `409`).'
-        assignedTypeID:
-          type: string
-          description: 'The `ety_...` public ID of the type to assign (overriding the bem-inferred
-
-            type). The empty string clears the assignment. Omit to leave unchanged.'
-        canonical:
-          type: string
-          description: Replace the entity's canonical surface form (re-derives its normalized form).
-        addSynonyms:
-          type: array
-          items:
-            type: string
-          description: Surface forms to attach as `customer_defined` synonyms.
-        removeSynonymIDs:
-          type: array
-          items:
-            type: string
-          description: '`esn_...` synonym IDs to soft-delete. Only `customer_defined` /
-
-            `sme_approved` synonyms may be removed; an `extracted` synonym is rejected
-
-            with `409`.'
-        locale:
-          type: string
-          description: Optional BCP 47 locale tag stamped on any added synonyms.
-      description: 'Request body for `PATCH /v3/entities/{id}`. Every field is optional, but at
-
-        least one must be present.'
     EntityResponseV3:
       type: object
       required:
@@ -220,22 +159,6 @@ components:
           type: string
           description: '`usr_...` public ID of the validating user (dashboard transitions only).'
       description: An entity record, including its curation status and assigned type.
-    BulkValidateEntitiesResponseV3:
-      type: object
-      required:
-      - results
-      - summary
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/BulkValidateRowResultV3'
-          description: Per-row outcomes, in request order.
-        summary:
-          allOf:
-          - $ref: '#/components/schemas/BulkValidateSummaryV3'
-          description: Aggregate counts.
-      description: '`200` response for `POST /v3/entities/bulk-validate`.'
     BulkValidateRowResultV3:
       type: object
       required:
@@ -260,6 +183,83 @@ components:
           type: string
           description: Explanation for a `skipped` or `rejected-row` outcome.
       description: The outcome of validating one row.
+    UpdateEntityRequestV3:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: 'Transition the entity''s curation status. Only `approved` or `rejected` are
+
+            accepted, and only from `extracted` or `proposed` (any other transition is
+
+            rejected with `409`).'
+        assignedTypeID:
+          type: string
+          description: 'The `ety_...` public ID of the type to assign (overriding the bem-inferred
+
+            type). The empty string clears the assignment. Omit to leave unchanged.'
+        canonical:
+          type: string
+          description: Replace the entity's canonical surface form (re-derives its normalized form).
+        addSynonyms:
+          type: array
+          items:
+            type: string
+          description: Surface forms to attach as `customer_defined` synonyms.
+        removeSynonymIDs:
+          type: array
+          items:
+            type: string
+          description: '`esn_...` synonym IDs to soft-delete. Only `customer_defined` /
+
+            `sme_approved` synonyms may be removed; an `extracted` synonym is rejected
+
+            with `409`.'
+        locale:
+          type: string
+          description: Optional BCP 47 locale tag stamped on any added synonyms.
+      description: 'Request body for `PATCH /v3/entities/{id}`. Every field is optional, but at
+
+        least one must be present.'
+    BulkValidateSummaryV3:
+      type: object
+      required:
+      - validated
+      - skipped
+      - rejectedRow
+      properties:
+        validated:
+          type: integer
+          format: int32
+          description: Rows whose transition was applied.
+        skipped:
+          type: integer
+          format: int32
+          description: Rows skipped (not found / not authorized).
+        rejectedRow:
+          type: integer
+          format: int32
+          description: Rows whose transition was illegal.
+      description: Per-outcome tally across a bulk-validate batch.
+    BulkValidateEntitiesResponseV3:
+      type: object
+      required:
+      - results
+      - summary
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkValidateRowResultV3'
+          description: Per-row outcomes, in request order.
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/BulkValidateSummaryV3'
+          description: Aggregate counts.
+      description: '`200` response for `POST /v3/entities/bulk-validate`.'
   securitySchemes:
     API_Key:
       type: apiKey

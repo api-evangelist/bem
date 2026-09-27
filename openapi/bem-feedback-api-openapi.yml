@@ -99,13 +99,6 @@ components:
 
 
         `orderMatching` is honored only for extract events (defaults to `false`); ignored for join/classify.'
-    FeedbackFunctionType:
-      type: string
-      enum:
-      - extract
-      - classify
-      - join
-      description: Function types that support feedback submission.
     FeedbackResponse:
       type: object
       required:
@@ -124,6 +117,13 @@ components:
           format: date-time
           description: Server timestamp when the correction was persisted (RFC 3339).
       description: Echoed response after a correction is recorded.
+    FeedbackFunctionType:
+      type: string
+      enum:
+      - extract
+      - classify
+      - join
+      description: Function types that support feedback submission.
   securitySchemes:
     API_Key:
       type: apiKey
