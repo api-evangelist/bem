@@ -124,61 +124,6 @@ paths:
       - Review Queue
 components:
   schemas:
-    ReviewQueueResponseV3:
-      type: object
-      required:
-      - entities
-      - hasMore
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReviewQueueEntityV3'
-          description: The page of entities awaiting curation.
-        hasMore:
-          type: boolean
-          description: Whether more rows exist beyond this page.
-        nextCursor:
-          type: string
-          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
-      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
-    ReviewQueueMentionV3:
-      type: object
-      required:
-      - mentionID
-      - entityID
-      - referenceID
-      - page
-      - surface
-      - createdAt
-      properties:
-        mentionID:
-          type: string
-          description: Public ID (`emn_...`) of this mention.
-        entityID:
-          type: string
-          description: Public ID (`ent_...`) of the entity this mention resolves to.
-        referenceID:
-          type: string
-          description: The user-provided document handle this mention came from.
-        transformationID:
-          type: string
-          description: Public ID of the parse transformation that produced this mention, when known.
-        page:
-          type: integer
-          format: int32
-          description: 1-indexed page number within the source document.
-        sectionLabel:
-          type: string
-          description: The parse-emitted section label this mention sat under, when present.
-        surface:
-          type: string
-          description: The exact surface string Parse extracted on the page.
-        createdAt:
-          type: string
-          format: date-time
-          description: When this mention was recorded.
-      description: A single per-document occurrence of an entity, used in review-queue previews.
     ReviewQueueEntityV3:
       type: object
       required:
@@ -242,6 +187,61 @@ components:
 
             page then time, so a reviewer can triage without opening each entity.'
       description: 'One row of the review queue: an entity plus a small preview of its mentions.'
+    ReviewQueueMentionV3:
+      type: object
+      required:
+      - mentionID
+      - entityID
+      - referenceID
+      - page
+      - surface
+      - createdAt
+      properties:
+        mentionID:
+          type: string
+          description: Public ID (`emn_...`) of this mention.
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the entity this mention resolves to.
+        referenceID:
+          type: string
+          description: The user-provided document handle this mention came from.
+        transformationID:
+          type: string
+          description: Public ID of the parse transformation that produced this mention, when known.
+        page:
+          type: integer
+          format: int32
+          description: 1-indexed page number within the source document.
+        sectionLabel:
+          type: string
+          description: The parse-emitted section label this mention sat under, when present.
+        surface:
+          type: string
+          description: The exact surface string Parse extracted on the page.
+        createdAt:
+          type: string
+          format: date-time
+          description: When this mention was recorded.
+      description: A single per-document occurrence of an entity, used in review-queue previews.
+    ReviewQueueResponseV3:
+      type: object
+      required:
+      - entities
+      - hasMore
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueEntityV3'
+          description: The page of entities awaiting curation.
+        hasMore:
+          type: boolean
+          description: Whether more rows exist beyond this page.
+        nextCursor:
+          type: string
+          description: Opaque cursor to pass as `?cursor=` for the next page. Empty when `hasMore` is false.
+      description: '`GET /v3/review-queue` response. Cursor-paginated by `entityID` ascending.'
   securitySchemes:
     API_Key:
       type: apiKey

@@ -179,37 +179,6 @@ components:
 
             One of: `textual`, `visual`, `audio`, `video`, `mixed`.'
       description: Analysis result returned by the infer-schema endpoint.
-    InferSchemaResponseV3:
-      type: object
-      required:
-      - filename
-      - analysis
-      properties:
-        filename:
-          type: string
-          description: Original filename of the uploaded file.
-        analysis:
-          allOf:
-          - $ref: '#/components/schemas/InferSchemaAnalysis'
-          description: Full analysis result including description, schema, and document classification.
-      description: Response from the infer-schema endpoint.
-    HTTPError:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: Error message describing what went wrong
-        code:
-          type: integer
-          description: HTTP status code
-        details:
-          type: object
-          unevaluatedProperties: {}
-          description: Additional error details (optional)
-          title: Error Details
-      description: Standard HTTP error response
     DocumentTypeInfo:
       type: object
       required:
@@ -227,6 +196,37 @@ components:
           type: string
           description: Brief description of this document type.
       description: Describes a distinct document type found in the file.
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
+    InferSchemaResponseV3:
+      type: object
+      required:
+      - filename
+      - analysis
+      properties:
+        filename:
+          type: string
+          description: Original filename of the uploaded file.
+        analysis:
+          allOf:
+          - $ref: '#/components/schemas/InferSchemaAnalysis'
+          description: Full analysis result including description, schema, and document classification.
+      description: Response from the infer-schema endpoint.
     InferSchemaMultipartFormData:
       type: object
       properties:

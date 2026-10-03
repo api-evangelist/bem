@@ -201,6 +201,57 @@ components:
         googleDriveFolderID:
           type: string
           description: Google Drive folder ID for syncing output data to Google Drive.
+    CreateSubscriptionV3:
+      type: object
+      required:
+      - name
+      - type
+      properties:
+        name:
+          type: string
+          description: Name of subscription.
+        type:
+          type: string
+          enum:
+          - transform
+          - analyze
+          - route
+          - join
+          - split_collection
+          - split_item
+          - evaluation
+          - error
+          - payload_shaping
+          - enrich
+          - collection_processing
+          description: Type of subscription.
+        functionName:
+          type: string
+          description: Unique name of function this subscription listens to (required for function-based subscriptions).
+        functionID:
+          type: string
+          description: Unique identifier of function this subscription listens to (alternative to functionName).
+        collectionName:
+          type: string
+          description: Name of collection this subscription listens to (required for collection-based subscriptions).
+        collectionID:
+          type: string
+          description: Unique identifier of collection this subscription listens to (alternative to collectionName).
+        disabled:
+          type: boolean
+          description: Toggles whether subscription is active or not.
+        webhookURL:
+          type: string
+          description: URL bem will send webhook requests to.
+        s3Bucket:
+          type: string
+          description: S3 bucket name for syncing output data to AWS S3.
+        s3FilePath:
+          type: string
+          description: S3 file path for syncing output data to AWS S3.
+        googleDriveFolderID:
+          type: string
+          description: Google Drive folder ID for syncing output data to Google Drive.
     SubscriptionV3:
       type: object
       required:
@@ -257,57 +308,6 @@ components:
           type: string
           description: Google Drive folder ID for syncing output data to Google Drive.
       title: Subscription
-    CreateSubscriptionV3:
-      type: object
-      required:
-      - name
-      - type
-      properties:
-        name:
-          type: string
-          description: Name of subscription.
-        type:
-          type: string
-          enum:
-          - transform
-          - analyze
-          - route
-          - join
-          - split_collection
-          - split_item
-          - evaluation
-          - error
-          - payload_shaping
-          - enrich
-          - collection_processing
-          description: Type of subscription.
-        functionName:
-          type: string
-          description: Unique name of function this subscription listens to (required for function-based subscriptions).
-        functionID:
-          type: string
-          description: Unique identifier of function this subscription listens to (alternative to functionName).
-        collectionName:
-          type: string
-          description: Name of collection this subscription listens to (required for collection-based subscriptions).
-        collectionID:
-          type: string
-          description: Unique identifier of collection this subscription listens to (alternative to collectionName).
-        disabled:
-          type: boolean
-          description: Toggles whether subscription is active or not.
-        webhookURL:
-          type: string
-          description: URL bem will send webhook requests to.
-        s3Bucket:
-          type: string
-          description: S3 bucket name for syncing output data to AWS S3.
-        s3FilePath:
-          type: string
-          description: S3 file path for syncing output data to AWS S3.
-        googleDriveFolderID:
-          type: string
-          description: Google Drive folder ID for syncing output data to Google Drive.
   securitySchemes:
     API_Key:
       type: apiKey

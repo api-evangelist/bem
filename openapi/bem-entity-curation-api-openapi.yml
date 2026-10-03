@@ -81,84 +81,6 @@ paths:
                   status: approved
 components:
   schemas:
-    BulkValidateEntitiesRequestV3:
-      type: object
-      required:
-      - entityIDs
-      - status
-      properties:
-        entityIDs:
-          type: array
-          items:
-            type: string
-          description: The `ent_...` IDs to transition. Must be non-empty.
-        status:
-          type: string
-          enum:
-          - approved
-          - rejected
-          description: Terminal status to apply to every entity.
-      description: Request body for `POST /v3/entities/bulk-validate`.
-    EntityResponseV3:
-      type: object
-      required:
-      - entityID
-      - canonical
-      - type
-      - mentionCount
-      - surfaceForms
-      - createdAt
-      - updatedAt
-      - status
-      properties:
-        entityID:
-          type: string
-          description: Public ID (`ent_...`).
-        canonical:
-          type: string
-          description: The canonical (longest / most descriptive) surface form.
-        type:
-          type: string
-          description: The entity's effective type name (assigned type if set, else inferred).
-        description:
-          type: string
-          description: Free-form description.
-        mentionCount:
-          type: integer
-          format: int32
-          description: Total mentions across parsed documents.
-        surfaceForms:
-          type: array
-          items:
-            type: string
-          description: Distinct surface forms resolved to this entity.
-        createdAt:
-          type: string
-          format: date-time
-          description: Creation timestamp.
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last-update timestamp.
-        status:
-          type: string
-          enum:
-          - extracted
-          - proposed
-          - approved
-          - rejected
-          description: Curation lifecycle state.
-        typeID:
-          type: string
-          description: '`ety_...` public ID of the assigned type, when one is set.'
-        validatedAt:
-          type: string
-          format: date-time
-          description: When the entity was approved/rejected. Present only once validated.
-        validatedByUserID:
-          type: string
-          description: '`usr_...` public ID of the validating user (dashboard transitions only).'
-      description: An entity record, including its curation status and assigned type.
     BulkValidateRowResultV3:
       type: object
       required:
@@ -260,6 +182,84 @@ components:
           - $ref: '#/components/schemas/BulkValidateSummaryV3'
           description: Aggregate counts.
       description: '`200` response for `POST /v3/entities/bulk-validate`.'
+    EntityResponseV3:
+      type: object
+      required:
+      - entityID
+      - canonical
+      - type
+      - mentionCount
+      - surfaceForms
+      - createdAt
+      - updatedAt
+      - status
+      properties:
+        entityID:
+          type: string
+          description: Public ID (`ent_...`).
+        canonical:
+          type: string
+          description: The canonical (longest / most descriptive) surface form.
+        type:
+          type: string
+          description: The entity's effective type name (assigned type if set, else inferred).
+        description:
+          type: string
+          description: Free-form description.
+        mentionCount:
+          type: integer
+          format: int32
+          description: Total mentions across parsed documents.
+        surfaceForms:
+          type: array
+          items:
+            type: string
+          description: Distinct surface forms resolved to this entity.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-update timestamp.
+        status:
+          type: string
+          enum:
+          - extracted
+          - proposed
+          - approved
+          - rejected
+          description: Curation lifecycle state.
+        typeID:
+          type: string
+          description: '`ety_...` public ID of the assigned type, when one is set.'
+        validatedAt:
+          type: string
+          format: date-time
+          description: When the entity was approved/rejected. Present only once validated.
+        validatedByUserID:
+          type: string
+          description: '`usr_...` public ID of the validating user (dashboard transitions only).'
+      description: An entity record, including its curation status and assigned type.
+    BulkValidateEntitiesRequestV3:
+      type: object
+      required:
+      - entityIDs
+      - status
+      properties:
+        entityIDs:
+          type: array
+          items:
+            type: string
+          description: The `ent_...` IDs to transition. Must be non-empty.
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: Terminal status to apply to every entity.
+      description: Request body for `POST /v3/entities/bulk-validate`.
   securitySchemes:
     API_Key:
       type: apiKey

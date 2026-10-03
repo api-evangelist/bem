@@ -159,15 +159,25 @@ paths:
       - Errors
 components:
   schemas:
-    ErrorEventResponseV3:
+    EventInboundEmail:
       type: object
       required:
-      - error
+      - to
+      - from
+      - subject
       properties:
-        error:
-          allOf:
-          - $ref: '#/components/schemas/ErrorEvent'
-          description: The error event.
+        to:
+          type: string
+          description: The email address of the recipient.
+        deliveredTo:
+          type: string
+          description: The email address of the original intended recipient if the email itself was forwarded.
+        from:
+          type: string
+          description: The email address of the sender.
+        subject:
+          type: string
+          description: The subject of the email.
     ErrorEvent:
       type: object
       required:
@@ -260,25 +270,15 @@ components:
         totalCount:
           type: integer
           description: The total number of results available.
-    EventInboundEmail:
+    ErrorEventResponseV3:
       type: object
       required:
-      - to
-      - from
-      - subject
+      - error
       properties:
-        to:
-          type: string
-          description: The email address of the recipient.
-        deliveredTo:
-          type: string
-          description: The email address of the original intended recipient if the email itself was forwarded.
-        from:
-          type: string
-          description: The email address of the sender.
-        subject:
-          type: string
-          description: The subject of the email.
+        error:
+          allOf:
+          - $ref: '#/components/schemas/ErrorEvent'
+          description: The error event.
   securitySchemes:
     API_Key:
       type: apiKey

@@ -173,6 +173,25 @@ paths:
               $ref: '#/components/schemas/FSRequest'
 components:
   schemas:
+    FSFilter:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Match an entity's `type` field exactly (e.g. `"drug"`, `"study"`).
+        search:
+          type: string
+          description: 'Substring match on canonical name (entities) or `referenceID`
+
+            (parsed docs). Case-insensitive.'
+        functionName:
+          type: string
+          description: Match a parsed doc's source function name exactly.
+        since:
+          type: string
+          format: date-time
+          description: Restrict to resources created at or after this timestamp.
+      description: Filter options for `op=ls` and `op=find`.
     FSResponse:
       type: object
       required:
@@ -212,61 +231,6 @@ components:
         JSON (a list, an object, or a string), but the wrapper is constant
 
         so a client only learns one parse path.'
-    FSRange:
-      type: object
-      properties:
-        page:
-          type: integer
-          description: Restrict sections to one page (1-indexed).
-        pageRange:
-          type: array
-          items:
-            type: integer
-          minItems: 2
-          maxItems: 2
-          description: 'Restrict sections to an inclusive page range. Two-element array of
-
-            `[from, to]` (both 1-indexed).'
-        sectionTypes:
-          type: array
-          items:
-            type: string
-          description: 'Keep only sections whose `type` matches one of these (e.g.
-
-            `["table", "list"]`).'
-      description: Slice the parse output along page or section dimensions. Used with `op=cat`.
-    FSContext:
-      type: object
-      properties:
-        bucket:
-          type: string
-          description: 'Bucket KSUID (prefix `bkt_`) to scope the request to — a named partition
-
-            of the knowledge graph within the caller''s account+environment.
-
-
-            **Optional.** Omitting it (or passing an empty value) leaves the request
-
-            UNSCOPED: memory-level reads (`find` / `open` / `xref`) return entities
-
-            across every bucket in the account+environment, so pre-bucket callers
-
-            keep their original all-entities behavior unchanged. (Writes are
-
-            different: a parse call with no bucket targets the account default
-
-            bucket.) When a bucket IS supplied, memory-level ops return only entities
-
-            in that bucket; doc-level ops (`ls`/`cat`/`head`/`stat`/`grep`) are
-
-            unaffected either way — documents are not bucket-partitioned. A bucket
-
-            that does not belong to the caller''s account+environment is rejected.'
-      description: 'Request-scoping concerns that are orthogonal to the op itself. Carried on a
-
-        `context` object so future scoping hints (e.g. as-of timestamps, read
-
-        consistency) can slot in without reshaping the op-specific fields.'
     FSOp:
       type: string
       enum:
@@ -315,6 +279,38 @@ components:
         `linkAcrossDocuments: true`. On environments with no memory-linked
 
         docs they return empty data with a hint pointing at the toggle.'
+    FSContext:
+      type: object
+      properties:
+        bucket:
+          type: string
+          description: 'Bucket KSUID (prefix `bkt_`) to scope the request to — a named partition
+
+            of the knowledge graph within the caller''s account+environment.
+
+
+            **Optional.** Omitting it (or passing an empty value) leaves the request
+
+            UNSCOPED: memory-level reads (`find` / `open` / `xref`) return entities
+
+            across every bucket in the account+environment, so pre-bucket callers
+
+            keep their original all-entities behavior unchanged. (Writes are
+
+            different: a parse call with no bucket targets the account default
+
+            bucket.) When a bucket IS supplied, memory-level ops return only entities
+
+            in that bucket; doc-level ops (`ls`/`cat`/`head`/`stat`/`grep`) are
+
+            unaffected either way — documents are not bucket-partitioned. A bucket
+
+            that does not belong to the caller''s account+environment is rejected.'
+      description: 'Request-scoping concerns that are orthogonal to the op itself. Carried on a
+
+        `context` object so future scoping hints (e.g. as-of timestamps, read
+
+        consistency) can slot in without reshaping the op-specific fields.'
     FSRequest:
       type: object
       required:
@@ -391,25 +387,29 @@ components:
 
             (`nextCursor`) to fetch the next page.'
       description: Request body for `POST /v3/fs`. Op-specific fields apply per op.
-    FSFilter:
+    FSRange:
       type: object
       properties:
-        type:
-          type: string
-          description: Match an entity's `type` field exactly (e.g. `"drug"`, `"study"`).
-        search:
-          type: string
-          description: 'Substring match on canonical name (entities) or `referenceID`
+        page:
+          type: integer
+          description: Restrict sections to one page (1-indexed).
+        pageRange:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+          description: 'Restrict sections to an inclusive page range. Two-element array of
 
-            (parsed docs). Case-insensitive.'
-        functionName:
-          type: string
-          description: Match a parsed doc's source function name exactly.
-        since:
-          type: string
-          format: date-time
-          description: Restrict to resources created at or after this timestamp.
-      description: Filter options for `op=ls` and `op=find`.
+            `[from, to]` (both 1-indexed).'
+        sectionTypes:
+          type: array
+          items:
+            type: string
+          description: 'Keep only sections whose `type` matches one of these (e.g.
+
+            `["table", "list"]`).'
+      description: Slice the parse output along page or section dimensions. Used with `op=cat`.
   securitySchemes:
     API_Key:
       type: apiKey

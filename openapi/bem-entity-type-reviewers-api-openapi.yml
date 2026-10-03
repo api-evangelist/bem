@@ -114,35 +114,6 @@ paths:
       - Entity Type Reviewers
 components:
   schemas:
-    AddReviewerRequestV3:
-      type: object
-      required:
-      - userID
-      properties:
-        userID:
-          type: string
-          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
-      description: Request body to assign a user as a reviewer for an entity type.
-    ListReviewersResponseV3:
-      type: object
-      required:
-      - reviewers
-      properties:
-        reviewers:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityTypeReviewerV3'
-      description: Response body for listing the reviewers of an entity type.
-    ListReviewerAssignmentsResponseV3:
-      type: object
-      required:
-      - assignments
-      properties:
-        assignments:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReviewerAssignmentV3'
-      description: Response body for the reverse lookup of a user's reviewer assignments.
     EntityTypeReviewerV3:
       type: object
       required:
@@ -173,6 +144,26 @@ components:
         for reviewing. The assignment is scoped to an account+environment and is
 
         unique per (entity type, user).'
+    ListReviewerAssignmentsResponseV3:
+      type: object
+      required:
+      - assignments
+      properties:
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewerAssignmentV3'
+      description: Response body for the reverse lookup of a user's reviewer assignments.
+    ListReviewersResponseV3:
+      type: object
+      required:
+      - reviewers
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeReviewerV3'
+      description: Response body for listing the reviewers of an entity type.
     ReviewerAssignmentV3:
       type: object
       required:
@@ -197,6 +188,15 @@ components:
       description: 'One entity type a user reviews, as returned by the reverse-lookup endpoint.
 
         The type is exposed via its public ID plus its name and description.'
+    AddReviewerRequestV3:
+      type: object
+      required:
+      - userID
+      properties:
+        userID:
+          type: string
+          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
+      description: Request body to assign a user as a reviewer for an entity type.
   securitySchemes:
     API_Key:
       type: apiKey
