@@ -917,6 +917,9 @@ apis:
   - type: OpenAPI
     url: openapi/bem-filesystem-api-openapi.yml
 common:
+- type: CapabilityMap
+  url: capabilities/bem-capability-edges.yml
+  name: Bem Business Capability Map
 - type: Overlay
   url: overlays/bem-openapi-overlay.yaml
 - type: Website
