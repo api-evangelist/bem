@@ -130,6 +130,61 @@ paths:
                 contentType: '*/*'
 components:
   schemas:
+    InferSchemaResponseV3:
+      type: object
+      required:
+      - filename
+      - analysis
+      properties:
+        filename:
+          type: string
+          description: Original filename of the uploaded file.
+        analysis:
+          allOf:
+          - $ref: '#/components/schemas/InferSchemaAnalysis'
+          description: Full analysis result including description, schema, and document classification.
+      description: Response from the infer-schema endpoint.
+    InferSchemaMultipartFormData:
+      type: object
+      properties:
+        file:
+          description: The file to analyze and infer a JSON schema from.
+      required:
+      - file
+    DocumentTypeInfo:
+      type: object
+      required:
+      - name
+      - count
+      - description
+      properties:
+        name:
+          type: string
+          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
+        count:
+          type: integer
+          description: Number of instances of this document type in the file.
+        description:
+          type: string
+          description: Brief description of this document type.
+      description: Describes a distinct document type found in the file.
+    HTTPError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
     InferSchemaAnalysis:
       type: object
       required:
@@ -179,61 +234,6 @@ components:
 
             One of: `textual`, `visual`, `audio`, `video`, `mixed`.'
       description: Analysis result returned by the infer-schema endpoint.
-    DocumentTypeInfo:
-      type: object
-      required:
-      - name
-      - count
-      - description
-      properties:
-        name:
-          type: string
-          description: Short snake_case name (e.g. "invoice", "receipt", "utility_bill").
-        count:
-          type: integer
-          description: Number of instances of this document type in the file.
-        description:
-          type: string
-          description: Brief description of this document type.
-      description: Describes a distinct document type found in the file.
-    HTTPError:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: Error message describing what went wrong
-        code:
-          type: integer
-          description: HTTP status code
-        details:
-          type: object
-          unevaluatedProperties: {}
-          description: Additional error details (optional)
-          title: Error Details
-      description: Standard HTTP error response
-    InferSchemaResponseV3:
-      type: object
-      required:
-      - filename
-      - analysis
-      properties:
-        filename:
-          type: string
-          description: Original filename of the uploaded file.
-        analysis:
-          allOf:
-          - $ref: '#/components/schemas/InferSchemaAnalysis'
-          description: Full analysis result including description, schema, and document classification.
-      description: Response from the infer-schema endpoint.
-    InferSchemaMultipartFormData:
-      type: object
-      properties:
-        file:
-          description: The file to analyze and infer a JSON schema from.
-      required:
-      - file
   securitySchemes:
     API_Key:
       type: apiKey

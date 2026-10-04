@@ -101,12 +101,16 @@ paths:
       - Connectors
 components:
   schemas:
-    ConnectorTypeV3:
-      type: string
-      enum:
-      - box
-      - paragon
-      description: Connector type.
+    ConnectorListResponseV3:
+      type: object
+      required:
+      - connectors
+      properties:
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectorV3'
+      description: Response body for listing connectors.
     ConnectorCreateRequestV3:
       type: object
       required:
@@ -152,16 +156,12 @@ components:
           unevaluatedProperties: {}
           description: Configuration specific to the type of integration.
       description: Request body to create a connector.
-    ConnectorListResponseV3:
-      type: object
-      required:
-      - connectors
-      properties:
-        connectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConnectorV3'
-      description: Response body for listing connectors.
+    ConnectorTypeV3:
+      type: string
+      enum:
+      - box
+      - paragon
+      description: Connector type.
     ConnectorV3:
       type: object
       required:

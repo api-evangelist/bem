@@ -894,101 +894,187 @@ paths:
                   thresholdStep: 0.01
 components:
   schemas:
-    fieldMetricsComparison:
+    EvalScorePairResultV3:
+      type: object
+      required:
+      - pairIndex
+      - status
+      properties:
+        pairIndex:
+          type: integer
+        callID:
+          type: string
+          description: The function call that produced the actual output, if any.
+        status:
+          $ref: '#/components/schemas/EvalScorePairStatusV3'
+        fieldResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvalScoreFieldResultV3'
+          description: Per-leaf comparator output. Present only after the pair has been compared.
+        errorMessage:
+          type: string
+          description: Error message if the underlying function call failed.
+      description: Per-pair result.
+    FunctionMetrics:
+      type: object
+      required:
+      - functionName
+      - totalLabeledResults
+      - totalResults
+      - metrics
+      properties:
+        functionName:
+          type: string
+          description: The function name
+        totalLabeledResults:
+          type: integer
+          description: Number of transformations that have been labeled/evaluated for metrics calculation
+        totalResults:
+          type: integer
+          description: Total number of results processed by the function
+        metrics:
+          type: object
+          properties:
+            accuracy:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            precision:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            recall:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            f1Score:
+              anyOf:
+              - type: number
+                format: float
+              - type: 'null'
+            tp:
+              type: integer
+            fp:
+              type: integer
+            tn:
+              type: integer
+            fn:
+              type: integer
+          required:
+          - accuracy
+          - precision
+          - recall
+          - f1Score
+          - tp
+          - fp
+          - tn
+          - fn
+          title: Metrics
+      title: Function Metrics
+    FunctionReviewRequest:
+      type: object
+      required:
+      - functionName
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to analyze
+        functionVersionNum:
+          type: integer
+          minimum: 1
+          description: Optional function version number to analyze. If not provided, uses the latest/current version of the function.
+        evaluationVersion:
+          type: string
+          enum:
+          - 0.1.0-gemini
+          description: Optional evaluation version to filter evaluations by. Must be one of the supported versions. If not provided, defaults to "0.1.0-gemini".
+          default: 0.1.0-gemini
+        marginOfError:
+          type: number
+          format: float
+          minimum: 0.001
+          maximum: 0.1
+          description: Margin of error for statistical calculations
+          default: 0.05
+        thresholdMin:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Minimum confidence threshold to analyze
+          default: 0.5
+        thresholdMax:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Maximum confidence threshold to analyze
+          default: 1
+        thresholdStep:
+          type: number
+          format: float
+          minimum: 0.001
+          maximum: 0.1
+          description: Step size for threshold analysis (smaller = more granular)
+          default: 0.01
+        confidenceLevels:
+          type: array
+          items:
+            type: integer
+          description: 'Confidence levels for statistical analysis as integers representing percentages (e.g., [90, 95, 99] for 90%, 95%, 99%). IMPORTANT: Only integers are accepted, floats like 0.95 will be rejected.'
+          default:
+          - 95
+        confidenceMethod:
+          type: string
+          enum:
+          - wald
+          - wilson
+          description: 'Confidence interval calculation method (default "wald").
+
+
+            - "wald": Normal approximation method (faster, standard)
+
+            - "wilson": Wilson score interval (more robust for extreme rates)'
+          default: wald
+        isRegression:
+          type: boolean
+          description: Internal flag indicating if the request is from a regression test
+      description: Request for estimating review requirements for a function
+    FieldMetrics:
       type: object
       required:
       - fieldPath
-      - comparison
       properties:
         fieldPath:
           type: string
-          description: JSON pointer path to the field
-        comparison:
-          $ref: '#/components/schemas/metricsComparison'
-      description: Comparison of field-level metrics
-    EvalScoreRequestV3:
+          description: JSON path to the field
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+      description: Enhanced field metrics with comprehensive analytics
+    FunctionReviewResponse:
       type: object
       required:
-      - functionName
-      - pairs
-      properties:
-        functionName:
-          type: string
-          description: Name of the function to score. Must be of type extract, transform, or analyze.
-        functionVersionNum:
-          type: integer
-          description: 'Optional version number to score against. P0: only the function''s
-
-            current version is accepted; passing a different version returns 422.'
-        pairs:
-          type: array
-          items:
-            $ref: '#/components/schemas/EvalScorePairV3'
-          description: Up to 1000 pairs per request.
-        matchConfig:
-          allOf:
-          - $ref: '#/components/schemas/EvalMatchConfigV3'
-          description: Comparator configuration. Defaults are conservative (exact equality).
-      description: 'Request body for `POST /v3/eval/score`. Submits a list of
-
-        `(input, expected)` pairs to score against the named function.'
-    EvalScoreRunResponseV3:
-      type: object
-      required:
-      - scoreRunID
-      - status
       - functionName
       - functionVersionNum
-      - matchConfig
-      - progress
-      - perPair
+      - estimate
       properties:
-        scoreRunID:
-          type: string
-        status:
-          $ref: '#/components/schemas/EvalScoreRunStatusV3'
         functionName:
           type: string
+          description: Name of the analyzed function
         functionVersionNum:
           type: integer
-        matchConfig:
-          $ref: '#/components/schemas/EvalMatchConfigV3'
-        progress:
-          $ref: '#/components/schemas/EvalScoreProgressV3'
-        aggregate:
+          description: Version number of the function that was analyzed
+        estimate:
+          $ref: '#/components/schemas/ReviewEstimate'
+        metrics:
           allOf:
-          - $ref: '#/components/schemas/EvalScoreAggregateV3'
-          description: Populated only when `status == "completed"`.
-        perPair:
-          type: array
-          items:
-            $ref: '#/components/schemas/EvalScorePairResultV3'
-          description: Per-pair results. `fieldResults` appears once a pair has been compared.
-      description: Full status payload returned by `GET /v3/eval/score/{scoreRunID}`.
-    EvalScorePairStatusV3:
-      type: string
-      enum:
-      - pending
-      - running
-      - completed
-      - failed
-      description: Per-pair status.
-    FunctionType:
-      type: string
-      enum:
-      - transform
-      - extract
-      - route
-      - classify
-      - send
-      - split
-      - join
-      - analyze
-      - payload_shaping
-      - enrich
-      - parse
-      - render
-      description: The type of the function.
+          - $ref: '#/components/schemas/MetricsDetails'
+          description: Detailed performance metrics and analysis
+      description: Response containing review requirements estimate
     applyBaselineCorrectionsRequest:
       type: object
       required:
@@ -1027,56 +1113,179 @@ components:
         Specifies which function and versions to use for copying corrected JSON data
 
         from baseline transformations to their corresponding regression transformations.'
-    EvalScoreFieldResultV3:
+    TriggerEvaluationsResponseV3:
       type: object
       required:
-      - path
-      - match
+      - queued
+      - skipped
       properties:
-        path:
-          type: string
-          description: JSON Pointer to the leaf.
-        match:
-          type: string
-          enum:
-          - exact
-          - within_tolerance
-          - fuzzy_match
-          - miss
-          - extra
-          description: 'Classification:
+        queued:
+          type: integer
+          description: Number of evaluation jobs newly queued.
+        skipped:
+          type: integer
+          description: 'Number of transformations skipped because an evaluation job was already
 
-            - `exact`: both present and deep-equal
+            pending or already completed for them.'
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Map of transformation ID to human-readable error message for any
 
-            - `within_tolerance`: both numbers, within configured tolerance
+            transformations that could not be queued (e.g. not found, unsupported
 
-            - `fuzzy_match`: both strings, Levenshtein ratio above threshold
+            event type).'
+      description: 'Summary of the trigger call. Evaluations run asynchronously; use
 
-            - `miss`: expected present, actual absent or different
-
-            - `extra`: actual present, expected absent'
-        expected: {}
-        actual: {}
-        delta:
-          type: number
-          format: double
-          description: Populated for numeric comparisons; `actual - expected`.
-      description: One leaf in `expected ∪ actual`.
-    EvalScorePairV3:
+        `GET /v3/eval/results` to poll for results.'
+    fieldMetricsComparison:
       type: object
       required:
-      - input
-      - expected
+      - fieldPath
+      - comparison
       properties:
-        input:
-          allOf:
-          - $ref: '#/components/schemas/FileInput'
-          description: The file input to feed into the function.
-        expected:
-          description: 'Expected output for this input, as a JSON value. The comparator walks
+        fieldPath:
+          type: string
+          description: JSON pointer path to the field
+        comparison:
+          $ref: '#/components/schemas/metricsComparison'
+      description: Comparison of field-level metrics
+    Metrics:
+      type: object
+      properties:
+        accuracy:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Overall accuracy
+        precision:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Precision (TP / (TP + FP))
+        recall:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: Recall (TP / (TP + FN))
+        f1Score:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          description: F1 Score (harmonic mean of precision and recall)
+        tp:
+          type: integer
+          description: True Positives
+        fp:
+          type: integer
+          description: False Positives
+        tn:
+          type: integer
+          description: True Negatives
+        fn:
+          type: integer
+          description: False Negatives
+      description: Comprehensive performance metrics
+    functionRegressionResponse:
+      type: object
+      required:
+      - functionName
+      - result
+      properties:
+        functionName:
+          type: string
+          description: '**Name of the function being tested**
 
-            `expected ∪ actual` and produces a per-leaf classification.'
-      description: One `(input, expected)` pair.
+
+            Echoes back the function name from the request for confirmation.'
+        result:
+          $ref: '#/components/schemas/functionRegressionResult'
+      description: '**Response from initiating a regression test**
+
+
+        Contains the function call IDs created for async processing and tracking information.
+
+        Use the returned function call IDs to monitor progress and retrieve results.'
+    applyBaselineCorrectionsResponseV3:
+      type: object
+      required:
+      - applied
+      - appliedEventIDs
+      - skipped
+      - errors
+      properties:
+        applied:
+          type: integer
+          minimum: 0
+          description: Number of corrections that were applied successfully.
+        appliedEventIDs:
+          type: array
+          items:
+            type: string
+          description: 'Event KSUIDs whose underlying regression transformation had a
+
+            baseline correction copied onto it.'
+        skipped:
+          type: integer
+          minimum: 0
+          description: 'Number of regression transformations that were skipped — typically
+
+            because they already had a correction or did not have a usable
+
+            reference ID.'
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Map of event KSUID to error message for any regression rows where
+
+            the correction could not be applied (e.g. baseline transformation
+
+            not found for the row''s reference ID).'
+      description: 'V3 response from applying baseline corrections to regression
+
+        transformations. Identifiers are surfaced as event KSUIDs — the
+
+        externally-stable IDs used everywhere else in V3 — in place of the
+
+        internal transformation IDs returned by the V2 endpoint.'
+    metricComparison:
+      type: object
+      properties:
+        baselineValue:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Value in baseline version (null if not available)
+        comparisonValue:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Value in comparison version (null if not available)
+        difference:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: Absolute difference (comparisonValue - baselineValue)
+        liftPercent:
+          anyOf:
+          - type: number
+          - type: 'null'
+          description: '**Percentage change from baseline to comparison**
+
+
+            Formula: ((comparisonValue - baselineValue) / baselineValue) * 100
+
+
+            - Positive values indicate improvement
+
+            - Negative values indicate regression'
+      description: Comparison of a single metric between two versions
     functionVersionCompareResponse:
       type: object
       required:
@@ -1120,115 +1329,80 @@ components:
 
 
         Shows absolute differences, lift percentages, and field-level changes.'
-    FieldMetrics:
+    HTTPError:
       type: object
       required:
-      - fieldPath
+      - message
       properties:
-        fieldPath:
+        message:
           type: string
-          description: JSON path to the field
-        metrics:
-          $ref: '#/components/schemas/Metrics'
-      description: Enhanced field metrics with comprehensive analytics
-    Metrics:
-      type: object
-      properties:
-        accuracy:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Overall accuracy
-        precision:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Precision (TP / (TP + FP))
-        recall:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: Recall (TP / (TP + FN))
-        f1Score:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          description: F1 Score (harmonic mean of precision and recall)
-        tp:
+          description: Error message describing what went wrong
+        code:
           type: integer
-          description: True Positives
-        fp:
-          type: integer
-          description: False Positives
-        tn:
-          type: integer
-          description: True Negatives
-        fn:
-          type: integer
-          description: False Negatives
-      description: Comprehensive performance metrics
-    EvaluationResultV3:
-      type: object
-      required:
-      - fieldMetrics
-      - overallConfidence
-      - runtime
-      - hasHallucinations
-      - evaluationVersion
-      - createdAt
-      properties:
-        fieldMetrics:
+          description: HTTP status code
+        details:
           type: object
-          unevaluatedProperties:
-            $ref: '#/components/schemas/FieldMetricV3'
-          description: Per-field evaluation metrics, keyed by JSON path to the field.
-        overallConfidence:
-          type: number
-          format: double
-          description: Aggregate confidence score across all fields (0.0 - 1.0).
-        runtime:
-          type: number
-          format: double
-          description: Total evaluation runtime in seconds.
-        hasHallucinations:
-          type: boolean
-          description: '`true` if at least one field was flagged as a hallucination by the
-
-            evaluator.'
-        evaluationVersion:
-          type: string
-          description: Evaluation version that produced this result.
-        createdAt:
-          type: string
-          format: date-time
-          description: Server timestamp when the evaluation result was persisted.
-      description: A completed evaluation result for a single transformation.
-    EvalScorePairResultV3:
+          unevaluatedProperties: {}
+          description: Additional error details (optional)
+          title: Error Details
+      description: Standard HTTP error response
+    EvalScoreRunResponseV3:
       type: object
       required:
-      - pairIndex
+      - scoreRunID
       - status
+      - functionName
+      - functionVersionNum
+      - matchConfig
+      - progress
+      - perPair
       properties:
-        pairIndex:
-          type: integer
-        callID:
+        scoreRunID:
           type: string
-          description: The function call that produced the actual output, if any.
         status:
-          $ref: '#/components/schemas/EvalScorePairStatusV3'
-        fieldResults:
+          $ref: '#/components/schemas/EvalScoreRunStatusV3'
+        functionName:
+          type: string
+        functionVersionNum:
+          type: integer
+        matchConfig:
+          $ref: '#/components/schemas/EvalMatchConfigV3'
+        progress:
+          $ref: '#/components/schemas/EvalScoreProgressV3'
+        aggregate:
+          allOf:
+          - $ref: '#/components/schemas/EvalScoreAggregateV3'
+          description: Populated only when `status == "completed"`.
+        perPair:
           type: array
           items:
-            $ref: '#/components/schemas/EvalScoreFieldResultV3'
-          description: Per-leaf comparator output. Present only after the pair has been compared.
-        errorMessage:
-          type: string
-          description: Error message if the underlying function call failed.
-      description: Per-pair result.
+            $ref: '#/components/schemas/EvalScorePairResultV3'
+          description: Per-pair results. `fieldResults` appears once a pair has been compared.
+      description: Full status payload returned by `GET /v3/eval/score/{scoreRunID}`.
+    InputType:
+      type: string
+      enum:
+      - csv
+      - docx
+      - email
+      - heic
+      - html
+      - jpeg
+      - json
+      - heif
+      - m4a
+      - mov
+      - mp3
+      - mp4
+      - pdf
+      - png
+      - text
+      - wav
+      - webp
+      - xls
+      - xlsx
+      - xml
+      description: The input type of the content you're sending for transformation.
     TriggerEvaluationsRequestV3:
       type: object
       required:
@@ -1254,49 +1428,48 @@ components:
         relevance). Each transformation must belong to an event of a supported
 
         type: `extract`, `transform`, `analyze`, or `join`.'
-    EvaluationResultsResponseV3:
+    FileInput:
       type: object
       required:
-      - results
+      - inputType
+      - inputContent
       properties:
-        results:
-          type: object
-          unevaluatedProperties:
-            $ref: '#/components/schemas/EvaluationResultV3'
-          description: 'Completed evaluation results, keyed by event KSUID.
+        inputType:
+          allOf:
+          - $ref: '#/components/schemas/InputType'
+          description: 'The input type of the content you''re sending for transformation.
 
 
-            An event appears here only if its evaluation completed
+            Must match the actual file format. See `InputType` for allowed values.'
+        inputContent:
+          type: string
+          contentEncoding: base64
+          description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
+      description: 'A single file input with base64-encoded content.
 
-            successfully. Still-running evaluations appear in `pending`;
 
-            failed evaluations appear in `failed`.'
-        pending:
+        When using the Bem CLI, use `@path/to/file` in the `inputContent` field to
+
+        automatically read and base64-encode the file:
+
+        `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}'' --wait`'
+    MetricsDetails:
+      type: object
+      properties:
+        fieldMetrics:
           type: array
           items:
-            $ref: '#/components/schemas/PendingEvaluationV3'
-          description: Events whose evaluation is still running.
-        failed:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedEvaluationV3'
-          description: Events whose evaluation failed or was not found.
-        errors:
-          type: object
-          unevaluatedProperties:
-            type: string
-          description: 'Reserved map of event KSUID to error message for validation
-
-            failures on the request itself. Populated only in edge cases.'
-      description: 'Batched response containing the evaluation state for every requested
-
-        ID, partitioned into completed `results`, still-running `pending`, and
-
-        terminal `failed` groups. All identifiers in the response are event
-
-        KSUIDs regardless of whether the request used `eventIDs` or
-
-        `transformationIDs`.'
+            $ref: '#/components/schemas/FieldMetrics'
+          description: Enhanced field metrics with comprehensive analytics
+        precisionRecallAuc:
+          type: number
+          format: float
+          description: Area Under the Precision-Recall Curve
+        aggregateMetrics:
+          allOf:
+          - $ref: '#/components/schemas/Metrics'
+          description: Aggregate confusion matrix metrics across all fields
+      description: Detailed performance metrics and analysis
     ThresholdResult:
       type: object
       required:
@@ -1373,69 +1546,366 @@ components:
           type: integer
           description: True Negatives
       description: Results for a specific confidence threshold analysis
-    functionRegressionResponse:
+    FieldMetricV3:
+      type: object
+      required:
+      - confidenceScore
+      - reasoning
+      - hallucination
+      - relevanceScore
+      properties:
+        confidenceScore:
+          type: number
+          format: double
+          description: Confidence score for the extracted value (0.0 - 1.0).
+        reasoning:
+          type: string
+          description: Evaluator's natural-language reasoning for the assigned scores.
+        hallucination:
+          type: boolean
+          description: '`true` if this field was flagged as a hallucination.'
+        relevanceScore:
+          type: number
+          format: double
+          description: Relevance score for the extracted value (0.0 - 1.0).
+      description: Metrics for a single field inside a transformation's output.
+    EvalMatchConfigV3:
+      type: object
+      properties:
+        numericTolerance:
+          type: number
+          format: double
+          description: 'Relative tolerance for numeric fields. `0` (default) means exact
+
+            equality; `0.01` means ±1%.'
+        stringMatch:
+          type: string
+          enum:
+          - exact
+          - fuzzy
+          description: '`exact` (default) or `fuzzy`.'
+        fuzzyThreshold:
+          type: number
+          format: double
+          description: 'Levenshtein-ratio threshold used when `stringMatch == "fuzzy"`.
+
+            Range `[0, 1]`. Default `0.85`.'
+        arrayMatch:
+          type: string
+          enum:
+          - by-index
+          description: P0 supports only `by-index`.
+        ignorePaths:
+          type: array
+          items:
+            type: string
+          description: 'JSON Pointer paths to skip during comparison. The asterisk character
+
+            matches arbitrary object keys / array indices.
+
+
+            Example values: /metadata, /lineItems with asterisk segment, etc.'
+      description: Comparator configuration. All fields optional; conservative defaults.
+    ReviewEstimate:
+      type: object
+      required:
+      - totalTransformations
+      - labeledTransformations
+      - unlabeledTransformations
+      - missingEvaluations
+      - confidenceDistribution
+      - thresholdMatrix
+      properties:
+        totalTransformations:
+          type: integer
+          description: Total number of transformations analyzed
+        labeledTransformations:
+          type: integer
+          description: Number of transformations already labeled
+        unlabeledTransformations:
+          type: integer
+          description: Number of transformations not yet labeled
+        missingEvaluations:
+          type: integer
+          description: Number of transformations without evaluation data
+        confidenceDistribution:
+          type: object
+          properties:
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+          description: Distribution of confidence levels
+        thresholdMatrix:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThresholdResult'
+          description: Statistical analysis across confidence thresholds
+      description: Detailed review requirements estimate
+    EvalScoreFieldResultV3:
+      type: object
+      required:
+      - path
+      - match
+      properties:
+        path:
+          type: string
+          description: JSON Pointer to the leaf.
+        match:
+          type: string
+          enum:
+          - exact
+          - within_tolerance
+          - fuzzy_match
+          - miss
+          - extra
+          description: 'Classification:
+
+            - `exact`: both present and deep-equal
+
+            - `within_tolerance`: both numbers, within configured tolerance
+
+            - `fuzzy_match`: both strings, Levenshtein ratio above threshold
+
+            - `miss`: expected present, actual absent or different
+
+            - `extra`: actual present, expected absent'
+        expected: {}
+        actual: {}
+        delta:
+          type: number
+          format: double
+          description: Populated for numeric comparisons; `actual - expected`.
+      description: One leaf in `expected ∪ actual`.
+    EvalScorePairStatusV3:
+      type: string
+      enum:
+      - pending
+      - running
+      - completed
+      - failed
+      description: Per-pair status.
+    EvaluationResultsResponseV3:
+      type: object
+      required:
+      - results
+      properties:
+        results:
+          type: object
+          unevaluatedProperties:
+            $ref: '#/components/schemas/EvaluationResultV3'
+          description: 'Completed evaluation results, keyed by event KSUID.
+
+
+            An event appears here only if its evaluation completed
+
+            successfully. Still-running evaluations appear in `pending`;
+
+            failed evaluations appear in `failed`.'
+        pending:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingEvaluationV3'
+          description: Events whose evaluation is still running.
+        failed:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailedEvaluationV3'
+          description: Events whose evaluation failed or was not found.
+        errors:
+          type: object
+          unevaluatedProperties:
+            type: string
+          description: 'Reserved map of event KSUID to error message for validation
+
+            failures on the request itself. Populated only in edge cases.'
+      description: 'Batched response containing the evaluation state for every requested
+
+        ID, partitioned into completed `results`, still-running `pending`, and
+
+        terminal `failed` groups. All identifiers in the response are event
+
+        KSUIDs regardless of whether the request used `eventIDs` or
+
+        `transformationIDs`.'
+    EvalScoreRequestV3:
       type: object
       required:
       - functionName
-      - result
+      - pairs
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to score. Must be of type extract, transform, or analyze.
+        functionVersionNum:
+          type: integer
+          description: 'Optional version number to score against. P0: only the function''s
+
+            current version is accepted; passing a different version returns 422.'
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvalScorePairV3'
+          description: Up to 1000 pairs per request.
+        matchConfig:
+          allOf:
+          - $ref: '#/components/schemas/EvalMatchConfigV3'
+          description: Comparator configuration. Defaults are conservative (exact equality).
+      description: 'Request body for `POST /v3/eval/score`. Submits a list of
+
+        `(input, expected)` pairs to score against the named function.'
+    functionVersionCompareRequest:
+      type: object
+      required:
+      - functionName
+      properties:
+        functionName:
+          type: string
+          description: Name of the function to compare versions for
+        baselineVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Baseline version number for comparison**
+
+
+            If not provided, defaults to the previous version (current - 1).'
+        comparisonVersionNum:
+          type: integer
+          minimum: 1
+          description: '**Comparison version number**
+
+
+            If not provided, defaults to the current version.'
+        isRegression:
+          type: boolean
+          description: '**Whether to compare regression test data only**
+
+
+            If true, only compares transformations marked as regression tests.'
+      description: '**Request to compare metrics between two function versions**
+
+
+        Compares metrics from two versions of a function to show lift or regression.'
+    functionRegressionResult:
+      type: object
+      required:
+      - functionName
+      - totalSamples
       properties:
         functionName:
           type: string
           description: '**Name of the function being tested**
 
 
-            Echoes back the function name from the request for confirmation.'
-        result:
-          $ref: '#/components/schemas/functionRegressionResult'
-      description: '**Response from initiating a regression test**
-
-
-        Contains the function call IDs created for async processing and tracking information.
-
-        Use the returned function call IDs to monitor progress and retrieve results.'
-    applyBaselineCorrectionsResponseV3:
-      type: object
-      required:
-      - applied
-      - appliedEventIDs
-      - skipped
-      - errors
-      properties:
-        applied:
-          type: integer
-          minimum: 0
-          description: Number of corrections that were applied successfully.
-        appliedEventIDs:
+            The function for which regression testing was initiated.'
+        calls:
           type: array
           items:
-            type: string
-          description: 'Event KSUIDs whose underlying regression transformation had a
+            $ref: '#/components/schemas/regressionFunctionCall'
+          description: '**Calls created for regression testing**
 
-            baseline correction copied onto it.'
-        skipped:
+
+            Each object contains the original reference ID and the new call ID created for testing.
+
+            Use these call IDs with standard call endpoints to monitor progress:
+
+
+            - `GET /v2/calls/{callID}` - Check individual status
+
+            - `GET /v2/calls?referenceIDs=regression-*` - List all regression calls'
+        totalSamples:
           type: integer
           minimum: 0
-          description: 'Number of regression transformations that were skipped — typically
+          description: '**Total number of samples being tested**
 
-            because they already had a correction or did not have a usable
 
-            reference ID.'
-        errors:
-          type: object
-          unevaluatedProperties:
-            type: string
-          description: 'Map of event KSUID to error message for any regression rows where
+            This represents the number of historical transformations found with corrections
 
-            the correction could not be applied (e.g. baseline transformation
+            that will be retested with the latest function version.'
+      description: '**Detailed regression test results and tracking information**
 
-            not found for the row''s reference ID).'
-      description: 'V3 response from applying baseline corrections to regression
 
-        transformations. Identifiers are surfaced as event KSUIDs — the
+        Contains function call IDs for monitoring progress. When all function calls complete,
 
-        externally-stable IDs used everywhere else in V3 — in place of the
+        use the transformation endpoints to retrieve and analyze the actual results.'
+    regressionFunctionCall:
+      type: object
+      required:
+      - originalReferenceID
+      - callID
+      properties:
+        originalReferenceID:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: '**Original reference ID from historical transformation data**
 
-        internal transformation IDs returned by the V2 endpoint.'
+
+            This is the reference ID that was used when the historical transformation was originally created.
+
+            It provides traceability back to the original business context (e.g., invoice number, document ID).'
+        callID:
+          type: string
+          pattern: ^wc_[a-zA-Z0-9]+$
+          description: '**New call ID created for regression testing**
+
+
+            Use this ID with standard call endpoints:
+
+            - `GET /v2/calls/{callID}` - Check status and retrieve results
+
+            - The call will have reference ID matching the original transformation'
+      description: '**Call created for regression testing**
+
+
+        Links the original historical reference ID to the new call ID created for testing.
+
+        Use the call ID with standard call endpoints to monitor progress and retrieve results.'
+    RateConfidenceInterval:
+      type: object
+      required:
+      - currentSample
+      - sampleNeeded
+      properties:
+        ciLower:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Lower bound of the confidence interval (null if insufficient sample size)
+        mid:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Point estimate (observed rate) at the center of the interval (null if insufficient sample size)
+        ciUpper:
+          anyOf:
+          - type: number
+            format: float
+          - type: 'null'
+          minimum: 0
+          maximum: 1
+          description: Upper bound of the confidence interval (null if insufficient sample size)
+        currentSample:
+          type: integer
+          minimum: 0
+          description: Current number of samples/observations available
+        sampleNeeded:
+          type: integer
+          minimum: 0
+          description: Minimum number of samples needed for reliable confidence interval calculation
+      description: 'Confidence interval for a rate/proportion using Wald (normal approximation) method by default.
+
+
+        Wald confidence intervals use the normal approximation to the binomial distribution.
+
+        For extreme rates or small sample sizes, Wilson confidence intervals may be more appropriate.'
     EvalScoreAggregateV3:
       type: object
       required:
@@ -1486,333 +1956,19 @@ components:
         f1Score:
           $ref: '#/components/schemas/metricComparison'
       description: Comparison of metrics between two versions
-    HTTPError:
+    FunctionMetricsResponse:
       type: object
       required:
-      - message
+      - functions
+      - totalCount
       properties:
-        message:
-          type: string
-          description: Error message describing what went wrong
-        code:
-          type: integer
-          description: HTTP status code
-        details:
-          type: object
-          unevaluatedProperties: {}
-          description: Additional error details (optional)
-          title: Error Details
-      description: Standard HTTP error response
-    FailedEvaluationV3:
-      type: object
-      required:
-      - eventID
-      - errorMessage
-      - createdAt
-      properties:
-        eventID:
-          type: string
-          description: Event KSUID.
-        errorMessage:
-          type: string
-          description: Human-readable failure reason.
-        createdAt:
-          type: string
-          format: date-time
-          description: Server timestamp associated with the failure.
-      description: An event whose evaluation failed or was not found.
-    metricComparison:
-      type: object
-      properties:
-        baselineValue:
-          anyOf:
-          - type: number
-          - type: 'null'
-          description: Value in baseline version (null if not available)
-        comparisonValue:
-          anyOf:
-          - type: number
-          - type: 'null'
-          description: Value in comparison version (null if not available)
-        difference:
-          anyOf:
-          - type: number
-          - type: 'null'
-          description: Absolute difference (comparisonValue - baselineValue)
-        liftPercent:
-          anyOf:
-          - type: number
-          - type: 'null'
-          description: '**Percentage change from baseline to comparison**
-
-
-            Formula: ((comparisonValue - baselineValue) / baselineValue) * 100
-
-
-            - Positive values indicate improvement
-
-            - Negative values indicate regression'
-      description: Comparison of a single metric between two versions
-    PendingEvaluationV3:
-      type: object
-      required:
-      - eventID
-      - createdAt
-      properties:
-        eventID:
-          type: string
-          description: Event KSUID.
-        createdAt:
-          type: string
-          format: date-time
-          description: Server timestamp when the evaluation was queued.
-      description: An event whose evaluation is still running.
-    EvalScoreRunStatusV3:
-      type: string
-      enum:
-      - pending
-      - initializing
-      - running
-      - completed
-      - error
-      - cancelled
-      description: Status values for an eval-score run.
-    MetricsDetails:
-      type: object
-      properties:
-        fieldMetrics:
+        functions:
           type: array
           items:
-            $ref: '#/components/schemas/FieldMetrics'
-          description: Enhanced field metrics with comprehensive analytics
-        precisionRecallAuc:
-          type: number
-          format: float
-          description: Area Under the Precision-Recall Curve
-        aggregateMetrics:
-          allOf:
-          - $ref: '#/components/schemas/Metrics'
-          description: Aggregate confusion matrix metrics across all fields
-      description: Detailed performance metrics and analysis
-    FunctionReviewRequest:
-      type: object
-      required:
-      - functionName
-      properties:
-        functionName:
-          type: string
-          description: Name of the function to analyze
-        functionVersionNum:
+            $ref: '#/components/schemas/FunctionMetrics'
+        totalCount:
           type: integer
-          minimum: 1
-          description: Optional function version number to analyze. If not provided, uses the latest/current version of the function.
-        evaluationVersion:
-          type: string
-          enum:
-          - 0.1.0-gemini
-          description: Optional evaluation version to filter evaluations by. Must be one of the supported versions. If not provided, defaults to "0.1.0-gemini".
-          default: 0.1.0-gemini
-        marginOfError:
-          type: number
-          format: float
-          minimum: 0.001
-          maximum: 0.1
-          description: Margin of error for statistical calculations
-          default: 0.05
-        thresholdMin:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 1
-          description: Minimum confidence threshold to analyze
-          default: 0.5
-        thresholdMax:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 1
-          description: Maximum confidence threshold to analyze
-          default: 1
-        thresholdStep:
-          type: number
-          format: float
-          minimum: 0.001
-          maximum: 0.1
-          description: Step size for threshold analysis (smaller = more granular)
-          default: 0.01
-        confidenceLevels:
-          type: array
-          items:
-            type: integer
-          description: 'Confidence levels for statistical analysis as integers representing percentages (e.g., [90, 95, 99] for 90%, 95%, 99%). IMPORTANT: Only integers are accepted, floats like 0.95 will be rejected.'
-          default:
-          - 95
-        confidenceMethod:
-          type: string
-          enum:
-          - wald
-          - wilson
-          description: 'Confidence interval calculation method (default "wald").
-
-
-            - "wald": Normal approximation method (faster, standard)
-
-            - "wilson": Wilson score interval (more robust for extreme rates)'
-          default: wald
-        isRegression:
-          type: boolean
-          description: Internal flag indicating if the request is from a regression test
-      description: Request for estimating review requirements for a function
-    EvalScoreCreateResponseV3:
-      type: object
-      required:
-      - scoreRunID
-      - status
-      properties:
-        scoreRunID:
-          type: string
-          description: Run identifier. Use with `GET /v3/eval/score/{scoreRunID}`.
-        status:
-          $ref: '#/components/schemas/EvalScoreRunStatusV3'
-      description: Returned by `POST /v3/eval/score`.
-    functionRegressionResult:
-      type: object
-      required:
-      - functionName
-      - totalSamples
-      properties:
-        functionName:
-          type: string
-          description: '**Name of the function being tested**
-
-
-            The function for which regression testing was initiated.'
-        calls:
-          type: array
-          items:
-            $ref: '#/components/schemas/regressionFunctionCall'
-          description: '**Calls created for regression testing**
-
-
-            Each object contains the original reference ID and the new call ID created for testing.
-
-            Use these call IDs with standard call endpoints to monitor progress:
-
-
-            - `GET /v2/calls/{callID}` - Check individual status
-
-            - `GET /v2/calls?referenceIDs=regression-*` - List all regression calls'
-        totalSamples:
-          type: integer
-          minimum: 0
-          description: '**Total number of samples being tested**
-
-
-            This represents the number of historical transformations found with corrections
-
-            that will be retested with the latest function version.'
-      description: '**Detailed regression test results and tracking information**
-
-
-        Contains function call IDs for monitoring progress. When all function calls complete,
-
-        use the transformation endpoints to retrieve and analyze the actual results.'
-    FunctionMetrics:
-      type: object
-      required:
-      - functionName
-      - totalLabeledResults
-      - totalResults
-      - metrics
-      properties:
-        functionName:
-          type: string
-          description: The function name
-        totalLabeledResults:
-          type: integer
-          description: Number of transformations that have been labeled/evaluated for metrics calculation
-        totalResults:
-          type: integer
-          description: Total number of results processed by the function
-        metrics:
-          type: object
-          properties:
-            accuracy:
-              anyOf:
-              - type: number
-                format: float
-              - type: 'null'
-            precision:
-              anyOf:
-              - type: number
-                format: float
-              - type: 'null'
-            recall:
-              anyOf:
-              - type: number
-                format: float
-              - type: 'null'
-            f1Score:
-              anyOf:
-              - type: number
-                format: float
-              - type: 'null'
-            tp:
-              type: integer
-            fp:
-              type: integer
-            tn:
-              type: integer
-            fn:
-              type: integer
-          required:
-          - accuracy
-          - precision
-          - recall
-          - f1Score
-          - tp
-          - fp
-          - tn
-          - fn
-          title: Metrics
-      title: Function Metrics
-    EvalMatchConfigV3:
-      type: object
-      properties:
-        numericTolerance:
-          type: number
-          format: double
-          description: 'Relative tolerance for numeric fields. `0` (default) means exact
-
-            equality; `0.01` means ±1%.'
-        stringMatch:
-          type: string
-          enum:
-          - exact
-          - fuzzy
-          description: '`exact` (default) or `fuzzy`.'
-        fuzzyThreshold:
-          type: number
-          format: double
-          description: 'Levenshtein-ratio threshold used when `stringMatch == "fuzzy"`.
-
-            Range `[0, 1]`. Default `0.85`.'
-        arrayMatch:
-          type: string
-          enum:
-          - by-index
-          description: P0 supports only `by-index`.
-        ignorePaths:
-          type: array
-          items:
-            type: string
-          description: 'JSON Pointer paths to skip during comparison. The asterisk character
-
-            matches arbitrary object keys / array indices.
-
-
-            Example values: /metadata, /lineItems with asterisk segment, etc.'
-      description: Comparator configuration. All fields optional; conservative defaults.
+          description: Total number of functions
     functionRegressionRequest:
       type: object
       required:
@@ -1889,166 +2045,51 @@ components:
         Configures which function to test, sample size, and version comparison settings.
 
         All parameters except `functionName` are optional with sensible defaults.'
-    RateConfidenceInterval:
+    FunctionType:
+      type: string
+      enum:
+      - transform
+      - extract
+      - route
+      - classify
+      - send
+      - split
+      - join
+      - analyze
+      - payload_shaping
+      - enrich
+      - parse
+      - render
+      description: The type of the function.
+    PendingEvaluationV3:
       type: object
       required:
-      - currentSample
-      - sampleNeeded
+      - eventID
+      - createdAt
       properties:
-        ciLower:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          minimum: 0
-          maximum: 1
-          description: Lower bound of the confidence interval (null if insufficient sample size)
-        mid:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          minimum: 0
-          maximum: 1
-          description: Point estimate (observed rate) at the center of the interval (null if insufficient sample size)
-        ciUpper:
-          anyOf:
-          - type: number
-            format: float
-          - type: 'null'
-          minimum: 0
-          maximum: 1
-          description: Upper bound of the confidence interval (null if insufficient sample size)
-        currentSample:
-          type: integer
-          minimum: 0
-          description: Current number of samples/observations available
-        sampleNeeded:
-          type: integer
-          minimum: 0
-          description: Minimum number of samples needed for reliable confidence interval calculation
-      description: 'Confidence interval for a rate/proportion using Wald (normal approximation) method by default.
-
-
-        Wald confidence intervals use the normal approximation to the binomial distribution.
-
-        For extreme rates or small sample sizes, Wilson confidence intervals may be more appropriate.'
-    TriggerEvaluationsResponseV3:
-      type: object
-      required:
-      - queued
-      - skipped
-      properties:
-        queued:
-          type: integer
-          description: Number of evaluation jobs newly queued.
-        skipped:
-          type: integer
-          description: 'Number of transformations skipped because an evaluation job was already
-
-            pending or already completed for them.'
-        errors:
-          type: object
-          unevaluatedProperties:
-            type: string
-          description: 'Map of transformation ID to human-readable error message for any
-
-            transformations that could not be queued (e.g. not found, unsupported
-
-            event type).'
-      description: 'Summary of the trigger call. Evaluations run asynchronously; use
-
-        `GET /v3/eval/results` to poll for results.'
-    FunctionReviewResponse:
-      type: object
-      required:
-      - functionName
-      - functionVersionNum
-      - estimate
-      properties:
-        functionName:
+        eventID:
           type: string
-          description: Name of the analyzed function
-        functionVersionNum:
-          type: integer
-          description: Version number of the function that was analyzed
-        estimate:
-          $ref: '#/components/schemas/ReviewEstimate'
-        metrics:
+          description: Event KSUID.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp when the evaluation was queued.
+      description: An event whose evaluation is still running.
+    EvalScorePairV3:
+      type: object
+      required:
+      - input
+      - expected
+      properties:
+        input:
           allOf:
-          - $ref: '#/components/schemas/MetricsDetails'
-          description: Detailed performance metrics and analysis
-      description: Response containing review requirements estimate
-    ReviewEstimate:
-      type: object
-      required:
-      - totalTransformations
-      - labeledTransformations
-      - unlabeledTransformations
-      - missingEvaluations
-      - confidenceDistribution
-      - thresholdMatrix
-      properties:
-        totalTransformations:
-          type: integer
-          description: Total number of transformations analyzed
-        labeledTransformations:
-          type: integer
-          description: Number of transformations already labeled
-        unlabeledTransformations:
-          type: integer
-          description: Number of transformations not yet labeled
-        missingEvaluations:
-          type: integer
-          description: Number of transformations without evaluation data
-        confidenceDistribution:
-          type: object
-          properties:
-            high:
-              type: integer
-            medium:
-              type: integer
-            low:
-              type: integer
-          description: Distribution of confidence levels
-        thresholdMatrix:
-          type: array
-          items:
-            $ref: '#/components/schemas/ThresholdResult'
-          description: Statistical analysis across confidence thresholds
-      description: Detailed review requirements estimate
-    regressionFunctionCall:
-      type: object
-      required:
-      - originalReferenceID
-      - callID
-      properties:
-        originalReferenceID:
-          type: string
-          pattern: ^[a-zA-Z0-9_-]+$
-          description: '**Original reference ID from historical transformation data**
+          - $ref: '#/components/schemas/FileInput'
+          description: The file input to feed into the function.
+        expected:
+          description: 'Expected output for this input, as a JSON value. The comparator walks
 
-
-            This is the reference ID that was used when the historical transformation was originally created.
-
-            It provides traceability back to the original business context (e.g., invoice number, document ID).'
-        callID:
-          type: string
-          pattern: ^wc_[a-zA-Z0-9]+$
-          description: '**New call ID created for regression testing**
-
-
-            Use this ID with standard call endpoints:
-
-            - `GET /v2/calls/{callID}` - Check status and retrieve results
-
-            - The call will have reference ID matching the original transformation'
-      description: '**Call created for regression testing**
-
-
-        Links the original historical reference ID to the new call ID created for testing.
-
-        Use the call ID with standard call endpoints to monitor progress and retrieve results.'
+            `expected ∪ actual` and produces a per-leaf classification.'
+      description: One `(input, expected)` pair.
     EvalScoreProgressV3:
       type: object
       required:
@@ -2063,123 +2104,82 @@ components:
         failed:
           type: integer
       description: Counts across all pairs.
-    FunctionMetricsResponse:
+    EvalScoreCreateResponseV3:
       type: object
       required:
-      - functions
-      - totalCount
+      - scoreRunID
+      - status
       properties:
-        functions:
-          type: array
-          items:
-            $ref: '#/components/schemas/FunctionMetrics'
-        totalCount:
-          type: integer
-          description: Total number of functions
-    functionVersionCompareRequest:
-      type: object
-      required:
-      - functionName
-      properties:
-        functionName:
+        scoreRunID:
           type: string
-          description: Name of the function to compare versions for
-        baselineVersionNum:
-          type: integer
-          minimum: 1
-          description: '**Baseline version number for comparison**
-
-
-            If not provided, defaults to the previous version (current - 1).'
-        comparisonVersionNum:
-          type: integer
-          minimum: 1
-          description: '**Comparison version number**
-
-
-            If not provided, defaults to the current version.'
-        isRegression:
-          type: boolean
-          description: '**Whether to compare regression test data only**
-
-
-            If true, only compares transformations marked as regression tests.'
-      description: '**Request to compare metrics between two function versions**
-
-
-        Compares metrics from two versions of a function to show lift or regression.'
-    FileInput:
+          description: Run identifier. Use with `GET /v3/eval/score/{scoreRunID}`.
+        status:
+          $ref: '#/components/schemas/EvalScoreRunStatusV3'
+      description: Returned by `POST /v3/eval/score`.
+    EvaluationResultV3:
       type: object
       required:
-      - inputType
-      - inputContent
+      - fieldMetrics
+      - overallConfidence
+      - runtime
+      - hasHallucinations
+      - evaluationVersion
+      - createdAt
       properties:
-        inputType:
-          allOf:
-          - $ref: '#/components/schemas/InputType'
-          description: 'The input type of the content you''re sending for transformation.
-
-
-            Must match the actual file format. See `InputType` for allowed values.'
-        inputContent:
-          type: string
-          contentEncoding: base64
-          description: Base64-encoded file content. In the Bem CLI, use `@path/to/file` to embed file contents automatically.
-      description: 'A single file input with base64-encoded content.
-
-
-        When using the Bem CLI, use `@path/to/file` in the `inputContent` field to
-
-        automatically read and base64-encode the file:
-
-        `--input.single-file ''{"inputContent": "@file.pdf", "inputType": "pdf"}'' --wait`'
-    FieldMetricV3:
-      type: object
-      required:
-      - confidenceScore
-      - reasoning
-      - hallucination
-      - relevanceScore
-      properties:
-        confidenceScore:
+        fieldMetrics:
+          type: object
+          unevaluatedProperties:
+            $ref: '#/components/schemas/FieldMetricV3'
+          description: Per-field evaluation metrics, keyed by JSON path to the field.
+        overallConfidence:
           type: number
           format: double
-          description: Confidence score for the extracted value (0.0 - 1.0).
-        reasoning:
-          type: string
-          description: Evaluator's natural-language reasoning for the assigned scores.
-        hallucination:
-          type: boolean
-          description: '`true` if this field was flagged as a hallucination.'
-        relevanceScore:
+          description: Aggregate confidence score across all fields (0.0 - 1.0).
+        runtime:
           type: number
           format: double
-          description: Relevance score for the extracted value (0.0 - 1.0).
-      description: Metrics for a single field inside a transformation's output.
-    InputType:
+          description: Total evaluation runtime in seconds.
+        hasHallucinations:
+          type: boolean
+          description: '`true` if at least one field was flagged as a hallucination by the
+
+            evaluator.'
+        evaluationVersion:
+          type: string
+          description: Evaluation version that produced this result.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp when the evaluation result was persisted.
+      description: A completed evaluation result for a single transformation.
+    EvalScoreRunStatusV3:
       type: string
       enum:
-      - csv
-      - docx
-      - email
-      - heic
-      - html
-      - jpeg
-      - json
-      - heif
-      - m4a
-      - mov
-      - mp3
-      - mp4
-      - pdf
-      - png
-      - text
-      - wav
-      - webp
-      - xls
-      - xlsx
-      - xml
-      description: The input type of the content you're sending for transformation.
+      - pending
+      - initializing
+      - running
+      - completed
+      - error
+      - cancelled
+      description: Status values for an eval-score run.
+    FailedEvaluationV3:
+      type: object
+      required:
+      - eventID
+      - errorMessage
+      - createdAt
+      properties:
+        eventID:
+          type: string
+          description: Event KSUID.
+        errorMessage:
+          type: string
+          description: Human-readable failure reason.
+        createdAt:
+          type: string
+          format: date-time
+          description: Server timestamp associated with the failure.
+      description: An event whose evaluation failed or was not found.
   securitySchemes:
     API_Key:
       type: apiKey

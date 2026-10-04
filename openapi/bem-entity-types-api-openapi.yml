@@ -169,6 +169,26 @@ components:
         attributeSchema:
           description: Optional per-type structured attribute metadata.
       description: Request body to create an entity type.
+    EntityTypeUpdateRequestV3:
+      type: object
+      properties:
+        description:
+          type: string
+          description: New description.
+        parentTypeID:
+          type: string
+          description: 'New parent type public ID (`ety_...`), or an empty string to clear the
+
+            parent (promote to top-level). Must belong to the same
+
+            account+environment and may not be the type itself.'
+        attributeSchema:
+          description: New per-type structured attribute metadata.
+      description: 'Request body to update an entity type. Only the fields present are changed.
+
+        `name` is intentionally not updatable — it is immutable because external
+
+        references key off it.'
     EntityTypeListResponseV3:
       type: object
       required:
@@ -225,26 +245,6 @@ components:
         via `parentTypeID`, and may carry per-type structured attribute metadata in
 
         `attributeSchema` (for example `{"unit": "mg", "range": [0, 100]}`).'
-    EntityTypeUpdateRequestV3:
-      type: object
-      properties:
-        description:
-          type: string
-          description: New description.
-        parentTypeID:
-          type: string
-          description: 'New parent type public ID (`ety_...`), or an empty string to clear the
-
-            parent (promote to top-level). Must belong to the same
-
-            account+environment and may not be the type itself.'
-        attributeSchema:
-          description: New per-type structured attribute metadata.
-      description: 'Request body to update an entity type. Only the fields present are changed.
-
-        `name` is intentionally not updatable — it is immutable because external
-
-        references key off it.'
   securitySchemes:
     API_Key:
       type: apiKey

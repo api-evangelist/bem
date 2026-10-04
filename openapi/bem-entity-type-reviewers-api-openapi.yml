@@ -154,16 +154,6 @@ components:
           items:
             $ref: '#/components/schemas/ReviewerAssignmentV3'
       description: Response body for the reverse lookup of a user's reviewer assignments.
-    ListReviewersResponseV3:
-      type: object
-      required:
-      - reviewers
-      properties:
-        reviewers:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityTypeReviewerV3'
-      description: Response body for listing the reviewers of an entity type.
     ReviewerAssignmentV3:
       type: object
       required:
@@ -197,6 +187,16 @@ components:
           type: string
           description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
       description: Request body to assign a user as a reviewer for an entity type.
+    ListReviewersResponseV3:
+      type: object
+      required:
+      - reviewers
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeReviewerV3'
+      description: Response body for listing the reviewers of an entity type.
   securitySchemes:
     API_Key:
       type: apiKey

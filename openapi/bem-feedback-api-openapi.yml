@@ -80,6 +80,25 @@ paths:
               $ref: '#/components/schemas/FeedbackRequest'
 components:
   schemas:
+    FeedbackRequest:
+      type: object
+      required:
+      - correction
+      properties:
+        correction: {}
+        orderMatching:
+          type: boolean
+      description: 'Correction payload for V3 event feedback.
+
+
+        `correction` is polymorphic:
+
+        - For extract/join events: a JSON object matching the function''s output schema.
+
+        - For classify events: a JSON string matching one of the function version''s declared classifications.
+
+
+        `orderMatching` is honored only for extract events (defaults to `false`); ignored for join/classify.'
     FeedbackFunctionType:
       type: string
       enum:
@@ -105,25 +124,6 @@ components:
           format: date-time
           description: Server timestamp when the correction was persisted (RFC 3339).
       description: Echoed response after a correction is recorded.
-    FeedbackRequest:
-      type: object
-      required:
-      - correction
-      properties:
-        correction: {}
-        orderMatching:
-          type: boolean
-      description: 'Correction payload for V3 event feedback.
-
-
-        `correction` is polymorphic:
-
-        - For extract/join events: a JSON object matching the function''s output schema.
-
-        - For classify events: a JSON string matching one of the function version''s declared classifications.
-
-
-        `orderMatching` is honored only for extract events (defaults to `false`); ignored for join/classify.'
   securitySchemes:
     API_Key:
       type: apiKey

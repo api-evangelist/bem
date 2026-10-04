@@ -159,25 +159,20 @@ paths:
       - Errors
 components:
   schemas:
-    EventInboundEmail:
+    ListErrorsResponseV3:
       type: object
       required:
-      - to
-      - from
-      - subject
+      - errors
+      - totalCount
       properties:
-        to:
-          type: string
-          description: The email address of the recipient.
-        deliveredTo:
-          type: string
-          description: The email address of the original intended recipient if the email itself was forwarded.
-        from:
-          type: string
-          description: The email address of the sender.
-        subject:
-          type: string
-          description: The subject of the email.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorEvent'
+          description: Array of terminal error events.
+        totalCount:
+          type: integer
+          description: The total number of results available.
     ErrorEvent:
       type: object
       required:
@@ -256,20 +251,25 @@ components:
 
             that pre-date the kind column and for non-transform errors.'
       title: Error Event
-    ListErrorsResponseV3:
+    EventInboundEmail:
       type: object
       required:
-      - errors
-      - totalCount
+      - to
+      - from
+      - subject
       properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorEvent'
-          description: Array of terminal error events.
-        totalCount:
-          type: integer
-          description: The total number of results available.
+        to:
+          type: string
+          description: The email address of the recipient.
+        deliveredTo:
+          type: string
+          description: The email address of the original intended recipient if the email itself was forwarded.
+        from:
+          type: string
+          description: The email address of the sender.
+        subject:
+          type: string
+          description: The subject of the email.
     ErrorEventResponseV3:
       type: object
       required:
