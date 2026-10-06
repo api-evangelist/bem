@@ -46,7 +46,7 @@ x-tier: stub
 x-tier-reason: portfolio-lead
 specificationVersion: '0.23'
 created: '2026-07-17'
-modified: '2026-07-18'
+modified: '2026-10-06'
 tags:
 - Company
 - Document Processing
@@ -917,6 +917,8 @@ apis:
   - type: OpenAPI
     url: openapi/bem-filesystem-api-openapi.yml
 common:
+- url: https://blog.bem.ai/feed
+  type: BlogRSS
 - type: CapabilityMap
   url: capabilities/bem-capability-edges.yml
   name: Bem Business Capability Map
