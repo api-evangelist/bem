@@ -1,0 +1,79 @@
+# Pricing transcribed from the provider's own page — see provenance. Numbers are quoted, not derived.
+generated: '2026-10-07'
+method: searched
+source: https://www.bem.ai/pricing
+sources:
+- https://www.bem.ai/pricing
+provenance:
+  tool: all/0-working/economics/harvest_pricing.py
+  run: 20261007T104522
+  grounding: every price_text was found verbatim in the fetched page text
+audience: developer-api
+pricing_basis: per-call
+delivery:
+  delivery: managed+licensed
+  method: page
+  read: '2026-10-07'
+  evidence: Private Link, on-premise, VPC deployment
+  managed_tier: PAY AS YOU GO
+published: true
+note: Graduated per-function-call pricing billed monthly in arrears; no platform fees or minimums. Enterprise
+  tier negotiated.
+plan_count: 10
+currency: USD
+plans:
+- name: Free tier
+  price_text: First 100 every month, on us Free
+  price: 100
+  currency: USD
+  period: month
+  unit: function call
+  included_quota: First 100 calls every month free
+  overage: $0.09 / call thereafter
+- name: 1 – 10,000 calls / month
+  price_text: $0.09 / call
+  price: 0.09
+  currency: USD
+  period: per-use
+  unit: function call
+- name: 10,001 – 100,000 calls / month
+  price_text: $0.07 / call
+  price: 0.07
+  currency: USD
+  period: per-use
+  unit: function call
+- name: 100,001 – 1,000,000 calls / month
+  price_text: $0.05 / call
+  price: 0.05
+  currency: USD
+  period: per-use
+  unit: function call
+- name: 1,000,001 – 10,000,000 calls / month
+  price_text: $0.04 / call
+  price: 0.04
+  currency: USD
+  period: per-use
+  unit: function call
+- name: 10,000,001+
+  price_text: Custom
+  period: none
+  unit: function call
+- name: Fine-tuning add-on
+  price_text: $500 / mo
+  price: 500
+  currency: USD
+  period: month
+- name: Private Link add-on
+  price_text: $500 / mo
+  price: 500
+  currency: USD
+  period: month
+- name: Premium support add-on
+  price_text: $750 / mo
+  price: 750
+  currency: USD
+  period: month
+- name: Enterprise
+  price_text: Contact sales
+  period: none
+  included_quota: Custom volume pricing, SLAs, on-premise/VPC
