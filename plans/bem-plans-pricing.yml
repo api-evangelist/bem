@@ -77,3 +77,89 @@ plans:
   price_text: Contact sales
   period: none
   included_quota: Custom volume pricing, SLAs, on-premise/VPC
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - hybrid
+  - metered
+  - subscription
+  units:
+  - request
+  plans:
+  - name: Free tier
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - request
+    periods:
+    - month
+  - name: 1 – 10,000 calls / month
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - request
+    periods:
+    - other
+  - name: 10,001 – 100,000 calls / month
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - request
+    periods:
+    - other
+  - name: 100,001 – 1,000,000 calls / month
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - request
+    periods:
+    - other
+  - name: 1,000,001 – 10,000,000 calls / month
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - request
+    periods:
+    - other
+  - name: 10,000,001+
+    access: other
+    model: metered
+    model_how: derived
+    units:
+    - request
+    periods:
+    - none
+  - name: Fine-tuning add-on
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Private Link add-on
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Premium support add-on
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Enterprise
+    access: other
+    model: unstated
+    model_how: derived
+    units: []
+    periods:
+    - none
