@@ -164,21 +164,6 @@ paths:
       - Buckets
 components:
   schemas:
-    BucketListResponseV3:
-      type: object
-      required:
-      - buckets
-      - totalCount
-      properties:
-        buckets:
-          type: array
-          items:
-            $ref: '#/components/schemas/BucketV3'
-        totalCount:
-          type: integer
-          format: int64
-          description: Total number of buckets matching the query, ignoring pagination.
-      description: Response body for listing buckets.
     BucketUpdateRequestV3:
       type: object
       properties:
@@ -231,6 +216,21 @@ components:
         Every account+environment has exactly one default bucket. The default
 
         bucket can be renamed but never deleted.'
+    BucketListResponseV3:
+      type: object
+      required:
+      - buckets
+      - totalCount
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/BucketV3'
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of buckets matching the query, ignoring pagination.
+      description: Response body for listing buckets.
     BucketCreateRequestV3:
       type: object
       required:

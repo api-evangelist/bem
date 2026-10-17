@@ -102,26 +102,58 @@ components:
           - $ref: '#/components/schemas/SeedSummaryV3'
           description: Aggregate counts.
       description: '`200` response for a synchronously processed (small) batch.'
-    SeedSummaryV3:
+    BulkSeedEntitiesRequestV3:
       type: object
       required:
-      - created
-      - merged
-      - rejected
+      - entities
       properties:
-        created:
-          type: integer
-          format: int32
-          description: Number of rows that created a new entity.
-        merged:
-          type: integer
-          format: int32
-          description: Number of rows merged into an existing entity.
-        rejected:
-          type: integer
-          format: int32
-          description: Number of rows rejected.
-      description: Per-outcome tally across a batch.
+        bucket:
+          type: string
+          description: 'Optional bucket public ID (`bkt_...`) to seed into. Omit to use the
+
+            account+environment default bucket.'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkSeedEntityInputV3'
+          description: The entities to seed. Must be non-empty.
+        onConflict:
+          type: string
+          enum:
+          - merge
+          description: 'Conflict strategy for an entity that already exists. Only `merge` is
+
+            supported and it is the default: synonyms are added additively, a longer
+
+            description replaces the old one, and attributes are merged with new keys
+
+            winning.'
+      description: Request body for `POST /v3/entities/bulk`.
+    SeedRowResultV3:
+      type: object
+      required:
+      - canonical
+      - outcome
+      properties:
+        canonical:
+          type: string
+          description: The canonical name from the input row.
+        outcome:
+          type: string
+          enum:
+          - created
+          - merged-with
+          - rejected
+          description: 'What happened to this row: `created` (new entity), `merged-with` (matched
+
+            an existing entity), or `rejected` (see `reason`).'
+        entityID:
+          type: string
+          description: Public ID (`ent_...`) of the created or merged entity. Absent when rejected.
+        reason:
+          type: string
+          description: Human-readable explanation when `outcome` is `rejected`.
+      description: The outcome of seeding one row.
     SeedJobStatusResponseV3:
       type: object
       required:
@@ -168,6 +200,26 @@ components:
           type: string
           description: Terminal error message when `status` is `failed`.
       description: '`GET /v3/entities/seed/{id}` response.'
+    SeedSummaryV3:
+      type: object
+      required:
+      - created
+      - merged
+      - rejected
+      properties:
+        created:
+          type: integer
+          format: int32
+          description: Number of rows that created a new entity.
+        merged:
+          type: integer
+          format: int32
+          description: Number of rows merged into an existing entity.
+        rejected:
+          type: integer
+          format: int32
+          description: Number of rows rejected.
+      description: Per-outcome tally across a batch.
     BulkSeedAsyncResponseV3:
       type: object
       required:
@@ -185,58 +237,6 @@ components:
           type: string
           description: Relative URL to poll for completion (`/v3/entities/seed/{id}`).
       description: '`202` response for an asynchronously processed (large) batch.'
-    SeedRowResultV3:
-      type: object
-      required:
-      - canonical
-      - outcome
-      properties:
-        canonical:
-          type: string
-          description: The canonical name from the input row.
-        outcome:
-          type: string
-          enum:
-          - created
-          - merged-with
-          - rejected
-          description: 'What happened to this row: `created` (new entity), `merged-with` (matched
-
-            an existing entity), or `rejected` (see `reason`).'
-        entityID:
-          type: string
-          description: Public ID (`ent_...`) of the created or merged entity. Absent when rejected.
-        reason:
-          type: string
-          description: Human-readable explanation when `outcome` is `rejected`.
-      description: The outcome of seeding one row.
-    BulkSeedEntitiesRequestV3:
-      type: object
-      required:
-      - entities
-      properties:
-        bucket:
-          type: string
-          description: 'Optional bucket public ID (`bkt_...`) to seed into. Omit to use the
-
-            account+environment default bucket.'
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/BulkSeedEntityInputV3'
-          description: The entities to seed. Must be non-empty.
-        onConflict:
-          type: string
-          enum:
-          - merge
-          description: 'Conflict strategy for an entity that already exists. Only `merge` is
-
-            supported and it is the default: synonyms are added additively, a longer
-
-            description replaces the old one, and attributes are merged with new keys
-
-            winning.'
-      description: Request body for `POST /v3/entities/bulk`.
     BulkSeedEntityInputV3:
       type: object
       required:

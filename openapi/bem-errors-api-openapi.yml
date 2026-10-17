@@ -159,6 +159,25 @@ paths:
       - Errors
 components:
   schemas:
+    EventInboundEmail:
+      type: object
+      required:
+      - to
+      - from
+      - subject
+      properties:
+        to:
+          type: string
+          description: The email address of the recipient.
+        deliveredTo:
+          type: string
+          description: The email address of the original intended recipient if the email itself was forwarded.
+        from:
+          type: string
+          description: The email address of the sender.
+        subject:
+          type: string
+          description: The subject of the email.
     ListErrorsResponseV3:
       type: object
       required:
@@ -173,6 +192,15 @@ components:
         totalCount:
           type: integer
           description: The total number of results available.
+    ErrorEventResponseV3:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          allOf:
+          - $ref: '#/components/schemas/ErrorEvent'
+          description: The error event.
     ErrorEvent:
       type: object
       required:
@@ -251,34 +279,6 @@ components:
 
             that pre-date the kind column and for non-transform errors.'
       title: Error Event
-    EventInboundEmail:
-      type: object
-      required:
-      - to
-      - from
-      - subject
-      properties:
-        to:
-          type: string
-          description: The email address of the recipient.
-        deliveredTo:
-          type: string
-          description: The email address of the original intended recipient if the email itself was forwarded.
-        from:
-          type: string
-          description: The email address of the sender.
-        subject:
-          type: string
-          description: The subject of the email.
-    ErrorEventResponseV3:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          allOf:
-          - $ref: '#/components/schemas/ErrorEvent'
-          description: The error event.
   securitySchemes:
     API_Key:
       type: apiKey

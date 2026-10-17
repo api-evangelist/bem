@@ -80,6 +80,13 @@ paths:
               $ref: '#/components/schemas/FeedbackRequest'
 components:
   schemas:
+    FeedbackFunctionType:
+      type: string
+      enum:
+      - extract
+      - classify
+      - join
+      description: Function types that support feedback submission.
     FeedbackRequest:
       type: object
       required:
@@ -99,13 +106,6 @@ components:
 
 
         `orderMatching` is honored only for extract events (defaults to `false`); ignored for join/classify.'
-    FeedbackFunctionType:
-      type: string
-      enum:
-      - extract
-      - classify
-      - join
-      description: Function types that support feedback submission.
     FeedbackResponse:
       type: object
       required:

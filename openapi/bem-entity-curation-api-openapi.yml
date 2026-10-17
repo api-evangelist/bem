@@ -81,6 +81,84 @@ paths:
                   status: approved
 components:
   schemas:
+    BulkValidateEntitiesRequestV3:
+      type: object
+      required:
+      - entityIDs
+      - status
+      properties:
+        entityIDs:
+          type: array
+          items:
+            type: string
+          description: The `ent_...` IDs to transition. Must be non-empty.
+        status:
+          type: string
+          enum:
+          - approved
+          - rejected
+          description: Terminal status to apply to every entity.
+      description: Request body for `POST /v3/entities/bulk-validate`.
+    BulkValidateEntitiesResponseV3:
+      type: object
+      required:
+      - results
+      - summary
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkValidateRowResultV3'
+          description: Per-row outcomes, in request order.
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/BulkValidateSummaryV3'
+          description: Aggregate counts.
+      description: '`200` response for `POST /v3/entities/bulk-validate`.'
+    BulkValidateRowResultV3:
+      type: object
+      required:
+      - entityID
+      - outcome
+      properties:
+        entityID:
+          type: string
+          description: The `ent_...` ID from the request.
+        outcome:
+          type: string
+          enum:
+          - validated
+          - skipped
+          - rejected-row
+          description: '`validated` (transition applied), `skipped` (not found or not authorized),
+
+            or `rejected-row` (the transition itself was illegal, e.g. already
+
+            terminal).'
+        reason:
+          type: string
+          description: Explanation for a `skipped` or `rejected-row` outcome.
+      description: The outcome of validating one row.
+    BulkValidateSummaryV3:
+      type: object
+      required:
+      - validated
+      - skipped
+      - rejectedRow
+      properties:
+        validated:
+          type: integer
+          format: int32
+          description: Rows whose transition was applied.
+        skipped:
+          type: integer
+          format: int32
+          description: Rows skipped (not found / not authorized).
+        rejectedRow:
+          type: integer
+          format: int32
+          description: Rows whose transition was illegal.
+      description: Per-outcome tally across a bulk-validate batch.
     EntityResponseV3:
       type: object
       required:
@@ -141,24 +219,6 @@ components:
           type: string
           description: '`usr_...` public ID of the validating user (dashboard transitions only).'
       description: An entity record, including its curation status and assigned type.
-    BulkValidateEntitiesRequestV3:
-      type: object
-      required:
-      - entityIDs
-      - status
-      properties:
-        entityIDs:
-          type: array
-          items:
-            type: string
-          description: The `ent_...` IDs to transition. Must be non-empty.
-        status:
-          type: string
-          enum:
-          - approved
-          - rejected
-          description: Terminal status to apply to every entity.
-      description: Request body for `POST /v3/entities/bulk-validate`.
     UpdateEntityRequestV3:
       type: object
       properties:
@@ -200,66 +260,6 @@ components:
       description: 'Request body for `PATCH /v3/entities/{id}`. Every field is optional, but at
 
         least one must be present.'
-    BulkValidateEntitiesResponseV3:
-      type: object
-      required:
-      - results
-      - summary
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/BulkValidateRowResultV3'
-          description: Per-row outcomes, in request order.
-        summary:
-          allOf:
-          - $ref: '#/components/schemas/BulkValidateSummaryV3'
-          description: Aggregate counts.
-      description: '`200` response for `POST /v3/entities/bulk-validate`.'
-    BulkValidateSummaryV3:
-      type: object
-      required:
-      - validated
-      - skipped
-      - rejectedRow
-      properties:
-        validated:
-          type: integer
-          format: int32
-          description: Rows whose transition was applied.
-        skipped:
-          type: integer
-          format: int32
-          description: Rows skipped (not found / not authorized).
-        rejectedRow:
-          type: integer
-          format: int32
-          description: Rows whose transition was illegal.
-      description: Per-outcome tally across a bulk-validate batch.
-    BulkValidateRowResultV3:
-      type: object
-      required:
-      - entityID
-      - outcome
-      properties:
-        entityID:
-          type: string
-          description: The `ent_...` ID from the request.
-        outcome:
-          type: string
-          enum:
-          - validated
-          - skipped
-          - rejected-row
-          description: '`validated` (transition applied), `skipped` (not found or not authorized),
-
-            or `rejected-row` (the transition itself was illegal, e.g. already
-
-            terminal).'
-        reason:
-          type: string
-          description: Explanation for a `skipped` or `rejected-row` outcome.
-      description: The outcome of validating one row.
   securitySchemes:
     API_Key:
       type: apiKey

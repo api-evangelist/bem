@@ -150,6 +150,21 @@ paths:
       - Entity Types
 components:
   schemas:
+    EntityTypeListResponseV3:
+      type: object
+      required:
+      - entityTypes
+      - totalCount
+      properties:
+        entityTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityTypeV3'
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of entity types matching the query, ignoring pagination.
+      description: Response body for listing entity types.
     EntityTypeCreateRequestV3:
       type: object
       required:
@@ -189,21 +204,6 @@ components:
         `name` is intentionally not updatable — it is immutable because external
 
         references key off it.'
-    EntityTypeListResponseV3:
-      type: object
-      required:
-      - entityTypes
-      - totalCount
-      properties:
-        entityTypes:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityTypeV3'
-        totalCount:
-          type: integer
-          format: int64
-          description: Total number of entity types matching the query, ignoring pagination.
-      description: Response body for listing entity types.
     EntityTypeV3:
       type: object
       required:

@@ -114,6 +114,39 @@ paths:
       - Entity Type Reviewers
 components:
   schemas:
+    ReviewerAssignmentV3:
+      type: object
+      required:
+      - typeID
+      - name
+      - description
+      - createdAt
+      properties:
+        typeID:
+          type: string
+          description: Public ID (`ety_...`) of the entity type the user reviews.
+        name:
+          type: string
+          description: The entity type's human-facing name.
+        description:
+          type: string
+          description: The entity type's description.
+        createdAt:
+          type: string
+          format: date-time
+          description: When the assignment was created (RFC 3339).
+      description: 'One entity type a user reviews, as returned by the reverse-lookup endpoint.
+
+        The type is exposed via its public ID plus its name and description.'
+    AddReviewerRequestV3:
+      type: object
+      required:
+      - userID
+      properties:
+        userID:
+          type: string
+          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
+      description: Request body to assign a user as a reviewer for an entity type.
     EntityTypeReviewerV3:
       type: object
       required:
@@ -154,39 +187,6 @@ components:
           items:
             $ref: '#/components/schemas/ReviewerAssignmentV3'
       description: Response body for the reverse lookup of a user's reviewer assignments.
-    ReviewerAssignmentV3:
-      type: object
-      required:
-      - typeID
-      - name
-      - description
-      - createdAt
-      properties:
-        typeID:
-          type: string
-          description: Public ID (`ety_...`) of the entity type the user reviews.
-        name:
-          type: string
-          description: The entity type's human-facing name.
-        description:
-          type: string
-          description: The entity type's description.
-        createdAt:
-          type: string
-          format: date-time
-          description: When the assignment was created (RFC 3339).
-      description: 'One entity type a user reviews, as returned by the reverse-lookup endpoint.
-
-        The type is exposed via its public ID plus its name and description.'
-    AddReviewerRequestV3:
-      type: object
-      required:
-      - userID
-      properties:
-        userID:
-          type: string
-          description: Public ID (`usr_...`) of the user to assign. Must belong to the account.
-      description: Request body to assign a user as a reviewer for an entity type.
     ListReviewersResponseV3:
       type: object
       required:

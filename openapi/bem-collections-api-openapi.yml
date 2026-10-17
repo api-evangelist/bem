@@ -317,72 +317,6 @@ paths:
               $ref: '#/components/schemas/CountTokensRequestV3'
 components:
   schemas:
-    CollectionResponseV3:
-      type: object
-      required:
-      - collectionID
-      - collectionName
-      - itemCount
-      - createdAt
-      properties:
-        collectionID:
-          type: string
-          description: Unique identifier for the collection
-        collectionName:
-          type: string
-          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
-        itemCount:
-          type: integer
-          description: Number of items in the collection
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionItemV3'
-          description: List of items in the collection (when fetching collection details)
-        page:
-          type: integer
-          description: Current page number
-        limit:
-          type: integer
-          description: Number of items per page
-        totalPages:
-          type: integer
-          description: Total number of pages
-        createdAt:
-          type: string
-          format: date-time
-          description: When the collection was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the collection was last updated
-      description: Collection details
-    CollectionItemV3:
-      type: object
-      required:
-      - collectionItemID
-      - data
-      - createdAt
-      - updatedAt
-      properties:
-        collectionItemID:
-          type: string
-          description: Unique identifier for the item
-        data:
-          oneOf:
-          - type: string
-          - type: object
-            unevaluatedProperties: {}
-          description: The data stored in this item
-        createdAt:
-          type: string
-          format: date-time
-          description: When the item was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the item was last updated
-      description: A single item in a collection
     CountTokensResponseV3:
       type: object
       properties:
@@ -401,32 +335,6 @@ components:
           type: integer
           description: Number of input texts that exceed `max_token_limit`.
       description: Response for the token count endpoint.
-    CollectionMetadataV3:
-      type: object
-      required:
-      - collectionID
-      - collectionName
-      - itemCount
-      - createdAt
-      properties:
-        collectionID:
-          type: string
-          description: Unique identifier for the collection
-        collectionName:
-          type: string
-          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
-        itemCount:
-          type: integer
-          description: Number of items in the collection
-        createdAt:
-          type: string
-          format: date-time
-          description: When the collection was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the collection was last updated
-      description: Collection metadata without items
     UpdateCollectionItemsRequestV3:
       type: object
       required:
@@ -446,6 +354,33 @@ components:
           maxItems: 100
           description: Array of items to update (maximum 100 items per request)
       description: Request to update existing items in a collection
+    AddCollectionItemsResponseV3:
+      type: object
+      required:
+      - status
+      - message
+      - eventID
+      properties:
+        status:
+          type: string
+          enum:
+          - pending
+          description: Processing status
+        message:
+          type: string
+          description: Status message
+        eventID:
+          type: string
+          description: Event ID for tracking this operation. Use this to correlate with webhook notifications.
+        addedCount:
+          type: integer
+          description: Number of new items added (only present in synchronous mode, deprecated)
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionItemV3'
+          description: Array of items that were added (only present in synchronous mode, deprecated)
+      description: Response after queuing items for async processing
     CollectionItemUpdateV3:
       type: object
       required:
@@ -481,99 +416,6 @@ components:
           maxItems: 100
           description: Array of items to add (maximum 100 items per request)
       description: Request to add new items to a collection
-    AddCollectionItemsResponseV3:
-      type: object
-      required:
-      - status
-      - message
-      - eventID
-      properties:
-        status:
-          type: string
-          enum:
-          - pending
-          description: Processing status
-        message:
-          type: string
-          description: Status message
-        eventID:
-          type: string
-          description: Event ID for tracking this operation. Use this to correlate with webhook notifications.
-        addedCount:
-          type: integer
-          description: Number of new items added (only present in synchronous mode, deprecated)
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionItemV3'
-          description: Array of items that were added (only present in synchronous mode, deprecated)
-      description: Response after queuing items for async processing
-    UpdateCollectionItemsResponseV3:
-      type: object
-      required:
-      - status
-      - message
-      - eventID
-      properties:
-        status:
-          type: string
-          enum:
-          - pending
-          description: Processing status
-        message:
-          type: string
-          description: Status message
-        eventID:
-          type: string
-          description: Event ID for tracking this operation. Use this to correlate with webhook notifications.
-        updatedCount:
-          type: integer
-          description: Number of items updated (only present in synchronous mode, deprecated)
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionItemV3'
-          description: Array of items that were updated (only present in synchronous mode, deprecated)
-      description: Response after queuing items for async update
-    CollectionItemInputV3:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          oneOf:
-          - type: string
-          - type: object
-            unevaluatedProperties: {}
-          description: The data to be embedded and stored (string or JSON object)
-      description: Data for creating a new item in a collection
-    ListCollectionsResponseV3:
-      type: object
-      required:
-      - collections
-      - page
-      - limit
-      - totalCount
-      - totalPages
-      properties:
-        collections:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionMetadataV3'
-          description: List of collections
-        page:
-          type: integer
-          description: Current page number
-        limit:
-          type: integer
-          description: Number of collections per page
-        totalCount:
-          type: integer
-          description: Total number of collections
-        totalPages:
-          type: integer
-          description: Total number of pages
-      description: Response for listing collections
     CountTokensItemV3:
       type: object
       properties:
@@ -645,6 +487,164 @@ components:
 
             - ''order#123'' (contains invalid character #)'
       description: Request to create a new collection
+    CollectionItemInputV3:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          oneOf:
+          - type: string
+          - type: object
+            unevaluatedProperties: {}
+          description: The data to be embedded and stored (string or JSON object)
+      description: Data for creating a new item in a collection
+    CollectionMetadataV3:
+      type: object
+      required:
+      - collectionID
+      - collectionName
+      - itemCount
+      - createdAt
+      properties:
+        collectionID:
+          type: string
+          description: Unique identifier for the collection
+        collectionName:
+          type: string
+          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
+        itemCount:
+          type: integer
+          description: Number of items in the collection
+        createdAt:
+          type: string
+          format: date-time
+          description: When the collection was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the collection was last updated
+      description: Collection metadata without items
+    CollectionResponseV3:
+      type: object
+      required:
+      - collectionID
+      - collectionName
+      - itemCount
+      - createdAt
+      properties:
+        collectionID:
+          type: string
+          description: Unique identifier for the collection
+        collectionName:
+          type: string
+          description: The collection name/path. Only letters, digits, underscores, and dots are allowed.
+        itemCount:
+          type: integer
+          description: Number of items in the collection
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionItemV3'
+          description: List of items in the collection (when fetching collection details)
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Number of items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+        createdAt:
+          type: string
+          format: date-time
+          description: When the collection was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the collection was last updated
+      description: Collection details
+    UpdateCollectionItemsResponseV3:
+      type: object
+      required:
+      - status
+      - message
+      - eventID
+      properties:
+        status:
+          type: string
+          enum:
+          - pending
+          description: Processing status
+        message:
+          type: string
+          description: Status message
+        eventID:
+          type: string
+          description: Event ID for tracking this operation. Use this to correlate with webhook notifications.
+        updatedCount:
+          type: integer
+          description: Number of items updated (only present in synchronous mode, deprecated)
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionItemV3'
+          description: Array of items that were updated (only present in synchronous mode, deprecated)
+      description: Response after queuing items for async update
+    ListCollectionsResponseV3:
+      type: object
+      required:
+      - collections
+      - page
+      - limit
+      - totalCount
+      - totalPages
+      properties:
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionMetadataV3'
+          description: List of collections
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Number of collections per page
+        totalCount:
+          type: integer
+          description: Total number of collections
+        totalPages:
+          type: integer
+          description: Total number of pages
+      description: Response for listing collections
+    CollectionItemV3:
+      type: object
+      required:
+      - collectionItemID
+      - data
+      - createdAt
+      - updatedAt
+      properties:
+        collectionItemID:
+          type: string
+          description: Unique identifier for the item
+        data:
+          oneOf:
+          - type: string
+          - type: object
+            unevaluatedProperties: {}
+          description: The data stored in this item
+        createdAt:
+          type: string
+          format: date-time
+          description: When the item was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the item was last updated
+      description: A single item in a collection
   securitySchemes:
     API_Key:
       type: apiKey

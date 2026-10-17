@@ -177,28 +177,52 @@ paths:
       - Knowledge Graph
 components:
   schemas:
-    GraphEdgeV3:
+    InboundRelationV3:
       type: object
       required:
-      - sourceId
-      - targetId
       - relationType
+      - sourceEntity
       - mentionCount
+      - firstSeenAt
       properties:
-        sourceId:
-          type: string
-          description: Source entity public id (`ent_...`).
-        targetId:
-          type: string
-          description: Target entity public id (`ent_...`).
         relationType:
           type: string
-          description: Free-form relation label.
+          description: Free-form relation label (e.g. `author_of`, `affiliated_with`).
+        sourceEntity:
+          allOf:
+          - $ref: '#/components/schemas/RelatedEntityV3'
+          description: The entity at the tail of the edge.
         mentionCount:
           type: integer
           format: int32
-          description: How many times this edge has been observed.
-      description: One directed edge between two entities, addressed by their public ids.
+          description: How many times this edge has been observed across parsed documents.
+        firstSeenAt:
+          type: string
+          format: date-time
+          description: First-seen timestamp of the edge (RFC 3339).
+      description: One edge pointing AT the queried entity (some other entity is the source).
+    EntityRelationsResponseV3:
+      type: object
+      required:
+      - inbound
+      - outbound
+      properties:
+        inbound:
+          type: array
+          items:
+            $ref: '#/components/schemas/InboundRelationV3'
+          description: Edges pointing at the queried entity.
+        outbound:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutboundRelationV3'
+          description: Edges pointing away from the queried entity.
+        nextCursor:
+          type: string
+          description: 'Opaque cursor for the next page of edges, or absent on the last page.
+
+            Pass it back as `cursor`.'
+      description: Response body for `GET /v3/entities/{id}/relations`.
     RelatedEntityV3:
       type: object
       required:
@@ -227,6 +251,28 @@ components:
         stable public id, the canonical name, and the effective type. The full
 
         entity is fetched separately via the entity detail / File System endpoints.'
+    GraphEdgeV3:
+      type: object
+      required:
+      - sourceId
+      - targetId
+      - relationType
+      - mentionCount
+      properties:
+        sourceId:
+          type: string
+          description: Source entity public id (`ent_...`).
+        targetId:
+          type: string
+          description: Target entity public id (`ent_...`).
+        relationType:
+          type: string
+          description: Free-form relation label.
+        mentionCount:
+          type: integer
+          format: int32
+          description: How many times this edge has been observed.
+      description: One directed edge between two entities, addressed by their public ids.
     OutboundRelationV3:
       type: object
       required:
@@ -251,30 +297,6 @@ components:
           format: date-time
           description: First-seen timestamp of the edge (RFC 3339).
       description: One edge pointing AWAY from the queried entity (it is the source).
-    InboundRelationV3:
-      type: object
-      required:
-      - relationType
-      - sourceEntity
-      - mentionCount
-      - firstSeenAt
-      properties:
-        relationType:
-          type: string
-          description: Free-form relation label (e.g. `author_of`, `affiliated_with`).
-        sourceEntity:
-          allOf:
-          - $ref: '#/components/schemas/RelatedEntityV3'
-          description: The entity at the tail of the edge.
-        mentionCount:
-          type: integer
-          format: int32
-          description: How many times this edge has been observed across parsed documents.
-        firstSeenAt:
-          type: string
-          format: date-time
-          description: First-seen timestamp of the edge (RFC 3339).
-      description: One edge pointing AT the queried entity (some other entity is the source).
     GraphNodeV3:
       type: object
       required:
@@ -306,28 +328,6 @@ components:
 
             `nodeID`), this is 0 for every node.'
       description: One entity node in the knowledge graph.
-    EntityRelationsResponseV3:
-      type: object
-      required:
-      - inbound
-      - outbound
-      properties:
-        inbound:
-          type: array
-          items:
-            $ref: '#/components/schemas/InboundRelationV3'
-          description: Edges pointing at the queried entity.
-        outbound:
-          type: array
-          items:
-            $ref: '#/components/schemas/OutboundRelationV3'
-          description: Edges pointing away from the queried entity.
-        nextCursor:
-          type: string
-          description: 'Opaque cursor for the next page of edges, or absent on the last page.
-
-            Pass it back as `cursor`.'
-      description: Response body for `GET /v3/entities/{id}/relations`.
     KnowledgeGraphResponseV3:
       type: object
       required:
