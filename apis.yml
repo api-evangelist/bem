@@ -917,6 +917,8 @@ apis:
   - type: OpenAPI
     url: openapi/bem-filesystem-api-openapi.yml
 common:
+- type: PostmanWorkspace
+  url: https://www.postman.com/kinlaneapi/bem/overview
 - type: Plans
   url: plans/bem-plans-pricing.yml
 - url: https://blog.bem.ai/feed
