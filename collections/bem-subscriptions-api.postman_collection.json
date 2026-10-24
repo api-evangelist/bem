@@ -1,764 +1,700 @@
 {
+  "info": {
+    "_postman_id": "bacf9c2a-05dd-461f-835b-d2450abb7179",
+    "name": "Bem Subscriptions API",
+    "description": "Subscriptions wire up notifications for the events your functions and collections produce.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:55.000Z",
+    "updatedAt": "2026-10-22T02:02:55.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-bacf9c2a-05dd-461f-835b-d2450abb7179"
+  },
   "item": [
     {
-      "id": "29874ef0-71fc-470c-864b-629d2857ec65",
-      "name": "Subscriptions",
-      "description": {
-        "content": "Subscriptions wire up notifications for the events your functions and collections produce.\n\nMost subscriptions target a single function (by `functionName` or `functionID`) or a single\ncollection (by `collectionName` or `collectionID`) and select a `type` corresponding to the\nevent you want to receive — for example `transform`, `route`, `join`, `evaluation`, `error`,\n`enrich`, or `collection_processing`.\n\nEntity-lifecycle events are account-wide and target no function or collection. Set `type` to\none of the following and provide a `webhookURL` (these event types support webhook delivery\nonly):\n\n- `entity_proposed` — an entity entered the `proposed` curation status (queued for review).\n- `entity_validated` — an entity was approved/validated by a reviewer.\n- `entity_rejected` — an entity was rejected by a reviewer.\n\nEach entity-lifecycle delivery is a JSON POST describing the transition (`entityID`,\n`typeName`, `priorStatus`, `newStatus`, optional `actorUserID` and `reason`, and a\n`timestamp`).\n\nDeliveries can be sent to any combination of:\n\n- `webhookURL` — HTTPS endpoint that receives a JSON POST per event.\n- `s3Bucket` + `s3FilePath` — sync output JSON into an AWS S3 prefix you own.\n- `googleDriveFolderID` — drop output JSON into a Google Drive folder.\n\nUse `disabled: true` to pause delivery without deleting the subscription. Updates follow\nconventional PATCH semantics — only the fields you include are changed.",
-        "type": "text/plain"
-      },
+      "name": "v3",
       "item": [
         {
-          "id": "a9ee977a-5864-4882-9444-4318fa78d7ac",
-          "name": "List Subscriptions",
-          "request": {
-            "name": "List Subscriptions",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "subscriptions"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "functionNames",
-                  "value": "<string>",
-                  "description": "Filters to subscriptions linked to included array of function names."
-                },
-                {
-                  "disabled": false,
-                  "key": "limit",
-                  "value": "50",
-                  "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100."
-                },
-                {
-                  "disabled": false,
-                  "key": "sortOrder",
-                  "value": "asc",
-                  "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions."
-                },
-                {
-                  "disabled": false,
-                  "key": "startingAfter",
-                  "value": "<string>",
-                  "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list."
-                },
-                {
-                  "disabled": false,
-                  "key": "endingBefore",
-                  "value": "<string>",
-                  "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list."
-                }
-              ],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
+          "name": "subscriptions",
+          "item": [
             {
-              "id": "17111b5e-4191-46e6-9df2-88fe9efad7e8",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "functionNames",
-                      "value": "<string>"
+              "name": "{subscriptionID}",
+              "item": [
+                {
+                  "name": "Delete a Subscription",
+                  "id": "09505493-642a-409d-89c9-8bb1cf189e87",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions",
+                        ":subscriptionID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "a656d31c-9795-4593-9f32-a34858a75cda",
+                          "key": "subscriptionID",
+                          "value": "<string>",
+                          "description": "(Required) ID of the subscription to delete"
+                        }
+                      ]
                     },
+                    "description": "Deletes an existing subscription."
+                  },
+                  "response": [
                     {
-                      "key": "limit",
-                      "value": "50"
-                    },
-                    {
-                      "key": "sortOrder",
-                      "value": "asc"
-                    },
-                    {
-                      "key": "startingAfter",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "endingBefore",
-                      "value": "<string>"
+                      "id": "771cf30e-ccfc-4009-b1a5-1a870474558d",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "subscriptions",
+                            ":subscriptionID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "subscriptionID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "text",
+                      "header": [],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": null,
+                      "createdAt": "2026-10-22T02:02:55.000Z",
+                      "updatedAt": "2026-10-22T02:02:55.000Z",
+                      "uid": "35240-771cf30e-ccfc-4009-b1a5-1a870474558d"
                     }
                   ],
-                  "variable": []
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-09505493-642a-409d-89c9-8bb1cf189e87"
                 },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
+                {
+                  "name": "Get a Subscription",
+                  "id": "88674f12-0ec4-4461-ac2c-e31a36216219",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
                   },
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions",
+                        ":subscriptionID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "9ba42582-50af-40bb-8273-71ba008690c2",
+                          "key": "subscriptionID",
+                          "value": "<string>",
+                          "description": "(Required) ID of the subscription to retrieve."
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "id": "1ead8893-d7c4-4d98-9a62-c0e01e5547c3",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "subscriptions",
+                            ":subscriptionID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "subscriptionID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"name\": \"<string>\",\n  \"subscriptionID\": \"<string>\",\n  \"type\": \"split_item\",\n  \"functionID\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                      "createdAt": "2026-10-22T02:02:55.000Z",
+                      "updatedAt": "2026-10-22T02:02:55.000Z",
+                      "uid": "35240-1ead8893-d7c4-4d98-9a62-c0e01e5547c3"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-88674f12-0ec4-4461-ac2c-e31a36216219"
+                },
+                {
+                  "name": "Update a Subscription",
+                  "id": "5c65cb34-8709-49f7-ba35-40ca4f8857c0",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "PATCH",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"collection_processing\",\n  \"disabled\": \"<boolean>\",\n  \"functionName\": \"<string>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions",
+                        ":subscriptionID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "0bc9f9cc-b17a-4dd8-86db-51694bcd3f20",
+                          "key": "subscriptionID",
+                          "value": "<string>",
+                          "description": "(Required) ID of the subscription to update"
+                        }
+                      ]
+                    },
+                    "description": "Updates an existing subscription. Follow conventional PATCH behavior, so only included fields will be updated."
+                  },
+                  "response": [
+                    {
+                      "id": "dc26f311-7f4c-442c-80d8-165f6ee5cea1",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "PATCH",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"collection_processing\",\n  \"disabled\": \"<boolean>\",\n  \"functionName\": \"<string>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/subscriptions/:subscriptionID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "subscriptions",
+                            ":subscriptionID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "subscriptionID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"name\": \"<string>\",\n  \"subscriptionID\": \"<string>\",\n  \"type\": \"split_item\",\n  \"functionID\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                      "createdAt": "2026-10-22T02:02:55.000Z",
+                      "updatedAt": "2026-10-22T02:02:55.000Z",
+                      "uid": "35240-dc26f311-7f4c-442c-80d8-165f6ee5cea1"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-5c65cb34-8709-49f7-ba35-40ca4f8857c0"
+                }
+              ],
+              "id": "f2f3eee2-61ec-4d85-b5e1-a30cad702ef0",
+              "createdAt": "2026-10-22T02:02:55.000Z",
+              "updatedAt": "2026-10-22T02:02:55.000Z",
+              "uid": "35240-f2f3eee2-61ec-4d85-b5e1-a30cad702ef0"
+            },
+            {
+              "name": "List Subscriptions",
+              "id": "2a68a9cf-4a29-4491-8b34-eef2023a385a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
                   {
                     "key": "Accept",
                     "value": "application/json"
                   }
                 ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "[\n  {\n    \"name\": \"string\",\n    \"subscriptionID\": \"string\",\n    \"type\": \"collection_processing\",\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"collectionID\": \"string\",\n    \"collectionName\": \"string\",\n    \"disabled\": true,\n    \"webhookURL\": \"string\",\n    \"s3Bucket\": \"string\",\n    \"s3FilePath\": \"string\",\n    \"googleDriveFolderID\": \"string\"\n  },\n  {\n    \"name\": \"string\",\n    \"subscriptionID\": \"string\",\n    \"type\": \"enrich\",\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"collectionID\": \"string\",\n    \"collectionName\": \"string\",\n    \"disabled\": true,\n    \"webhookURL\": \"string\",\n    \"s3Bucket\": \"string\",\n    \"s3FilePath\": \"string\",\n    \"googleDriveFolderID\": \"string\"\n  }\n]",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "f94a9ad8-6a92-422b-9b4a-30543528b6aa",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
                 "url": {
+                  "raw": "{{baseUrl}}/v3/subscriptions?functionNames=<string>&limit=50&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
                   "path": [
                     "v3",
                     "subscriptions"
                   ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
                   "query": [
                     {
+                      "description": "Filters to subscriptions linked to included array of function names.",
                       "key": "functionNames",
                       "value": "<string>"
                     },
                     {
+                      "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100.",
                       "key": "limit",
                       "value": "50"
                     },
                     {
+                      "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions.",
                       "key": "sortOrder",
                       "value": "asc"
                     },
                     {
+                      "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list.",
                       "key": "startingAfter",
                       "value": "<string>"
                     },
                     {
+                      "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list.",
                       "key": "endingBefore",
                       "value": "<string>"
                     }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "text/plain"
+                  ]
                 }
-              ],
-              "body": "",
-              "cookie": [],
-              "_postman_previewlanguage": "text"
-            },
-            {
-              "id": "8c26b46e-76c8-48f3-bd60-53422e83d5b6",
-              "name": "Access is unauthorized.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "functionNames",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    },
-                    {
-                      "key": "sortOrder",
-                      "value": "asc"
-                    },
-                    {
-                      "key": "startingAfter",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "endingBefore",
-                      "value": "<string>"
+              },
+              "response": [
+                {
+                  "id": "08daf2a4-21a1-486e-95ce-6116d0b81891",
+                  "name": "The request has succeeded.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions?functionNames=<string>&limit=50&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions"
+                      ],
+                      "query": [
+                        {
+                          "description": "Filters to subscriptions linked to included array of function names.",
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100.",
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions.",
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
                     }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "Unauthorized",
-              "code": 401,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "text/plain"
-                }
-              ],
-              "body": "",
-              "cookie": [],
-              "_postman_previewlanguage": "text"
-            },
-            {
-              "id": "7d869cf5-6c79-41e6-a34c-0d6496e148e3",
-              "name": "Server error",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "functionNames",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    },
-                    {
-                      "key": "sortOrder",
-                      "value": "asc"
-                    },
-                    {
-                      "key": "startingAfter",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "endingBefore",
-                      "value": "<string>"
-                    }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "text/plain"
-                }
-              ],
-              "body": "",
-              "cookie": [],
-              "_postman_previewlanguage": "text"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "1d5fe5fa-0067-47db-bd5a-66facd080729",
-          "name": "Create a Subscription",
-          "request": {
-            "name": "Create a Subscription",
-            "description": {
-              "content": "Creates a new subscription to listen to transform or error events.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "subscriptions"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"functionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "2960d4aa-d267-4bac-935d-87995cbf65d6",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
                   },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "[\n  {\n    \"name\": \"<string>\",\n    \"subscriptionID\": \"<string>\",\n    \"type\": \"split_collection\",\n    \"functionID\": \"<string>\",\n    \"functionName\": \"<string>\",\n    \"collectionID\": \"<string>\",\n    \"collectionName\": \"<string>\",\n    \"disabled\": \"<boolean>\",\n    \"webhookURL\": \"<string>\",\n    \"s3Bucket\": \"<string>\",\n    \"s3FilePath\": \"<string>\",\n    \"googleDriveFolderID\": \"<string>\"\n  },\n  {\n    \"name\": \"<string>\",\n    \"subscriptionID\": \"<string>\",\n    \"type\": \"payload_shaping\",\n    \"functionID\": \"<string>\",\n    \"functionName\": \"<string>\",\n    \"collectionID\": \"<string>\",\n    \"collectionName\": \"<string>\",\n    \"disabled\": \"<boolean>\",\n    \"webhookURL\": \"<string>\",\n    \"s3Bucket\": \"<string>\",\n    \"s3FilePath\": \"<string>\",\n    \"googleDriveFolderID\": \"<string>\"\n  }\n]",
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-08daf2a4-21a1-486e-95ce-6116d0b81891"
+                },
+                {
+                  "id": "27332be4-3dcb-482b-b50b-e14732a9ee6b",
+                  "name": "The server could not understand the request due to invalid syntax.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions?functionNames=<string>&limit=50&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions"
+                      ],
+                      "query": [
+                        {
+                          "description": "Filters to subscriptions linked to included array of function names.",
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100.",
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions.",
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "text",
+                  "header": [],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": null,
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-27332be4-3dcb-482b-b50b-e14732a9ee6b"
+                },
+                {
+                  "id": "0c6ba1ad-b0a2-46dc-9da9-4bcbdfe502a1",
+                  "name": "Access is unauthorized.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions?functionNames=<string>&limit=50&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions"
+                      ],
+                      "query": [
+                        {
+                          "description": "Filters to subscriptions linked to included array of function names.",
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100.",
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions.",
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "text",
+                  "header": [],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": null,
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-0c6ba1ad-b0a2-46dc-9da9-4bcbdfe502a1"
+                },
+                {
+                  "id": "6adefef2-6b6c-4f47-8969-657221f5d614",
+                  "name": "Server error",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions?functionNames=<string>&limit=50&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions"
+                      ],
+                      "query": [
+                        {
+                          "description": "Filters to subscriptions linked to included array of function names.",
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "This specifies a limit on the number of objects to return, ranging between 1 and 100.",
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "description": "Specifies sorting behavior. The two options are `asc` and `desc` to sort ascending and descending respectively, with default sort being ascending. Paging works in both directions.",
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `startingAfter` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, ending with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `startingAfter=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the next page of the list.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "A cursor to use in pagination. `endingBefore` is a task ID that defines your place in the list. For example, if you make a list request and receive 50 objects, starting with `sub_2c9AXIj48cUYJtCuv1gsQtHGDzK`, your subsequent call can include `endingBefore=sub_2c9AXIj48cUYJtCuv1gsQtHGDzK` to fetch the previous page of the list.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Internal Server Error",
+                  "code": 500,
+                  "_postman_previewlanguage": "text",
+                  "header": [],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": null,
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-6adefef2-6b6c-4f47-8969-657221f5d614"
+                }
+              ],
+              "createdAt": "2026-10-22T02:02:55.000Z",
+              "updatedAt": "2026-10-22T02:02:55.000Z",
+              "uid": "35240-2a68a9cf-4a29-4491-8b34-eef2023a385a"
+            },
+            {
+              "name": "Create a Subscription",
+              "id": "24bacbb4-3b76-482e-8824-111ea23b905b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
                 "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"functionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"name\": \"string\",\n  \"subscriptionID\": \"string\",\n  \"type\": \"payload_shaping\",\n  \"functionID\": \"string\",\n  \"functionName\": \"string\",\n  \"collectionID\": \"string\",\n  \"collectionName\": \"string\",\n  \"disabled\": true,\n  \"webhookURL\": \"string\",\n  \"s3Bucket\": \"string\",\n  \"s3FilePath\": \"string\",\n  \"googleDriveFolderID\": \"string\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "446cd514-6b07-4a51-8637-93674a53870e",
-          "name": "Delete a Subscription",
-          "request": {
-            "name": "Delete a Subscription",
-            "description": {
-              "content": "Deletes an existing subscription.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "subscriptions",
-                ":subscriptionID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "subscriptionID",
-                  "description": "(Required) ID of the subscription to delete"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "34af16c8-98c7-4f0a-b205-06cd1f9abe8e",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions",
-                    ":subscriptionID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "subscriptionID",
-                      "description": "(Required) ID of the subscription to delete"
-                    }
-                  ]
-                },
                 "header": [
                   {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  }
-                ],
-                "method": "DELETE",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "text/plain"
-                }
-              ],
-              "body": "",
-              "cookie": [],
-              "_postman_previewlanguage": "text"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "773aeaa9-53a0-41db-8998-cef4348b2554",
-          "name": "Get a Subscription",
-          "request": {
-            "name": "Get a Subscription",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "subscriptions",
-                ":subscriptionID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "subscriptionID",
-                  "description": "(Required) ID of the subscription to retrieve."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "237632d6-2808-4858-9c88-398c5761da0a",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions",
-                    ":subscriptionID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "subscriptionID",
-                      "description": "(Required) ID of the subscription to retrieve."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
+                    "key": "Content-Type",
+                    "value": "application/json"
                   },
                   {
                     "key": "Accept",
                     "value": "application/json"
                   }
                 ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"name\": \"string\",\n  \"subscriptionID\": \"string\",\n  \"type\": \"payload_shaping\",\n  \"functionID\": \"string\",\n  \"functionName\": \"string\",\n  \"collectionID\": \"string\",\n  \"collectionName\": \"string\",\n  \"disabled\": true,\n  \"webhookURL\": \"string\",\n  \"s3Bucket\": \"string\",\n  \"s3FilePath\": \"string\",\n  \"googleDriveFolderID\": \"string\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "91cc7552-1dc8-43ae-b107-0635a4397d01",
-          "name": "Update a Subscription",
-          "request": {
-            "name": "Update a Subscription",
-            "description": {
-              "content": "Updates an existing subscription. Follow conventional PATCH behavior, so only included fields will be updated.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "subscriptions",
-                ":subscriptionID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "subscriptionID",
-                  "description": "(Required) ID of the subscription to update"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "PATCH",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"functionName\": \"<string>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "e0825f8f-e018-4851-8008-cf73efc885b5",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "subscriptions",
-                    ":subscriptionID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "subscriptionID",
-                      "description": "(Required) ID of the subscription to update"
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "PATCH",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"functionName\": \"<string>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"collection_processing\",\n  \"functionName\": \"<string>\",\n  \"functionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
                   "options": {
                     "raw": {
+                      "headerFamily": "json",
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/v3/subscriptions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "subscriptions"
+                  ]
+                },
+                "description": "Creates a new subscription to listen to transform or error events."
               },
-              "status": "OK",
-              "code": 200,
-              "header": [
+              "response": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                  "id": "0f2bf40d-3e57-425d-ac08-3522ffd551fe",
+                  "name": "The request has succeeded.",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name\": \"<string>\",\n  \"type\": \"collection_processing\",\n  \"functionName\": \"<string>\",\n  \"functionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/subscriptions",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "subscriptions"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"name\": \"<string>\",\n  \"subscriptionID\": \"<string>\",\n  \"type\": \"split_item\",\n  \"functionID\": \"<string>\",\n  \"functionName\": \"<string>\",\n  \"collectionID\": \"<string>\",\n  \"collectionName\": \"<string>\",\n  \"disabled\": \"<boolean>\",\n  \"webhookURL\": \"<string>\",\n  \"s3Bucket\": \"<string>\",\n  \"s3FilePath\": \"<string>\",\n  \"googleDriveFolderID\": \"<string>\"\n}",
+                  "createdAt": "2026-10-22T02:02:55.000Z",
+                  "updatedAt": "2026-10-22T02:02:55.000Z",
+                  "uid": "35240-0f2bf40d-3e57-425d-ac08-3522ffd551fe"
                 }
               ],
-              "body": "{\n  \"name\": \"string\",\n  \"subscriptionID\": \"string\",\n  \"type\": \"payload_shaping\",\n  \"functionID\": \"string\",\n  \"functionName\": \"string\",\n  \"collectionID\": \"string\",\n  \"collectionName\": \"string\",\n  \"disabled\": true,\n  \"webhookURL\": \"string\",\n  \"s3Bucket\": \"string\",\n  \"s3FilePath\": \"string\",\n  \"googleDriveFolderID\": \"string\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "createdAt": "2026-10-22T02:02:55.000Z",
+              "updatedAt": "2026-10-22T02:02:55.000Z",
+              "uid": "35240-24bacbb4-3b76-482e-8824-111ea23b905b"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "6158317d-50f6-4d4f-8c8c-0b5abdd579e3",
+          "createdAt": "2026-10-22T02:02:55.000Z",
+          "updatedAt": "2026-10-22T02:02:55.000Z",
+          "uid": "35240-6158317d-50f6-4d4f-8c8c-0b5abdd579e3"
         }
       ],
-      "event": []
+      "id": "0999e6c5-42da-47b8-99e4-0894c9bd767f",
+      "createdAt": "2026-10-22T02:02:55.000Z",
+      "updatedAt": "2026-10-22T02:02:55.000Z",
+      "uid": "35240-0999e6c5-42da-47b8-99e4-0894c9bd767f"
     }
   ],
-  "event": [],
   "variable": [
     {
-      "type": "string",
-      "value": "https://api.bem.ai",
-      "key": "baseUrl"
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
     }
-  ],
-  "auth": {
-    "type": "apikey",
-    "apikey": [
-      {
-        "key": "key",
-        "value": "x-api-key"
-      },
-      {
-        "key": "value",
-        "value": "{{apiKey}}"
-      },
-      {
-        "key": "in",
-        "value": "header"
-      }
-    ]
-  },
-  "info": {
-    "_postman_id": "aaefa5c9-3c76-4e80-8e25-8e5497cc9fae",
-    "name": "Bem Buckets Subscriptions API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-      "type": "text/plain"
-    }
-  }
+  ]
 }

@@ -1,0 +1,190 @@
+{
+  "info": {
+    "_postman_id": "aacc5f96-ad92-429b-838b-5db3eadddc7b",
+    "name": "Bem Review Queue API",
+    "description": "The reviewer-facing read surface for entity curation, available on the\ndashboard (JWT) only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:45.000Z",
+    "updatedAt": "2026-10-22T02:02:45.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-aacc5f96-ad92-429b-838b-5db3eadddc7b"
+  },
+  "item": [
+    {
+      "name": "v3",
+      "item": [
+        {
+          "name": "review-queue",
+          "item": [
+            {
+              "name": "List Review Queue",
+              "id": "376b35ad-5abd-4b88-8d7b-295a1064da2c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v3/review-queue?status=<string>&status=<string>&type=<string>&type=<string>&assignedTo=<string>&since=<string>&cursor=<string>&bucket=<string>&limit=50",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "review-queue"
+                  ],
+                  "query": [
+                    {
+                      "description": "Restrict to these lifecycle states. Defaults to `extracted` + `proposed`.",
+                      "key": "status",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Restrict to these lifecycle states. Defaults to `extracted` + `proposed`.",
+                      "key": "status",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Restrict to entities whose effective type is one of these `ety_...` IDs.",
+                      "key": "type",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Restrict to entities whose effective type is one of these `ety_...` IDs.",
+                      "key": "type",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "`me` or a `usr_...` ID \u2014 restrict to entities whose effective type that user reviews.",
+                      "key": "assignedTo",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "RFC3339 timestamp \u2014 restrict to entities created at or after this time.",
+                      "key": "since",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Cursor \u2014 an `entityID` defining your place in the list.",
+                      "key": "cursor",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Optional bucket public ID (`bkt_...`) to scope to. Omit for all buckets.",
+                      "key": "bucket",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                },
+                "description": "**List entities awaiting curation, for a human reviewer's queue.**\n\nReturns a cursor-paginated set of entities scoped to your\naccount+environment (and optional `bucket`), each carrying a small preview\nof its first mentions so a reviewer can triage without opening every\nentity. All filters AND together.\n\n- **`status`** (repeatable) restricts to the given lifecycle states.\nOmitting it defaults to the pre-terminal states `extracted` and\n`proposed`.\n- **`type`** (repeatable, `ety_...` IDs) matches the entity's *effective*\ntype: an entity matches when its assigned type is one of these IDs, or it\nhas no assigned type and its bem-inferred type name matches one of them.\n- **`assignedTo`** (`me` or a `usr_...` ID) restricts to entities whose\neffective type the given user reviews. `me` resolves to the calling user.\n- **`since`** (RFC3339) restricts to entities created at or after the time.\n\nPagination is cursor-based on `entityID` ascending; default limit is 50,\nmaximum 200."
+              },
+              "response": [
+                {
+                  "id": "a03216e5-cd5d-4a8f-b63a-1462df97387d",
+                  "name": "The request has succeeded.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/review-queue?status=<string>&type=<string>&assignedTo=<string>&since=<string>&cursor=<string>&bucket=<string>&limit=50",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "review-queue"
+                      ],
+                      "query": [
+                        {
+                          "description": "Restrict to these lifecycle states. Defaults to `extracted` + `proposed`.",
+                          "key": "status",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Restrict to entities whose effective type is one of these `ety_...` IDs.",
+                          "key": "type",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "`me` or a `usr_...` ID \u2014 restrict to entities whose effective type that user reviews.",
+                          "key": "assignedTo",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "RFC3339 timestamp \u2014 restrict to entities created at or after this time.",
+                          "key": "since",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Cursor \u2014 an `entityID` defining your place in the list.",
+                          "key": "cursor",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Optional bucket public ID (`bkt_...`) to scope to. Omit for all buckets.",
+                          "key": "bucket",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "limit",
+                          "value": "50"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"entities\": [\n    {\n      \"entityID\": \"<string>\",\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"mentionCount\": \"<integer>\",\n      \"surfaceForms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\",\n      \"status\": \"<string>\",\n      \"previewMentions\": [\n        {\n          \"mentionID\": \"<string>\",\n          \"entityID\": \"<string>\",\n          \"referenceID\": \"<string>\",\n          \"page\": \"<integer>\",\n          \"surface\": \"<string>\",\n          \"createdAt\": \"<dateTime>\",\n          \"transformationID\": \"<string>\",\n          \"sectionLabel\": \"<string>\"\n        },\n        {\n          \"mentionID\": \"<string>\",\n          \"entityID\": \"<string>\",\n          \"referenceID\": \"<string>\",\n          \"page\": \"<integer>\",\n          \"surface\": \"<string>\",\n          \"createdAt\": \"<dateTime>\",\n          \"transformationID\": \"<string>\",\n          \"sectionLabel\": \"<string>\"\n        }\n      ],\n      \"description\": \"<string>\",\n      \"typeID\": \"<string>\",\n      \"validatedAt\": \"<dateTime>\",\n      \"validatedByUserID\": \"<string>\"\n    },\n    {\n      \"entityID\": \"<string>\",\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"mentionCount\": \"<integer>\",\n      \"surfaceForms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\",\n      \"status\": \"<string>\",\n      \"previewMentions\": [\n        {\n          \"mentionID\": \"<string>\",\n          \"entityID\": \"<string>\",\n          \"referenceID\": \"<string>\",\n          \"page\": \"<integer>\",\n          \"surface\": \"<string>\",\n          \"createdAt\": \"<dateTime>\",\n          \"transformationID\": \"<string>\",\n          \"sectionLabel\": \"<string>\"\n        },\n        {\n          \"mentionID\": \"<string>\",\n          \"entityID\": \"<string>\",\n          \"referenceID\": \"<string>\",\n          \"page\": \"<integer>\",\n          \"surface\": \"<string>\",\n          \"createdAt\": \"<dateTime>\",\n          \"transformationID\": \"<string>\",\n          \"sectionLabel\": \"<string>\"\n        }\n      ],\n      \"description\": \"<string>\",\n      \"typeID\": \"<string>\",\n      \"validatedAt\": \"<dateTime>\",\n      \"validatedByUserID\": \"<string>\"\n    }\n  ],\n  \"hasMore\": \"<boolean>\",\n  \"nextCursor\": \"<string>\"\n}",
+                  "createdAt": "2026-10-22T02:02:45.000Z",
+                  "updatedAt": "2026-10-22T02:02:45.000Z",
+                  "uid": "35240-a03216e5-cd5d-4a8f-b63a-1462df97387d"
+                }
+              ],
+              "createdAt": "2026-10-22T02:02:45.000Z",
+              "updatedAt": "2026-10-22T02:02:45.000Z",
+              "uid": "35240-376b35ad-5abd-4b88-8d7b-295a1064da2c"
+            }
+          ],
+          "id": "3006060c-18fe-4459-bd21-f3754b00b062",
+          "createdAt": "2026-10-22T02:02:45.000Z",
+          "updatedAt": "2026-10-22T02:02:45.000Z",
+          "uid": "35240-3006060c-18fe-4459-bd21-f3754b00b062"
+        }
+      ],
+      "id": "9f5da15d-9135-4d4b-847c-58324c137518",
+      "createdAt": "2026-10-22T02:02:45.000Z",
+      "updatedAt": "2026-10-22T02:02:45.000Z",
+      "uid": "35240-9f5da15d-9135-4d4b-847c-58324c137518"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
+    }
+  ]
+}

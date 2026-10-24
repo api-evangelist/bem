@@ -1,1938 +1,1933 @@
 {
+  "info": {
+    "_postman_id": "03e51f2b-404d-4c13-b1be-dd1e1e5ce3b2",
+    "name": "Bem Function Accuracy API",
+    "description": "Monitor, evaluate, and iterate on the quality of every function in your\nenvironment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:31.000Z",
+    "updatedAt": "2026-10-22T02:02:32.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-03e51f2b-404d-4c13-b1be-dd1e1e5ce3b2"
+  },
   "item": [
     {
-      "id": "f86051eb-ad4b-4d2c-94f0-37f6174e3aa5",
-      "name": "Function Accuracy",
-      "description": {
-        "content": "Monitor, evaluate, and iterate on the quality of every function in your\nenvironment. Function Accuracy bundles two complementary loops:\n\n## Evaluations (`/v3/eval`)\n\nTrigger and retrieve per-transformation evaluations. Evaluations run\nasynchronously and score each transformation's output against the\nfunction's schema for confidence, per-field hallucination detection,\nand relevance. Supported for `extract`, `transform`, `analyze`, and\n`join` events.\n\n1. **Trigger** — `POST /v3/eval` queues jobs for a batch of transformation IDs.\n2. **Poll** — `GET /v3/eval/results` returns the current state of each\n   requested ID, partitioned into `results`, `pending`, and `failed`.\n   Accepts either `eventIDs` (preferred) or `transformationIDs` as a\n   comma-separated query parameter, and always keys the response by\n   event KSUID.\n\nUp to 100 IDs may be submitted per request.\n\n## Metrics, review, regression (`/v3/functions/{metrics,review,regression,compare}`)\n\nRoll evaluation results and user corrections up into actionable\nfunction-level signal:\n\n- **`GET /v3/functions/metrics`** — aggregate accuracy, precision,\n  recall, F1, and confusion-matrix counts per function.\n- **`POST /v3/functions/review`** — sample-size estimation,\n  confidence-bucketed distribution, PR-AUC, and per-threshold\n  confidence intervals (Wald or Wilson) for picking review cutoffs.\n- **`POST /v3/functions/regression`** — replay corrected historical\n  inputs against a new function version, producing a labeled\n  regression dataset.\n- **`POST /v3/functions/regression/corrections`** — propagate\n  baseline corrections onto the regression dataset so it can be\n  scored.\n- **`POST /v3/functions/compare`** — compute aggregate and\n  field-level lift between any two versions, optionally scoped to\n  the regression dataset.\n\nAll five endpoints support `extract` end-to-end on both the vision\nand OCR paths, alongside the legacy `transform` / `analyze` / `join`\ntypes.",
-        "type": "text/plain"
-      },
+      "name": "v3",
       "item": [
         {
-          "id": "f8dc7238-3ce3-4547-a1de-4fc754c001be",
-          "name": "Trigger Transformation Evaluations",
-          "request": {
-            "name": "Trigger Transformation Evaluations",
-            "description": {
-              "content": "**Queue evaluation jobs for a batch of transformations.**\n\nEvaluations run asynchronously and score each transformation's output\nagainst the function's schema for confidence, hallucination detection,\nand relevance. Transformations must belong to events of a supported\ntype: `extract`, `transform`, `analyze`, or `join`.\n\nReturns immediately with a summary of queued vs. skipped transformations\nand per-transformation errors. Poll `GET /v3/eval/results` to retrieve\nresults once evaluations complete.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "eval"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"transformationIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"evaluationVersion\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
+          "name": "eval",
+          "item": [
             {
-              "id": "a871bf74-3326-4f1c-8de1-38f5bb72d5f8",
-              "name": "The request has been accepted for processing, but processing has not yet completed.",
-              "originalRequest": {
+              "name": "results",
+              "item": [
+                {
+                  "name": "Get Evaluation Results",
+                  "id": "0a011bcc-370c-49f9-84fd-8083d9fd7afc",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/eval/results?eventIDs=<string>&transformationIDs=<string>&evaluationVersion=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "eval",
+                        "results"
+                      ],
+                      "query": [
+                        {
+                          "description": "Comma-separated list of event KSUIDs to fetch results for. Between\n1 and 100 IDs per request. Mutually exclusive with\n`transformationIDs`.",
+                          "key": "eventIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Comma-separated list of transformation IDs to fetch results for.\nBetween 1 and 100 IDs per request. Mutually exclusive with\n`eventIDs`. Prefer `eventIDs` for new integrations.",
+                          "key": "transformationIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Optional evaluation version filter.",
+                          "key": "evaluationVersion",
+                          "value": "<string>"
+                        }
+                      ]
+                    },
+                    "description": "**Fetch evaluation results for a batch of events.**\n\nPass either `eventIDs` (preferred \u2014 the externally-stable V3\nidentifier) or `transformationIDs` as a comma-separated query\nparameter. Exactly one of the two must be provided. Up to 100 IDs per\nrequest.\n\nFor each requested ID the response reports one of three states: a\ncompleted `result`, still-`pending`, or `failed`. Results, pending,\nand failed entries are all keyed by event KSUID regardless of which\ninput form was used."
+                  },
+                  "response": [
+                    {
+                      "id": "9561db09-f823-40c2-b5b7-9037e5fe6adf",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/eval/results?eventIDs=<string>&transformationIDs=<string>&evaluationVersion=<string>",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "eval",
+                            "results"
+                          ],
+                          "query": [
+                            {
+                              "description": "Comma-separated list of event KSUIDs to fetch results for. Between\n1 and 100 IDs per request. Mutually exclusive with\n`transformationIDs`.",
+                              "key": "eventIDs",
+                              "value": "<string>"
+                            },
+                            {
+                              "description": "Comma-separated list of transformation IDs to fetch results for.\nBetween 1 and 100 IDs per request. Mutually exclusive with\n`eventIDs`. Prefer `eventIDs` for new integrations.",
+                              "key": "transformationIDs",
+                              "value": "<string>"
+                            },
+                            {
+                              "description": "Optional evaluation version filter.",
+                              "key": "evaluationVersion",
+                              "value": "<string>"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"results\": {},\n  \"pending\": [\n    {\n      \"eventID\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"eventID\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ],\n  \"failed\": [\n    {\n      \"eventID\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"eventID\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ],\n  \"errors\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-9561db09-f823-40c2-b5b7-9037e5fe6adf"
+                    },
+                    {
+                      "id": "37d416db-5c48-47f3-bdca-32ce83878e6e",
+                      "name": "The server could not understand the request due to invalid syntax.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/eval/results?eventIDs=<string>&transformationIDs=<string>&evaluationVersion=<string>",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "eval",
+                            "results"
+                          ],
+                          "query": [
+                            {
+                              "description": "Comma-separated list of event KSUIDs to fetch results for. Between\n1 and 100 IDs per request. Mutually exclusive with\n`transformationIDs`.",
+                              "key": "eventIDs",
+                              "value": "<string>"
+                            },
+                            {
+                              "description": "Comma-separated list of transformation IDs to fetch results for.\nBetween 1 and 100 IDs per request. Mutually exclusive with\n`eventIDs`. Prefer `eventIDs` for new integrations.",
+                              "key": "transformationIDs",
+                              "value": "<string>"
+                            },
+                            {
+                              "description": "Optional evaluation version filter.",
+                              "key": "evaluationVersion",
+                              "value": "<string>"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-37d416db-5c48-47f3-bdca-32ce83878e6e"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-0a011bcc-370c-49f9-84fd-8083d9fd7afc"
+                }
+              ],
+              "id": "d1405e21-4882-4ea5-800c-48a0edb017c2",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-d1405e21-4882-4ea5-800c-48a0edb017c2"
+            },
+            {
+              "name": "score",
+              "item": [
+                {
+                  "name": "{scoreRunID}",
+                  "item": [
+                    {
+                      "name": "cancel",
+                      "item": [
+                        {
+                          "name": "Cancel Score Run",
+                          "id": "a01e32d8-46f9-4f91-aa10-f21a55bf9bd3",
+                          "protocolProfileBehavior": {
+                            "disableBodyPruning": true
+                          },
+                          "request": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID/cancel",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "eval",
+                                "score",
+                                ":scoreRunID",
+                                "cancel"
+                              ],
+                              "variable": [
+                                {
+                                  "id": "609e88ac-b726-4326-b644-234e461c79c4",
+                                  "key": "scoreRunID",
+                                  "value": "<string>",
+                                  "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
+                                }
+                              ]
+                            },
+                            "description": "**Cancel an in-flight score run.**\n\nTransitions the run to `cancelled`. Function calls already in flight\nare allowed to finish (best-effort cancellation via the job queue);\nresults from completed pairs may still appear in subsequent GETs."
+                          },
+                          "response": [
+                            {
+                              "id": "bde2efa5-7ff3-457e-92dd-c2a696b239c6",
+                              "name": "The request has succeeded.",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Accept",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "url": {
+                                  "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID/cancel",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "v3",
+                                    "eval",
+                                    "score",
+                                    ":scoreRunID",
+                                    "cancel"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "scoreRunID"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "OK",
+                              "code": 200,
+                              "_postman_previewlanguage": "json",
+                              "header": [
+                                {
+                                  "key": "Content-Type",
+                                  "value": "application/json"
+                                }
+                              ],
+                              "cookie": [],
+                              "responseTime": null,
+                              "body": "{\n  \"scoreRunID\": \"<string>\",\n  \"status\": \"running\",\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  },\n  \"progress\": {\n    \"total\": \"<integer>\",\n    \"completed\": \"<integer>\",\n    \"failed\": \"<integer>\"\n  },\n  \"perPair\": [\n    {\n      \"pairIndex\": \"<integer>\",\n      \"status\": \"pending\",\n      \"callID\": \"<string>\",\n      \"fieldResults\": [\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        },\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        }\n      ],\n      \"errorMessage\": \"<string>\"\n    },\n    {\n      \"pairIndex\": \"<integer>\",\n      \"status\": \"pending\",\n      \"callID\": \"<string>\",\n      \"fieldResults\": [\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        },\n        {\n          \"path\": \"<string>\",\n          \"match\": \"exact\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        }\n      ],\n      \"errorMessage\": \"<string>\"\n    }\n  ],\n  \"aggregate\": {\n    \"precision\": \"<double>\",\n    \"recall\": \"<double>\",\n    \"f1\": \"<double>\",\n    \"exactMatches\": \"<integer>\",\n    \"withinTolerance\": \"<integer>\",\n    \"fuzzyMatches\": \"<integer>\",\n    \"misses\": \"<integer>\",\n    \"extras\": \"<integer>\",\n    \"totalFieldsExpected\": \"<integer>\",\n    \"totalFieldsActual\": \"<integer>\"\n  }\n}",
+                              "createdAt": "2026-10-22T02:02:32.000Z",
+                              "updatedAt": "2026-10-22T02:02:32.000Z",
+                              "uid": "35240-bde2efa5-7ff3-457e-92dd-c2a696b239c6"
+                            },
+                            {
+                              "id": "8b638911-3ef3-4dd7-b2fc-ecfbceabb74d",
+                              "name": "The server cannot find the requested resource.",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Accept",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "url": {
+                                  "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID/cancel",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "v3",
+                                    "eval",
+                                    "score",
+                                    ":scoreRunID",
+                                    "cancel"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "scoreRunID"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Not Found",
+                              "code": 404,
+                              "_postman_previewlanguage": "json",
+                              "header": [
+                                {
+                                  "key": "Content-Type",
+                                  "value": "application/json"
+                                }
+                              ],
+                              "cookie": [],
+                              "responseTime": null,
+                              "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                              "createdAt": "2026-10-22T02:02:32.000Z",
+                              "updatedAt": "2026-10-22T02:02:32.000Z",
+                              "uid": "35240-8b638911-3ef3-4dd7-b2fc-ecfbceabb74d"
+                            }
+                          ],
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-a01e32d8-46f9-4f91-aa10-f21a55bf9bd3"
+                        }
+                      ],
+                      "id": "429e83dd-4fee-4564-bb3d-4a53f2ebb49c",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-429e83dd-4fee-4564-bb3d-4a53f2ebb49c"
+                    },
+                    {
+                      "name": "Get Score Run",
+                      "id": "047ab946-8cd5-4fd7-bff9-ea896f0dbb33",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "eval",
+                            "score",
+                            ":scoreRunID"
+                          ],
+                          "variable": [
+                            {
+                              "id": "56d0932c-7f9b-4698-b401-b81d791f7a0b",
+                              "key": "scoreRunID",
+                              "value": "<string>",
+                              "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
+                            }
+                          ]
+                        },
+                        "description": "**Get the status and per-pair results of a score run.**\n\nReturns `aggregate` only once `status` reaches `completed`. `perPair`\nis populated incrementally \u2014 each pair's `fieldResults` appears as\nits underlying function call terminates."
+                      },
+                      "response": [
+                        {
+                          "id": "7428c82f-924f-433b-94f3-eb2924553de0",
+                          "name": "The request has succeeded.",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "eval",
+                                "score",
+                                ":scoreRunID"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "scoreRunID"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"scoreRunID\": \"<string>\",\n  \"status\": \"running\",\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  },\n  \"progress\": {\n    \"total\": \"<integer>\",\n    \"completed\": \"<integer>\",\n    \"failed\": \"<integer>\"\n  },\n  \"perPair\": [\n    {\n      \"pairIndex\": \"<integer>\",\n      \"status\": \"pending\",\n      \"callID\": \"<string>\",\n      \"fieldResults\": [\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        },\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        }\n      ],\n      \"errorMessage\": \"<string>\"\n    },\n    {\n      \"pairIndex\": \"<integer>\",\n      \"status\": \"pending\",\n      \"callID\": \"<string>\",\n      \"fieldResults\": [\n        {\n          \"path\": \"<string>\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        },\n        {\n          \"path\": \"<string>\",\n          \"match\": \"exact\",\n          \"expected\": {},\n          \"actual\": {},\n          \"delta\": \"<double>\"\n        }\n      ],\n      \"errorMessage\": \"<string>\"\n    }\n  ],\n  \"aggregate\": {\n    \"precision\": \"<double>\",\n    \"recall\": \"<double>\",\n    \"f1\": \"<double>\",\n    \"exactMatches\": \"<integer>\",\n    \"withinTolerance\": \"<integer>\",\n    \"fuzzyMatches\": \"<integer>\",\n    \"misses\": \"<integer>\",\n    \"extras\": \"<integer>\",\n    \"totalFieldsExpected\": \"<integer>\",\n    \"totalFieldsActual\": \"<integer>\"\n  }\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-7428c82f-924f-433b-94f3-eb2924553de0"
+                        },
+                        {
+                          "id": "bd08fece-e28a-4df9-ab34-5e578bcd0aac",
+                          "name": "The server cannot find the requested resource.",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/eval/score/:scoreRunID",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "eval",
+                                "score",
+                                ":scoreRunID"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "scoreRunID"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Not Found",
+                          "code": 404,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-bd08fece-e28a-4df9-ab34-5e578bcd0aac"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-047ab946-8cd5-4fd7-bff9-ea896f0dbb33"
+                    }
+                  ],
+                  "id": "4c2423ad-d7b1-437c-8acf-d7485aa08100",
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-4c2423ad-d7b1-437c-8acf-d7485aa08100"
+                },
+                {
+                  "name": "Score Function Against (input, expected) Pairs",
+                  "id": "cbfee6ff-b96b-40c6-be25-d96de665da90",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"xls\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    },\n    {\n      \"input\": {\n        \"inputType\": \"json\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  }\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/eval/score",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "eval",
+                        "score"
+                      ]
+                    },
+                    "description": "**Score a function against a list of (input, expected) pairs.**\n\nSubmits a batch of `(input, expected)` pairs, runs the named function\nover each input, and returns per-pair + aggregate accuracy metrics\ncomparing the function's actual output to the provided expected JSON.\n\nScoring runs asynchronously. The response carries a `scoreRunID`;\npoll `GET /v3/eval/score/{scoreRunID}` until `status` is one of\n`completed`, `error`, or `cancelled`.\n\n`matchConfig` controls comparator behavior:\n- `numericTolerance`: relative tolerance for numeric fields (0 = exact)\n- `stringMatch`: `exact` (default) or `fuzzy` (Levenshtein ratio)\n- `arrayMatch`: `by-index` (default; only mode in P0)\n- `ignorePaths`: JSON Pointer paths to skip, supports `*` wildcards"
+                  },
+                  "response": [
+                    {
+                      "id": "e928781b-3c0c-4f81-8f1f-f717b2d631ae",
+                      "name": "The request has been accepted for processing, but processing has not yet completed.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"xls\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    },\n    {\n      \"input\": {\n        \"inputType\": \"json\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  }\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/eval/score",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "eval",
+                            "score"
+                          ]
+                        }
+                      },
+                      "status": "Accepted",
+                      "code": 202,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"scoreRunID\": \"<string>\",\n  \"status\": \"initializing\"\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-e928781b-3c0c-4f81-8f1f-f717b2d631ae"
+                    },
+                    {
+                      "id": "0d13c4fa-2e54-4be7-bea7-df34b7046471",
+                      "name": "The server could not understand the request due to invalid syntax.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"xls\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    },\n    {\n      \"input\": {\n        \"inputType\": \"json\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {\n        \"description\": \"Expected output for this input, as a JSON value. The comparator walks\\n`expected \u222a actual` and produces a per-leaf classification.\"\n      }\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  }\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/eval/score",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "eval",
+                            "score"
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-0d13c4fa-2e54-4be7-bea7-df34b7046471"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-cbfee6ff-b96b-40c6-be25-d96de665da90"
+                }
+              ],
+              "id": "5c4218b0-1202-47a1-89bc-9cb10a7242b5",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-5c4218b0-1202-47a1-89bc-9cb10a7242b5"
+            },
+            {
+              "name": "Trigger Transformation Evaluations",
+              "id": "dbd8aac4-f3b9-4408-883d-d1502c4f6f96",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"transformationIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"evaluationVersion\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": {
+                  "raw": "{{baseUrl}}/v3/eval",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
                   "path": [
                     "v3",
                     "eval"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"transformationIDs\": [\n    \"tr_01HXAB...\",\n    \"tr_01HXCD...\"\n  ],\n  \"evaluationVersion\": \"0.1.0-gemini\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Accepted",
-              "code": 202,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"queued\": 1,\n  \"skipped\": 0,\n  \"errors\": {\n    \"tr_01HXCD...\": \"unsupported event type for evaluation: split. Only 'analyze', 'transform', 'extract', and 'join' are supported\"\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "b023ce1f-e745-43a6-b31b-cfc6f18055cd",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"transformationIDs\": [\n    \"tr_01HXAB...\",\n    \"tr_01HXCD...\"\n  ],\n  \"evaluationVersion\": \"0.1.0-gemini\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "5c9266d5-160e-40cf-a139-2305fdb7fdd0",
-          "name": "Get Evaluation Results",
-          "request": {
-            "name": "Get Evaluation Results",
-            "description": {
-              "content": "**Fetch evaluation results for a batch of events.**\n\nPass either `eventIDs` (preferred — the externally-stable V3\nidentifier) or `transformationIDs` as a comma-separated query\nparameter. Exactly one of the two must be provided. Up to 100 IDs per\nrequest.\n\nFor each requested ID the response reports one of three states: a\ncompleted `result`, still-`pending`, or `failed`. Results, pending,\nand failed entries are all keyed by event KSUID regardless of which\ninput form was used.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "eval",
-                "results"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "eventIDs",
-                  "value": "<string>",
-                  "description": "Comma-separated list of event KSUIDs to fetch results for. Between\n1 and 100 IDs per request. Mutually exclusive with\n`transformationIDs`."
-                },
-                {
-                  "disabled": false,
-                  "key": "transformationIDs",
-                  "value": "<string>",
-                  "description": "Comma-separated list of transformation IDs to fetch results for.\nBetween 1 and 100 IDs per request. Mutually exclusive with\n`eventIDs`. Prefer `eventIDs` for new integrations."
-                },
-                {
-                  "disabled": false,
-                  "key": "evaluationVersion",
-                  "value": "<string>",
-                  "description": "Optional evaluation version filter."
-                }
-              ],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "190be8ad-589f-49d4-9727-8b5386255e27",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "results"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "eventIDs",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "transformationIDs",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "evaluationVersion",
-                      "value": "<string>"
-                    }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"results\": {\n    \"evt_01HXAB...\": {\n      \"fieldMetrics\": {\n        \"/invoice/number\": {\n          \"confidenceScore\": 0.97,\n          \"reasoning\": \"Matches canonical invoice number in the source document.\",\n          \"hallucination\": false,\n          \"relevanceScore\": 1\n        }\n      },\n      \"overallConfidence\": 0.97,\n      \"runtime\": 3.42,\n      \"hasHallucinations\": false,\n      \"evaluationVersion\": \"0.1.0-gemini\",\n      \"createdAt\": \"2026-04-23T18:05:00Z\"\n    }\n  },\n  \"pending\": [\n    {\n      \"eventID\": \"evt_01HXCD...\",\n      \"createdAt\": \"2026-04-23T18:04:55Z\"\n    }\n  ]\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "22b534c5-fabb-4079-a263-35a1a11dac95",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "results"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "eventIDs",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "transformationIDs",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "evaluationVersion",
-                      "value": "<string>"
-                    }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "d0b23f16-4b87-47eb-8e2a-bee2113f2a04",
-          "name": "Score Function Against (input, expected) Pairs",
-          "request": {
-            "name": "Score Function Against (input, expected) Pairs",
-            "description": {
-              "content": "**Score a function against a list of (input, expected) pairs.**\n\nSubmits a batch of `(input, expected)` pairs, runs the named function\nover each input, and returns per-pair + aggregate accuracy metrics\ncomparing the function's actual output to the provided expected JSON.\n\nScoring runs asynchronously. The response carries a `scoreRunID`;\npoll `GET /v3/eval/score/{scoreRunID}` until `status` is one of\n`completed`, `error`, or `cancelled`.\n\n`matchConfig` controls comparator behavior:\n- `numericTolerance`: relative tolerance for numeric fields (0 = exact)\n- `stringMatch`: `exact` (default) or `fuzzy` (Levenshtein ratio)\n- `arrayMatch`: `by-index` (default; only mode in P0)\n- `ignorePaths`: JSON Pointer paths to skip, supports `*` wildcards",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "eval",
-                "score"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"<string>\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {}\n    },\n    {\n      \"input\": {\n        \"inputType\": \"<string>\",\n        \"inputContent\": \"<string>\"\n      },\n      \"expected\": {}\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": \"<double>\",\n    \"stringMatch\": \"<string>\",\n    \"fuzzyThreshold\": \"<double>\",\n    \"arrayMatch\": \"<string>\",\n    \"ignorePaths\": [\n      \"<string>\",\n      \"<string>\"\n    ]\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "589dfbb5-47cd-468f-bddc-5a46dfc62451",
-              "name": "The request has been accepted for processing, but processing has not yet completed.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"pdf\",\n        \"inputContent\": \"string\"\n      },\n      \"expected\": {}\n    },\n    {\n      \"input\": {\n        \"inputType\": \"pdf\",\n        \"inputContent\": \"string\"\n      },\n      \"expected\": {}\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": 2005.59337059262,\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": 8439.936102349287,\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"string\",\n      \"string\"\n    ]\n  }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Accepted",
-              "code": 202,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"scoreRunID\": \"evalrun_2a8f...\",\n  \"status\": \"pending\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "99ef0dc4-de69-424f-baca-a05c3ad74080",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"<string>\",\n  \"pairs\": [\n    {\n      \"input\": {\n        \"inputType\": \"pdf\",\n        \"inputContent\": \"string\"\n      },\n      \"expected\": {}\n    },\n    {\n      \"input\": {\n        \"inputType\": \"pdf\",\n        \"inputContent\": \"string\"\n      },\n      \"expected\": {}\n    }\n  ],\n  \"functionVersionNum\": \"<integer>\",\n  \"matchConfig\": {\n    \"numericTolerance\": 2005.59337059262,\n    \"stringMatch\": \"exact\",\n    \"fuzzyThreshold\": 8439.936102349287,\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"string\",\n      \"string\"\n    ]\n  }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "a77bd68c-16a1-4f03-808e-94fd7bd8cb46",
-          "name": "Get Score Run",
-          "request": {
-            "name": "Get Score Run",
-            "description": {
-              "content": "**Get the status and per-pair results of a score run.**\n\nReturns `aggregate` only once `status` reaches `completed`. `perPair`\nis populated incrementally — each pair's `fieldResults` appears as\nits underlying function call terminates.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "eval",
-                "score",
-                ":scoreRunID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "scoreRunID",
-                  "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "a5da44cb-1c32-4e7f-b6b7-337e6eb4c362",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score",
-                    ":scoreRunID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "scoreRunID",
-                      "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
-                    }
                   ]
                 },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
+                "description": "**Queue evaluation jobs for a batch of transformations.**\n\nEvaluations run asynchronously and score each transformation's output\nagainst the function's schema for confidence, hallucination detection,\nand relevance. Transformations must belong to events of a supported\ntype: `extract`, `transform`, `analyze`, or `join`.\n\nReturns immediately with a summary of queued vs. skipped transformations\nand per-transformation errors. Poll `GET /v3/eval/results` to retrieve\nresults once evaluations complete."
               },
-              "status": "OK",
-              "code": 200,
-              "header": [
+              "response": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"scoreRunID\": \"evalrun_2a8f...\",\n  \"status\": \"completed\",\n  \"functionName\": \"invoice-extractor\",\n  \"functionVersionNum\": 3,\n  \"matchConfig\": {\n    \"numericTolerance\": 0.01,\n    \"stringMatch\": \"exact\"\n  },\n  \"progress\": {\n    \"total\": 1,\n    \"completed\": 1,\n    \"failed\": 0\n  },\n  \"aggregate\": {\n    \"precision\": 1,\n    \"recall\": 1,\n    \"f1\": 1,\n    \"exactMatches\": 2,\n    \"withinTolerance\": 0,\n    \"fuzzyMatches\": 0,\n    \"misses\": 0,\n    \"extras\": 0,\n    \"totalFieldsExpected\": 2,\n    \"totalFieldsActual\": 2\n  },\n  \"perPair\": [\n    {\n      \"pairIndex\": 0,\n      \"callID\": \"call_xxx\",\n      \"status\": \"completed\",\n      \"fieldResults\": [\n        {\n          \"path\": \"/invoiceNumber\",\n          \"match\": \"exact\"\n        },\n        {\n          \"path\": \"/total\",\n          \"match\": \"exact\"\n        }\n      ]\n    }\n  ]\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "f97b5282-3ad1-4bf6-9a1b-b8d78382aba5",
-              "name": "The server cannot find the requested resource.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score",
-                    ":scoreRunID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "scoreRunID",
-                      "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
+                  "id": "3ae578c1-3e58-4f45-871c-5c340dc1f5ab",
+                  "name": "The request has been accepted for processing, but processing has not yet completed.",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"transformationIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"evaluationVersion\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/eval",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "eval"
+                      ]
                     }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
                   },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "Not Found",
-              "code": 404,
-              "header": [
+                  "status": "Accepted",
+                  "code": 202,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"queued\": \"<integer>\",\n  \"skipped\": \"<integer>\",\n  \"errors\": {}\n}",
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-3ae578c1-3e58-4f45-871c-5c340dc1f5ab"
+                },
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                  "id": "44c02d14-8bf1-4101-96eb-4d7500fa56a9",
+                  "name": "The server could not understand the request due to invalid syntax.",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"transformationIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"evaluationVersion\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/eval",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "eval"
+                      ]
+                    }
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-44c02d14-8bf1-4101-96eb-4d7500fa56a9"
                 }
               ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-dbd8aac4-f3b9-4408-883d-d1502c4f6f96"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "69107bb9-83a4-4d20-9d28-874d94a1affb",
+          "createdAt": "2026-10-22T02:02:32.000Z",
+          "updatedAt": "2026-10-22T02:02:32.000Z",
+          "uid": "35240-69107bb9-83a4-4d20-9d28-874d94a1affb"
         },
         {
-          "id": "bd4be18a-e5cd-4df9-91e6-2dcb751e52b6",
-          "name": "Cancel Score Run",
-          "request": {
-            "name": "Cancel Score Run",
-            "description": {
-              "content": "**Cancel an in-flight score run.**\n\nTransitions the run to `cancelled`. Function calls already in flight\nare allowed to finish (best-effort cancellation via the job queue);\nresults from completed pairs may still appear in subsequent GETs.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "eval",
-                "score",
-                ":scoreRunID",
-                "cancel"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "scoreRunID",
-                  "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null
-          },
-          "response": [
+          "name": "functions",
+          "item": [
             {
-              "id": "7cf61168-8e9b-4812-b6b1-2eaa175952e6",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score",
-                    ":scoreRunID",
-                    "cancel"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "scoreRunID",
-                      "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
+              "name": "compare",
+              "item": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                  "name": "Compare Metrics Between Function Versions",
+                  "id": "ab294b5e-dbe5-44e5-b3a4-5052377aa80a",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/functions/compare",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "functions",
+                        "compare"
+                      ]
+                    },
+                    "description": "**Compare metrics between two function versions.**\n\nComputes aggregate and field-level lift/regression between any two\nversions of a function: accuracy, precision, recall, F1, and PR-AUC.\nField-level changes are returned only for fields whose lift exceeds\n1% in either direction.\n\nSupported for every function type that produces labeled\ntransformations: `extract`, `transform`, `analyze`, `join`. Pass\n`isRegression: true` to compare only the regression dataset (rows\nproduced by `POST /v3/functions/regression`) \u2014 the canonical way to\njudge a candidate version before promoting it.\n\nDefaults: `baselineVersionNum = currentVersionNum - 1`,\n`comparisonVersionNum = currentVersionNum`."
+                  },
+                  "response": [
+                    {
+                      "id": "c14aa70f-4ae4-411a-bc4a-cfbf6d410a56",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/compare",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "compare"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"baselineTransformationCount\": \"<integer>\",\n  \"comparisonTransformationCount\": \"<integer>\",\n  \"aggregateComparison\": {\n    \"accuracy\": {\n      \"baselineValue\": \"<number>\",\n      \"comparisonValue\": \"<number>\",\n      \"difference\": \"<number>\",\n      \"liftPercent\": \"<number>\"\n    },\n    \"precision\": {\n      \"baselineValue\": \"<number>\",\n      \"comparisonValue\": \"<number>\",\n      \"difference\": \"<number>\",\n      \"liftPercent\": \"<number>\"\n    },\n    \"recall\": {\n      \"baselineValue\": \"<number>\",\n      \"comparisonValue\": \"<number>\",\n      \"difference\": \"<number>\",\n      \"liftPercent\": \"<number>\"\n    },\n    \"f1Score\": {\n      \"baselineValue\": \"<number>\",\n      \"comparisonValue\": \"<number>\",\n      \"difference\": \"<number>\",\n      \"liftPercent\": \"<number>\"\n    }\n  },\n  \"fieldMetricsChanges\": [\n    {\n      \"fieldPath\": \"<string>\",\n      \"comparison\": {\n        \"accuracy\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"precision\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"recall\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"f1Score\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        }\n      }\n    },\n    {\n      \"fieldPath\": \"<string>\",\n      \"comparison\": {\n        \"accuracy\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"precision\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"recall\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        },\n        \"f1Score\": {\n          \"baselineValue\": \"<number>\",\n          \"comparisonValue\": \"<number>\",\n          \"difference\": \"<number>\",\n          \"liftPercent\": \"<number>\"\n        }\n      }\n    }\n  ],\n  \"baselineMetrics\": {\n    \"fieldMetrics\": [\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      },\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      }\n    ],\n    \"precisionRecallAuc\": \"<float>\",\n    \"aggregateMetrics\": {\n      \"accuracy\": \"<float>\",\n      \"precision\": \"<float>\",\n      \"recall\": \"<float>\",\n      \"f1Score\": \"<float>\",\n      \"tp\": \"<integer>\",\n      \"fp\": \"<integer>\",\n      \"tn\": \"<integer>\",\n      \"fn\": \"<integer>\"\n    }\n  },\n  \"comparisonMetrics\": {\n    \"fieldMetrics\": [\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      },\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      }\n    ],\n    \"precisionRecallAuc\": \"<float>\",\n    \"aggregateMetrics\": {\n      \"accuracy\": \"<float>\",\n      \"precision\": \"<float>\",\n      \"recall\": \"<float>\",\n      \"f1Score\": \"<float>\",\n      \"tp\": \"<integer>\",\n      \"fp\": \"<integer>\",\n      \"tn\": \"<integer>\",\n      \"fn\": \"<integer>\"\n    }\n  },\n  \"message\": \"<string>\"\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-c14aa70f-4ae4-411a-bc4a-cfbf6d410a56"
+                    },
+                    {
+                      "id": "876e41b7-2b39-4600-8582-4b282575a062",
+                      "name": "The server could not understand the request due to invalid syntax.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/compare",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "compare"
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-876e41b7-2b39-4600-8582-4b282575a062"
+                    },
+                    {
+                      "id": "a8c9ccd0-0915-4905-a92c-8692c6186a9e",
+                      "name": "The server cannot find the requested resource.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/compare",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "compare"
+                          ]
+                        }
+                      },
+                      "status": "Not Found",
+                      "code": 404,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-a8c9ccd0-0915-4905-a92c-8692c6186a9e"
+                    },
+                    {
+                      "id": "4886787e-aad8-4241-803b-127ffdc48206",
+                      "name": "Server error",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/compare",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "compare"
+                          ]
+                        }
+                      },
+                      "status": "Internal Server Error",
+                      "code": 500,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-4886787e-aad8-4241-803b-127ffdc48206"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-ab294b5e-dbe5-44e5-b3a4-5052377aa80a"
                 }
               ],
-              "body": "{\n  \"scoreRunID\": \"string\",\n  \"status\": \"error\",\n  \"functionName\": \"string\",\n  \"functionVersionNum\": 9883,\n  \"matchConfig\": {\n    \"numericTolerance\": 4357.73573146525,\n    \"stringMatch\": \"fuzzy\",\n    \"fuzzyThreshold\": 8478.430897003602,\n    \"arrayMatch\": \"by-index\",\n    \"ignorePaths\": [\n      \"string\",\n      \"string\"\n    ]\n  },\n  \"progress\": {\n    \"total\": 6766,\n    \"completed\": 9457,\n    \"failed\": 1367\n  },\n  \"perPair\": [\n    {\n      \"pairIndex\": 8450,\n      \"status\": \"completed\",\n      \"callID\": \"string\",\n      \"fieldResults\": [\n        {\n          \"path\": \"string\",\n          \"match\": \"within_tolerance\",\n          \"expected\": \"\",\n          \"actual\": \"\",\n          \"delta\": 7220.819369752692\n        },\n        {\n          \"path\": \"string\",\n          \"match\": \"extra\",\n          \"expected\": \"\",\n          \"actual\": \"\",\n          \"delta\": 969.8846201963718\n        }\n      ],\n      \"errorMessage\": \"string\"\n    },\n    {\n      \"pairIndex\": 332,\n      \"status\": \"running\",\n      \"callID\": \"string\",\n      \"fieldResults\": [\n        {\n          \"path\": \"string\",\n          \"match\": \"exact\",\n          \"expected\": \"\",\n          \"actual\": \"\",\n          \"delta\": 6572.720675096798\n        },\n        {\n          \"path\": \"string\",\n          \"match\": \"fuzzy_match\",\n          \"expected\": \"\",\n          \"actual\": \"\",\n          \"delta\": 5862.431326211203\n        }\n      ],\n      \"errorMessage\": \"string\"\n    }\n  ],\n  \"aggregate\": {\n    \"precision\": 4476.987914254779,\n    \"recall\": 1052.9578236508464,\n    \"f1\": 5013.0778421519535,\n    \"exactMatches\": 474,\n    \"withinTolerance\": 1549,\n    \"fuzzyMatches\": 60,\n    \"misses\": 3286,\n    \"extras\": 7700,\n    \"totalFieldsExpected\": 1585,\n    \"totalFieldsActual\": 6614\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "id": "2bf678a1-c66c-464d-ac37-ce69efc2a419",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-2bf678a1-c66c-464d-ac37-ce69efc2a419"
             },
             {
-              "id": "48669292-c826-40b6-8de1-8ac659b3a175",
-              "name": "The server cannot find the requested resource.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "eval",
-                    "score",
-                    ":scoreRunID",
-                    "cancel"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "scoreRunID",
-                      "description": "(Required) The `scoreRunID` returned by `POST /v3/eval/score`."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {}
-              },
-              "status": "Not Found",
-              "code": 404,
-              "header": [
+              "name": "metrics",
+              "item": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                  "name": "Get Function Metrics",
+                  "id": "2b854c28-349d-4b47-b556-3b225d6c6ffc",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/functions/metrics?limit=50&functionIDs=<string>&functionNames=<string>&types=classify&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "functions",
+                        "metrics"
+                      ],
+                      "query": [
+                        {
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "key": "functionIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "types",
+                          "value": "classify"
+                        },
+                        {
+                          "description": "Sort direction over the result set (default `asc`). Pagination works\nsymmetrically in both directions via `startingAfter` / `endingBefore`.",
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "description": "Cursor \u2014 a `functionID` defining your place in the list.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Cursor \u2014 a `functionID` defining your place in the list.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
+                    },
+                    "description": "**Retrieve performance metrics for functions based on labeled transformation data.**\n\nCalculates accuracy, precision, recall, F1, and the underlying confusion-matrix\ncounts for each matching function by comparing model outputs against user\ncorrections. Metrics are aggregated across every transformation the function\nhas produced, regardless of function type \u2014 `extract`, `transform`, `analyze`,\nand `join` all populate the same `metrics` column on the transformation row,\nso v3 surfaces all of them uniformly.\n\n## Filtering\n\nCombine `functionIDs` / `functionNames` / `types` to narrow the result set.\n`types` accepts `extract` alongside the legacy `transform` / `analyze` types\n(which remain readable). Pagination is cursor-based.\n\n## Requirements\n\nA function only shows non-zero metrics once at least one of its transformations\nhas been labeled \u2014 submit corrections via `POST /v3/events/{eventID}/feedback`."
+                  },
+                  "response": [
+                    {
+                      "id": "13053c7b-e8eb-49b2-9d12-95f56cdbd224",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/metrics?limit=50&functionIDs=<string>&functionNames=<string>&types=classify&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "metrics"
+                          ],
+                          "query": [
+                            {
+                              "key": "limit",
+                              "value": "50"
+                            },
+                            {
+                              "key": "functionIDs",
+                              "value": "<string>"
+                            },
+                            {
+                              "key": "functionNames",
+                              "value": "<string>"
+                            },
+                            {
+                              "key": "types",
+                              "value": "classify"
+                            },
+                            {
+                              "description": "Sort direction over the result set (default `asc`). Pagination works\nsymmetrically in both directions via `startingAfter` / `endingBefore`.",
+                              "key": "sortOrder",
+                              "value": "asc"
+                            },
+                            {
+                              "description": "Cursor \u2014 a `functionID` defining your place in the list.",
+                              "key": "startingAfter",
+                              "value": "<string>"
+                            },
+                            {
+                              "description": "Cursor \u2014 a `functionID` defining your place in the list.",
+                              "key": "endingBefore",
+                              "value": "<string>"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"functions\": [\n    {\n      \"functionName\": \"<string>\",\n      \"totalLabeledResults\": \"<integer>\",\n      \"totalResults\": \"<integer>\",\n      \"metrics\": {\n        \"accuracy\": \"<float>\",\n        \"precision\": \"<float>\",\n        \"recall\": \"<float>\",\n        \"f1Score\": \"<float>\",\n        \"tp\": \"<integer>\",\n        \"fp\": \"<integer>\",\n        \"tn\": \"<integer>\",\n        \"fn\": \"<integer>\"\n      }\n    },\n    {\n      \"functionName\": \"<string>\",\n      \"totalLabeledResults\": \"<integer>\",\n      \"totalResults\": \"<integer>\",\n      \"metrics\": {\n        \"accuracy\": \"<float>\",\n        \"precision\": \"<float>\",\n        \"recall\": \"<float>\",\n        \"f1Score\": \"<float>\",\n        \"tp\": \"<integer>\",\n        \"fp\": \"<integer>\",\n        \"tn\": \"<integer>\",\n        \"fn\": \"<integer>\"\n      }\n    }\n  ],\n  \"totalCount\": \"<integer>\"\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-13053c7b-e8eb-49b2-9d12-95f56cdbd224"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-2b854c28-349d-4b47-b556-3b225d6c6ffc"
                 }
               ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "id": "e86d94cb-3b0c-4b42-ad19-a55f836927fd",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-e86d94cb-3b0c-4b42-ad19-a55f836927fd"
+            },
+            {
+              "name": "regression",
+              "item": [
+                {
+                  "name": "corrections",
+                  "item": [
+                    {
+                      "name": "Apply Baseline Corrections to Regression Transformations",
+                      "id": "d1606985-93d8-415a-b0c6-7cafc3eff32f",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"p\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/regression/corrections",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "regression",
+                            "corrections"
+                          ]
+                        },
+                        "description": "**Copy baseline corrections onto regression transformations.**\n\nLooks up regression transformations created against the comparison\nversion (`isRegression: true`, `correctedJSON IS NULL`), finds the\nmatching baseline transformation by `referenceID`, and copies the\nbaseline's `correctedJSON` onto the regression row via the same code\npath used by `POST /v3/events/{eventID}/feedback`. The applied\ncorrections are immediately scored against the regression output,\npopulating the confusion-matrix metrics used by `function-review` and\n`function-version-compare`.\n\nWorks for every function type that produces correctable\ntransformations, including `extract` on both the vision and OCR\npaths. (Previously the vision path silently dropped `is_regression`\nduring the original regression run, so no rows matched the\npredicate \u2014 that has been fixed.)\n\nReturns counts plus the list of **event KSUIDs** whose underlying\nregression transformation received a correction. Errors (e.g.\nbaseline transformation missing for a given `referenceID`) are\nreturned per-row in the `errors` map, keyed by event KSUID, rather\nthan aborting the whole call."
+                      },
+                      "response": [
+                        {
+                          "id": "90885587-5daa-4061-9000-964137515be0",
+                          "name": "The request has succeeded.",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"functionName\": \"p\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/functions/regression/corrections",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "functions",
+                                "regression",
+                                "corrections"
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"applied\": \"<integer>\",\n  \"appliedEventIDs\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"skipped\": \"<integer>\",\n  \"errors\": {}\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-90885587-5daa-4061-9000-964137515be0"
+                        },
+                        {
+                          "id": "0edb4623-21fc-4a8f-bf64-b19792a6afa2",
+                          "name": "The server could not understand the request due to invalid syntax.",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"functionName\": \"p\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/functions/regression/corrections",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "functions",
+                                "regression",
+                                "corrections"
+                              ]
+                            }
+                          },
+                          "status": "Bad Request",
+                          "code": 400,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-0edb4623-21fc-4a8f-bf64-b19792a6afa2"
+                        },
+                        {
+                          "id": "d67e9d44-b657-4930-a8fc-6212f42aa84b",
+                          "name": "The server cannot find the requested resource.",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"functionName\": \"p\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/functions/regression/corrections",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "functions",
+                                "regression",
+                                "corrections"
+                              ]
+                            }
+                          },
+                          "status": "Not Found",
+                          "code": 404,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-d67e9d44-b657-4930-a8fc-6212f42aa84b"
+                        },
+                        {
+                          "id": "78917411-e4b3-4ca7-9f4a-93ba15b3b6f4",
+                          "name": "Server error",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"functionName\": \"p\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/functions/regression/corrections",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "functions",
+                                "regression",
+                                "corrections"
+                              ]
+                            }
+                          },
+                          "status": "Internal Server Error",
+                          "code": 500,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                          "createdAt": "2026-10-22T02:02:32.000Z",
+                          "updatedAt": "2026-10-22T02:02:32.000Z",
+                          "uid": "35240-78917411-e4b3-4ca7-9f4a-93ba15b3b6f4"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-d1606985-93d8-415a-b0c6-7cafc3eff32f"
+                    }
+                  ],
+                  "id": "4d3c8bcf-ef17-4570-bd56-583062593cf4",
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-4d3c8bcf-ef17-4570-bd56-583062593cf4"
+                },
+                {
+                  "name": "Run Function Regression Testing",
+                  "id": "41e49611-41ea-4d83-847f-ed4e2f6ef7d9",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"functionName\": \"mSS4\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"sampleSize\": 50,\n  \"onlyCorrectedData\": true\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/functions/regression",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "functions",
+                        "regression"
+                      ]
+                    },
+                    "description": "**Kick off a regression run between two versions of a function.**\n\nReplays a sample of corrected historical inputs against the comparison\nversion, producing fresh transformations marked `isRegression: true`.\nEach new run returns the workflow `callID`s you can monitor via\n`GET /v3/calls/{callID}`.\n\nSupported for every function type that produces correctable\ntransformations: `extract`, `transform`, `analyze`, `join`. For\n`extract` specifically, the regression sample is dispatched through\nthe same OCR vs. vision path used at original call time (PDF, PNG,\nJPEG, HEIC, HEIF, WebP go through the vision worker; everything else\ngoes through OCR \u2192 transform).\n\nThe comparison version must share a schema-compatible output shape\nwith the baseline; structural differences are reported as a 400 with\nthe offending field-level diffs.\n\n## Typical flow\n\n1. `POST /v3/functions/regression` \u2014 queues calls, returns\n`{ originalReferenceID, callID }` per sample.\n2. Wait (poll `GET /v3/calls/{callID}` or subscribe to webhooks).\n3. `POST /v3/functions/regression/corrections` to copy baseline\ncorrections onto the new regression transformations.\n4. `POST /v3/functions/compare` to compare baseline vs comparison\nmetrics for the regression dataset."
+                  },
+                  "response": [
+                    {
+                      "id": "9d996261-2843-4e04-a7ff-551045194e0b",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"mSS4\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"sampleSize\": 50,\n  \"onlyCorrectedData\": true\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/regression",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "regression"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"functionName\": \"<string>\",\n  \"result\": {\n    \"functionName\": \"<string>\",\n    \"totalSamples\": \"<integer>\",\n    \"calls\": [\n      {\n        \"originalReferenceID\": \"020fT\",\n        \"callID\": \"wc_uCJhwI\"\n      },\n      {\n        \"originalReferenceID\": \"Nisvyn30j\",\n        \"callID\": \"wc_ivPVfqTX\"\n      }\n    ]\n  }\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-9d996261-2843-4e04-a7ff-551045194e0b"
+                    },
+                    {
+                      "id": "06d2a4a2-0b32-4ac0-8b19-dad60d1c65a7",
+                      "name": "The server could not understand the request due to invalid syntax.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"mSS4\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"sampleSize\": 50,\n  \"onlyCorrectedData\": true\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/regression",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "regression"
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-06d2a4a2-0b32-4ac0-8b19-dad60d1c65a7"
+                    },
+                    {
+                      "id": "43a6873c-1acb-47f4-95f2-b2f911f58bde",
+                      "name": "The server cannot find the requested resource.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"mSS4\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"sampleSize\": 50,\n  \"onlyCorrectedData\": true\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/regression",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "regression"
+                          ]
+                        }
+                      },
+                      "status": "Not Found",
+                      "code": 404,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-43a6873c-1acb-47f4-95f2-b2f911f58bde"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-41e49611-41ea-4d83-847f-ed4e2f6ef7d9"
+                }
+              ],
+              "id": "4a30f2df-62a7-414c-a53f-f193592078d1",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-4a30f2df-62a7-414c-a53f-f193592078d1"
+            },
+            {
+              "name": "review",
+              "item": [
+                {
+                  "name": "Function Review",
+                  "id": "14adbce0-eabc-452d-b2fb-2725991097ea",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"evaluationVersion\": \"0.1.0-gemini\",\n  \"marginOfError\": 0.05,\n  \"thresholdMin\": 0.5,\n  \"thresholdMax\": 1,\n  \"thresholdStep\": 0.01,\n  \"confidenceLevels\": [\n    95\n  ],\n  \"confidenceMethod\": \"wald\",\n  \"isRegression\": \"<boolean>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/functions/review",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "functions",
+                        "review"
+                      ]
+                    },
+                    "description": "**Estimate human review requirements for a function.**\n\nCombines confusion-matrix metrics with the per-transformation evaluation\nscores (confidence / hallucination / relevance produced by the eval service)\nto compute:\n\n- A confidence-bucketed distribution of the function's outputs.\n- Sample-size estimates at configurable margin-of-error and confidence\nlevels (Wald or Wilson intervals).\n- A precision-recall AUC and a per-threshold matrix you can use to\npick a review cutoff.\n\nSupported for every function type that produces transformations and feeds\nthe auto-evaluation pipeline: `extract`, `transform`, `analyze`, `join`.\nExtract works on both vision (PDF/PNG/JPEG/HEIC/HEIF/WebP) and OCR-routed\ninputs.\n\nPass `isRegression: true` to scope the review to transformations created\nby a previous regression run (see `POST /v3/functions/regression`)."
+                  },
+                  "response": [
+                    {
+                      "id": "1156bae3-4f62-47b6-9ea5-55805c75086d",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"evaluationVersion\": \"0.1.0-gemini\",\n  \"marginOfError\": 0.05,\n  \"thresholdMin\": 0.5,\n  \"thresholdMax\": 1,\n  \"thresholdStep\": 0.01,\n  \"confidenceLevels\": [\n    95\n  ],\n  \"confidenceMethod\": \"wald\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/review",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "review"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"estimate\": {\n    \"totalTransformations\": \"<integer>\",\n    \"labeledTransformations\": \"<integer>\",\n    \"unlabeledTransformations\": \"<integer>\",\n    \"missingEvaluations\": \"<integer>\",\n    \"confidenceDistribution\": {\n      \"high\": \"<integer>\",\n      \"medium\": \"<integer>\",\n      \"low\": \"<integer>\"\n    },\n    \"thresholdMatrix\": [\n      {\n        \"threshold\": \"<float>\",\n        \"tp\": \"<integer>\",\n        \"fp\": \"<integer>\",\n        \"fn\": \"<integer>\",\n        \"tn\": \"<integer>\",\n        \"accuracyAboveThreshold\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"precision\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"recall\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"falsePositiveRate\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"falseDiscoveryRate\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        }\n      },\n      {\n        \"threshold\": \"<float>\",\n        \"tp\": \"<integer>\",\n        \"fp\": \"<integer>\",\n        \"fn\": \"<integer>\",\n        \"tn\": \"<integer>\",\n        \"accuracyAboveThreshold\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"precision\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"recall\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"falsePositiveRate\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        },\n        \"falseDiscoveryRate\": {\n          \"95\": {\n            \"currentSample\": \"<integer>\",\n            \"sampleNeeded\": \"<integer>\",\n            \"ciLower\": \"<float>\",\n            \"mid\": \"<float>\",\n            \"ciUpper\": \"<float>\"\n          }\n        }\n      }\n    ]\n  },\n  \"metrics\": {\n    \"fieldMetrics\": [\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      },\n      {\n        \"fieldPath\": \"<string>\",\n        \"metrics\": {\n          \"accuracy\": \"<float>\",\n          \"precision\": \"<float>\",\n          \"recall\": \"<float>\",\n          \"f1Score\": \"<float>\",\n          \"tp\": \"<integer>\",\n          \"fp\": \"<integer>\",\n          \"tn\": \"<integer>\",\n          \"fn\": \"<integer>\"\n        }\n      }\n    ],\n    \"precisionRecallAuc\": \"<float>\",\n    \"aggregateMetrics\": {\n      \"accuracy\": \"<float>\",\n      \"precision\": \"<float>\",\n      \"recall\": \"<float>\",\n      \"f1Score\": \"<float>\",\n      \"tp\": \"<integer>\",\n      \"fp\": \"<integer>\",\n      \"tn\": \"<integer>\",\n      \"fn\": \"<integer>\"\n    }\n  }\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-1156bae3-4f62-47b6-9ea5-55805c75086d"
+                    },
+                    {
+                      "id": "d2dc6806-950b-4c0b-b351-5638517c12ee",
+                      "name": "The server could not understand the request due to invalid syntax.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"evaluationVersion\": \"0.1.0-gemini\",\n  \"marginOfError\": 0.05,\n  \"thresholdMin\": 0.5,\n  \"thresholdMax\": 1,\n  \"thresholdStep\": 0.01,\n  \"confidenceLevels\": [\n    95\n  ],\n  \"confidenceMethod\": \"wald\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/review",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "review"
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-d2dc6806-950b-4c0b-b351-5638517c12ee"
+                    },
+                    {
+                      "id": "301c92f2-7a16-4877-a9d4-c2a37496de83",
+                      "name": "Server error",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"evaluationVersion\": \"0.1.0-gemini\",\n  \"marginOfError\": 0.05,\n  \"thresholdMin\": 0.5,\n  \"thresholdMax\": 1,\n  \"thresholdStep\": 0.01,\n  \"confidenceLevels\": [\n    95\n  ],\n  \"confidenceMethod\": \"wald\",\n  \"isRegression\": \"<boolean>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/functions/review",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "functions",
+                            "review"
+                          ]
+                        }
+                      },
+                      "status": "Internal Server Error",
+                      "code": 500,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"message\": \"<string>\",\n  \"code\": \"<integer>\",\n  \"details\": {}\n}",
+                      "createdAt": "2026-10-22T02:02:32.000Z",
+                      "updatedAt": "2026-10-22T02:02:32.000Z",
+                      "uid": "35240-301c92f2-7a16-4877-a9d4-c2a37496de83"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:32.000Z",
+                  "updatedAt": "2026-10-22T02:02:32.000Z",
+                  "uid": "35240-14adbce0-eabc-452d-b2fb-2725991097ea"
+                }
+              ],
+              "id": "6eb54a41-8c23-4f04-b815-d2980d990a15",
+              "createdAt": "2026-10-22T02:02:32.000Z",
+              "updatedAt": "2026-10-22T02:02:32.000Z",
+              "uid": "35240-6eb54a41-8c23-4f04-b815-d2980d990a15"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "21137ea2-c99e-47ba-b6ff-9c79d4c387e2",
-          "name": "Compare Metrics Between Function Versions",
-          "request": {
-            "name": "Compare Metrics Between Function Versions",
-            "description": {
-              "content": "**Compare metrics between two function versions.**\n\nComputes aggregate and field-level lift/regression between any two\nversions of a function: accuracy, precision, recall, F1, and PR-AUC.\nField-level changes are returned only for fields whose lift exceeds\n1% in either direction.\n\nSupported for every function type that produces labeled\ntransformations: `extract`, `transform`, `analyze`, `join`. Pass\n`isRegression: true` to compare only the regression dataset (rows\nproduced by `POST /v3/functions/regression`) — the canonical way to\njudge a candidate version before promoting it.\n\nDefaults: `baselineVersionNum = currentVersionNum - 1`,\n`comparisonVersionNum = currentVersionNum`.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "functions",
-                "compare"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"isRegression\": \"<boolean>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "f6d68a95-6237-431b-91eb-b1fd245eb842",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "compare"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 2,\n  \"comparisonVersionNum\": 3,\n  \"isRegression\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 2,\n  \"comparisonVersionNum\": 3,\n  \"baselineTransformationCount\": 100,\n  \"comparisonTransformationCount\": 150,\n  \"aggregateComparison\": {\n    \"accuracy\": {\n      \"baselineValue\": 0.85,\n      \"comparisonValue\": 0.92,\n      \"difference\": 0.07,\n      \"liftPercent\": 8.24\n    },\n    \"f1Score\": {\n      \"baselineValue\": 0.85,\n      \"comparisonValue\": 0.92,\n      \"difference\": 0.07,\n      \"liftPercent\": 8.24\n    }\n  },\n  \"fieldMetricsChanges\": []\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "7d673462-19d7-427f-ac08-4165bdad2bb8",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "compare"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 2,\n  \"comparisonVersionNum\": 3,\n  \"isRegression\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "f5b3b727-bd56-4bb1-9fe9-e5e1edf85d15",
-              "name": "The server cannot find the requested resource.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "compare"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 2,\n  \"comparisonVersionNum\": 3,\n  \"isRegression\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Not Found",
-              "code": 404,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "d82a00e8-ab18-4a99-b3a2-3286298fb9bf",
-              "name": "Server error",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "compare"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 2,\n  \"comparisonVersionNum\": 3,\n  \"isRegression\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "40e76bba-f91f-4115-9f46-edd212d64f16",
-          "name": "Get Function Metrics",
-          "request": {
-            "name": "Get Function Metrics",
-            "description": {
-              "content": "**Retrieve performance metrics for functions based on labeled transformation data.**\n\nCalculates accuracy, precision, recall, F1, and the underlying confusion-matrix\ncounts for each matching function by comparing model outputs against user\ncorrections. Metrics are aggregated across every transformation the function\nhas produced, regardless of function type — `extract`, `transform`, `analyze`,\nand `join` all populate the same `metrics` column on the transformation row,\nso v3 surfaces all of them uniformly.\n\n## Filtering\n\nCombine `functionIDs` / `functionNames` / `types` to narrow the result set.\n`types` accepts `extract` alongside the legacy `transform` / `analyze` types\n(which remain readable). Pagination is cursor-based.\n\n## Requirements\n\nA function only shows non-zero metrics once at least one of its transformations\nhas been labeled — submit corrections via `POST /v3/events/{eventID}/feedback`.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "functions",
-                "metrics"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "limit",
-                  "value": "50"
-                },
-                {
-                  "disabled": false,
-                  "key": "functionIDs",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "functionNames",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "types",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "sortOrder",
-                  "value": "asc",
-                  "description": "Sort direction over the result set (default `asc`). Pagination works\nsymmetrically in both directions via `startingAfter` / `endingBefore`."
-                },
-                {
-                  "disabled": false,
-                  "key": "startingAfter",
-                  "value": "<string>",
-                  "description": "Cursor — a `functionID` defining your place in the list."
-                },
-                {
-                  "disabled": false,
-                  "key": "endingBefore",
-                  "value": "<string>",
-                  "description": "Cursor — a `functionID` defining your place in the list."
-                }
-              ],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "3523687e-bc2b-458c-b35b-4065d4cd6040",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "metrics"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "limit",
-                      "value": "50"
-                    },
-                    {
-                      "key": "functionIDs",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "functionNames",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "types",
-                      "value": "analyze"
-                    },
-                    {
-                      "key": "sortOrder",
-                      "value": "asc"
-                    },
-                    {
-                      "key": "startingAfter",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "endingBefore",
-                      "value": "<string>"
-                    }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"functions\": [\n    {\n      \"functionName\": \"invoice-extractor\",\n      \"totalLabeledResults\": 54,\n      \"totalResults\": 120,\n      \"metrics\": {\n        \"accuracy\": 0.7407,\n        \"precision\": 0.9524,\n        \"recall\": 0.7692,\n        \"f1Score\": 0.8511,\n        \"tp\": 40,\n        \"fp\": 2,\n        \"tn\": 0,\n        \"fn\": 12\n      }\n    }\n  ],\n  \"totalCount\": 1\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "5e6deb6d-aec6-4d3c-a856-e36c962c6231",
-          "name": "Run Function Regression Testing",
-          "request": {
-            "name": "Run Function Regression Testing",
-            "description": {
-              "content": "**Kick off a regression run between two versions of a function.**\n\nReplays a sample of corrected historical inputs against the comparison\nversion, producing fresh transformations marked `isRegression: true`.\nEach new run returns the workflow `callID`s you can monitor via\n`GET /v3/calls/{callID}`.\n\nSupported for every function type that produces correctable\ntransformations: `extract`, `transform`, `analyze`, `join`. For\n`extract` specifically, the regression sample is dispatched through\nthe same OCR vs. vision path used at original call time (PDF, PNG,\nJPEG, HEIC, HEIF, WebP go through the vision worker; everything else\ngoes through OCR → transform).\n\nThe comparison version must share a schema-compatible output shape\nwith the baseline; structural differences are reported as a 400 with\nthe offending field-level diffs.\n\n## Typical flow\n\n1. `POST /v3/functions/regression` — queues calls, returns\n`{ originalReferenceID, callID }` per sample.\n2. Wait (poll `GET /v3/calls/{callID}` or subscribe to webhooks).\n3. `POST /v3/functions/regression/corrections` to copy baseline\ncorrections onto the new regression transformations.\n4. `POST /v3/functions/compare` to compare baseline vs comparison\nmetrics for the regression dataset.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "functions",
-                "regression"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\",\n  \"sampleSize\": 50,\n  \"onlyCorrectedData\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "967a2e34-f49b-4b15-8843-8bb7ce7520ba",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 5,\n  \"sampleSize\": 100,\n  \"onlyCorrectedData\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"functionName\": \"invoice-extractor\",\n  \"result\": {\n    \"functionName\": \"invoice-extractor\",\n    \"totalSamples\": 50,\n    \"calls\": [\n      {\n        \"originalReferenceID\": \"invoice-123\",\n        \"callID\": \"wc_2N6gH8ZKCmvb6BnFcGqhKJ98VzP\"\n      }\n    ]\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "3e6a522c-1ad2-4022-a40e-a851a513d056",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 5,\n  \"sampleSize\": 100,\n  \"onlyCorrectedData\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "8047deec-baca-4730-8b1d-ea30044825fd",
-              "name": "The server cannot find the requested resource.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 5,\n  \"sampleSize\": 100,\n  \"onlyCorrectedData\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Not Found",
-              "code": 404,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "94d150dd-a254-4ab2-950a-46defd9fed58",
-          "name": "Apply Baseline Corrections to Regression Transformations",
-          "request": {
-            "name": "Apply Baseline Corrections to Regression Transformations",
-            "description": {
-              "content": "**Copy baseline corrections onto regression transformations.**\n\nLooks up regression transformations created against the comparison\nversion (`isRegression: true`, `correctedJSON IS NULL`), finds the\nmatching baseline transformation by `referenceID`, and copies the\nbaseline's `correctedJSON` onto the regression row via the same code\npath used by `POST /v3/events/{eventID}/feedback`. The applied\ncorrections are immediately scored against the regression output,\npopulating the confusion-matrix metrics used by `function-review` and\n`function-version-compare`.\n\nWorks for every function type that produces correctable\ntransformations, including `extract` on both the vision and OCR\npaths. (Previously the vision path silently dropped `is_regression`\nduring the original regression run, so no rows matched the\npredicate — that has been fixed.)\n\nReturns counts plus the list of **event KSUIDs** whose underlying\nregression transformation received a correction. Errors (e.g.\nbaseline transformation missing for a given `referenceID`) are\nreturned per-row in the `errors` map, keyed by event KSUID, rather\nthan aborting the whole call.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "functions",
-                "regression",
-                "corrections"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"functionName\": \"<string>\",\n  \"baselineVersionNum\": \"<integer>\",\n  \"comparisonVersionNum\": \"<integer>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "324358eb-9a0e-4f4b-aa3a-434b7fe3fd32",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression",
-                    "corrections"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 4\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"applied\": 18,\n  \"appliedEventIDs\": [\n    \"evt_2N6gH8...\",\n    \"evt_2N6gH9...\"\n  ],\n  \"skipped\": 2,\n  \"errors\": {\n    \"evt_2N6gHB...\": \"baseline transformation not found for reference ID: invoice-789\"\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "0e26b242-15de-4fce-9474-62020a8fecf9",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression",
-                    "corrections"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 4\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "1afd51a9-84eb-4c0c-bce8-bc35b847c321",
-              "name": "The server cannot find the requested resource.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression",
-                    "corrections"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 4\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Not Found",
-              "code": 404,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "1c66204a-e1b7-4ca2-847e-c726a5816561",
-              "name": "Server error",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "regression",
-                    "corrections"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"baselineVersionNum\": 3,\n  \"comparisonVersionNum\": 4\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "637a8725-9f5d-4835-8650-909ea06ae6eb",
-          "name": "Function Review",
-          "request": {
-            "name": "Function Review",
-            "description": {
-              "content": "**Estimate human review requirements for a function.**\n\nCombines confusion-matrix metrics with the per-transformation evaluation\nscores (confidence / hallucination / relevance produced by the eval service)\nto compute:\n\n- A confidence-bucketed distribution of the function's outputs.\n- Sample-size estimates at configurable margin-of-error and confidence\nlevels (Wald or Wilson intervals).\n- A precision-recall AUC and a per-threshold matrix you can use to\npick a review cutoff.\n\nSupported for every function type that produces transformations and feeds\nthe auto-evaluation pipeline: `extract`, `transform`, `analyze`, `join`.\nExtract works on both vision (PDF/PNG/JPEG/HEIC/HEIF/WebP) and OCR-routed\ninputs.\n\nPass `isRegression: true` to scope the review to transformations created\nby a previous regression run (see `POST /v3/functions/regression`).",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "functions",
-                "review"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"functionName\": \"<string>\",\n  \"functionVersionNum\": \"<integer>\",\n  \"evaluationVersion\": \"0.1.0-gemini\",\n  \"marginOfError\": 0.05,\n  \"thresholdMin\": 0.5,\n  \"thresholdMax\": 1,\n  \"thresholdStep\": 0.01,\n  \"confidenceLevels\": [\n    95\n  ],\n  \"confidenceMethod\": \"wald\",\n  \"isRegression\": \"<boolean>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "1939c9a2-a0d8-425a-8c5a-091aac3efc0c",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "review"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"functionVersionNum\": 2,\n  \"isRegression\": true,\n  \"marginOfError\": 0.05\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"functionName\": \"invoice-extractor\",\n  \"functionVersionNum\": 3,\n  \"estimate\": {\n    \"totalTransformations\": 1000,\n    \"labeledTransformations\": 200,\n    \"unlabeledTransformations\": 800,\n    \"missingEvaluations\": 50,\n    \"confidenceDistribution\": {\n      \"high\": 500,\n      \"medium\": 350,\n      \"low\": 150\n    },\n    \"thresholdMatrix\": [\n      {\n        \"threshold\": 0.8,\n        \"tp\": 85,\n        \"fp\": 12,\n        \"fn\": 15,\n        \"tn\": 88,\n        \"accuracyAboveThreshold\": {\n          \"95\": {\n            \"ciLower\": 0.8456,\n            \"mid\": 0.875,\n            \"ciUpper\": 0.9044,\n            \"currentSample\": 120,\n            \"sampleNeeded\": 30\n          }\n        }\n      }\n    ]\n  },\n  \"metrics\": {\n    \"fieldMetrics\": [\n      {\n        \"fieldPath\": \"/invoice/number\",\n        \"metrics\": {\n          \"accuracy\": 0.95,\n          \"precision\": 0.98,\n          \"recall\": 0.92,\n          \"f1Score\": 0.95,\n          \"tp\": 92,\n          \"fp\": 2,\n          \"tn\": 0,\n          \"fn\": 8\n        }\n      }\n    ],\n    \"precisionRecallAuc\": 0.8542,\n    \"aggregateMetrics\": {\n      \"accuracy\": 0.7407,\n      \"precision\": 0.9524,\n      \"recall\": 0.7692,\n      \"f1Score\": 0.8511,\n      \"tp\": 40,\n      \"fp\": 2,\n      \"tn\": 0,\n      \"fn\": 12\n    }\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "07588dbd-57d1-42cd-8eec-c4b1337fa181",
-              "name": "The server could not understand the request due to invalid syntax.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "review"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"functionVersionNum\": 2,\n  \"isRegression\": true,\n  \"marginOfError\": 0.05\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "c9e83708-bf90-4502-afe6-935af441e73b",
-              "name": "Server error",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "functions",
-                    "review"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"functionName\": \"invoice-extractor\",\n  \"functionVersionNum\": 2,\n  \"isRegression\": true,\n  \"marginOfError\": 0.05\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"message\": \"string\",\n  \"code\": 4526,\n  \"details\": {}\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "ae8f6dea-8eaa-475c-8d70-0c03a7928275",
+          "createdAt": "2026-10-22T02:02:32.000Z",
+          "updatedAt": "2026-10-22T02:02:32.000Z",
+          "uid": "35240-ae8f6dea-8eaa-475c-8d70-0c03a7928275"
         }
       ],
-      "event": []
+      "id": "e7d99bc9-218a-44f7-bcb1-beb0c549194f",
+      "createdAt": "2026-10-22T02:02:32.000Z",
+      "updatedAt": "2026-10-22T02:02:32.000Z",
+      "uid": "35240-e7d99bc9-218a-44f7-bcb1-beb0c549194f"
     }
   ],
-  "event": [],
   "variable": [
     {
-      "type": "string",
-      "value": "https://api.bem.ai",
-      "key": "baseUrl"
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
     }
-  ],
-  "auth": {
-    "type": "apikey",
-    "apikey": [
-      {
-        "key": "key",
-        "value": "x-api-key"
-      },
-      {
-        "key": "value",
-        "value": "{{apiKey}}"
-      },
-      {
-        "key": "in",
-        "value": "header"
-      }
-    ]
-  },
-  "info": {
-    "_postman_id": "c736c171-0063-43de-8c49-37c3be96199f",
-    "name": "Bem Buckets Function Accuracy API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-      "type": "text/plain"
-    }
-  }
+  ]
 }

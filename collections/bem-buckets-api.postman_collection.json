@@ -1,574 +1,536 @@
 {
+  "info": {
+    "_postman_id": "f5c1b9f8-c894-41d1-9e87-b04dcf76d58b",
+    "name": "Bem Buckets API",
+    "description": "Buckets are named partitions of the knowledge graph within an\naccount+environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:01:39.000Z",
+    "updatedAt": "2026-10-22T02:01:39.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-f5c1b9f8-c894-41d1-9e87-b04dcf76d58b"
+  },
   "item": [
     {
-      "id": "7bc66e21-1ace-4431-b7c8-9f26fd3301bc",
-      "name": "Buckets",
-      "description": {
-        "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-        "type": "text/plain"
-      },
+      "name": "v3",
       "item": [
         {
-          "id": "fc44cb04-9a9a-4cc2-b1a4-f091420069bc",
-          "name": "Create a Bucket",
-          "request": {
-            "name": "Create a Bucket",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "buckets"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
+          "name": "buckets",
+          "item": [
             {
-              "id": "2d81a82f-6ce8-4347-bca7-109e930ee628",
-              "name": "The request has succeeded and a new resource has been created as a result.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "buckets"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
+              "name": "{bucketID}",
+              "item": [
+                {
+                  "name": "Get a Bucket",
+                  "id": "2fcada73-8ec9-4a67-b4c0-2b31c1d2317a",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
                   },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/buckets/:bucketID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "buckets",
+                        ":bucketID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "9214b42c-c03e-43d4-991a-16a9cb567888",
+                          "key": "bucketID",
+                          "value": "<string>",
+                          "description": "(Required) Bucket public ID (`bkt_...`)."
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "id": "4fde1d67-21a7-4698-a03f-dc2fdd678448",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/buckets/:bucketID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "buckets",
+                            ":bucketID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "bucketID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"bucketID\": \"<string>\",\n  \"name\": \"<string>\",\n  \"description\": \"<string>\",\n  \"isDefault\": \"<boolean>\",\n  \"createdAt\": \"<dateTime>\",\n  \"updatedAt\": \"<dateTime>\"\n}",
+                      "createdAt": "2026-10-22T02:01:40.000Z",
+                      "updatedAt": "2026-10-22T02:01:40.000Z",
+                      "uid": "35240-4fde1d67-21a7-4698-a03f-dc2fdd678448"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:01:40.000Z",
+                  "updatedAt": "2026-10-22T02:01:40.000Z",
+                  "uid": "35240-2fcada73-8ec9-4a67-b4c0-2b31c1d2317a"
+                },
+                {
+                  "name": "Update a Bucket",
+                  "id": "ac6f4f75-5982-4784-9b99-6b3d2dfeb17d",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "PATCH",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/buckets/:bucketID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "buckets",
+                        ":bucketID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "0b8ced6f-4c4a-4a00-8bbd-d6da7806106f",
+                          "key": "bucketID",
+                          "value": "<string>",
+                          "description": "(Required) Bucket public ID (`bkt_...`)."
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "id": "ee078275-02bc-4a6c-af24-1e7f26ac018c",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "PATCH",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/buckets/:bucketID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "buckets",
+                            ":bucketID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "bucketID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"bucketID\": \"<string>\",\n  \"name\": \"<string>\",\n  \"description\": \"<string>\",\n  \"isDefault\": \"<boolean>\",\n  \"createdAt\": \"<dateTime>\",\n  \"updatedAt\": \"<dateTime>\"\n}",
+                      "createdAt": "2026-10-22T02:01:40.000Z",
+                      "updatedAt": "2026-10-22T02:01:40.000Z",
+                      "uid": "35240-ee078275-02bc-4a6c-af24-1e7f26ac018c"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:01:40.000Z",
+                  "updatedAt": "2026-10-22T02:01:40.000Z",
+                  "uid": "35240-ac6f4f75-5982-4784-9b99-6b3d2dfeb17d"
+                },
+                {
+                  "name": "Delete a Bucket",
+                  "id": "a4098338-37c7-42b6-b1ec-f61580c4e64f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/buckets/:bucketID?cascade=<boolean>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "buckets",
+                        ":bucketID"
+                      ],
+                      "query": [
+                        {
+                          "description": "When `true`, delete the bucket even if it still contains entities\n(the entities are removed along with it). When omitted or `false`, the\nrequest is rejected with `409 Conflict` if the bucket is non-empty.\n\nThe default bucket can never be deleted regardless of this flag.",
+                          "key": "cascade",
+                          "value": "<boolean>"
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "id": "18137cd7-a0ea-4655-9b6d-398890d3e373",
+                          "key": "bucketID",
+                          "value": "<string>",
+                          "description": "(Required) Bucket public ID (`bkt_...`)."
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "id": "f607a305-3fbd-4a20-8311-d4c2aac933e5",
+                      "name": "There is no content to send for this request, but the headers may be useful. ",
+                      "originalRequest": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/buckets/:bucketID?cascade=<boolean>",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "buckets",
+                            ":bucketID"
+                          ],
+                          "query": [
+                            {
+                              "description": "When `true`, delete the bucket even if it still contains entities\n(the entities are removed along with it). When omitted or `false`, the\nrequest is rejected with `409 Conflict` if the bucket is non-empty.\n\nThe default bucket can never be deleted regardless of this flag.",
+                              "key": "cascade",
+                              "value": "<boolean>"
+                            }
+                          ],
+                          "variable": [
+                            {
+                              "key": "bucketID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "No Content",
+                      "code": 204,
+                      "_postman_previewlanguage": "text",
+                      "header": [],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": null,
+                      "createdAt": "2026-10-22T02:01:40.000Z",
+                      "updatedAt": "2026-10-22T02:01:40.000Z",
+                      "uid": "35240-f607a305-3fbd-4a20-8311-d4c2aac933e5"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:01:40.000Z",
+                  "updatedAt": "2026-10-22T02:01:40.000Z",
+                  "uid": "35240-a4098338-37c7-42b6-b1ec-f61580c4e64f"
+                }
+              ],
+              "id": "76bec779-e5bd-4d82-b26c-1e7e8d6df98f",
+              "createdAt": "2026-10-22T02:01:40.000Z",
+              "updatedAt": "2026-10-22T02:01:40.000Z",
+              "uid": "35240-76bec779-e5bd-4d82-b26c-1e7e8d6df98f"
+            },
+            {
+              "name": "Create a Bucket",
+              "id": "7c45655f-91e9-4b5c-bef5-8982d23ff440",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
                 "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"invoices\",\n  \"description\": \"Knowledge graph for invoice documents\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Created",
-              "code": 201,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"bucketID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"isDefault\": false,\n  \"createdAt\": \"1959-03-06T01:13:21.129Z\",\n  \"updatedAt\": \"1995-12-27T23:39:47.105Z\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "5cc86ad1-154b-4369-9b58-7b682861918a",
-          "name": "List Buckets",
-          "request": {
-            "name": "List Buckets",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "buckets"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "limit",
-                  "value": "<integer>",
-                  "description": "Maximum number of buckets to return (default 50, max 200)."
-                },
-                {
-                  "disabled": false,
-                  "key": "startingAfter",
-                  "value": "<string>",
-                  "description": "Cursor: return buckets whose `bucketID` sorts after this value."
-                },
-                {
-                  "disabled": false,
-                  "key": "endingBefore",
-                  "value": "<string>",
-                  "description": "Cursor: return buckets whose `bucketID` sorts before this value."
-                },
-                {
-                  "disabled": false,
-                  "key": "nameSubstring",
-                  "value": "<string>",
-                  "description": "Case-insensitive substring match on the bucket name."
-                }
-              ],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "ce05ada6-2446-46ac-8197-2877e81b19ba",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "buckets"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "limit",
-                      "value": "<integer>"
-                    },
-                    {
-                      "key": "startingAfter",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "endingBefore",
-                      "value": "<string>"
-                    },
-                    {
-                      "key": "nameSubstring",
-                      "value": "<string>"
-                    }
-                  ],
-                  "variable": []
-                },
                 "header": [
                   {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
+                    "key": "Content-Type",
+                    "value": "application/json"
                   },
                   {
                     "key": "Accept",
                     "value": "application/json"
                   }
                 ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"buckets\": [\n    {\n      \"bucketID\": \"string\",\n      \"name\": \"string\",\n      \"description\": \"string\",\n      \"isDefault\": true,\n      \"createdAt\": \"2012-06-17T10:50:47.149Z\",\n      \"updatedAt\": \"1976-01-03T17:43:57.183Z\"\n    },\n    {\n      \"bucketID\": \"string\",\n      \"name\": \"string\",\n      \"description\": \"string\",\n      \"isDefault\": true,\n      \"createdAt\": \"1975-06-06T13:52:04.250Z\",\n      \"updatedAt\": \"1972-02-04T16:37:00.654Z\"\n    }\n  ],\n  \"totalCount\": 6186\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "3eef55b5-2894-4500-9f60-34125db450be",
-          "name": "Get a Bucket",
-          "request": {
-            "name": "Get a Bucket",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "buckets",
-                ":bucketID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "bucketID",
-                  "description": "(Required) Bucket public ID (`bkt_...`)."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "b83e6c49-7a47-42d6-85a8-e9bcbb1e5638",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "buckets",
-                    ":bucketID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "bucketID",
-                      "description": "(Required) Bucket public ID (`bkt_...`)."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"bucketID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"isDefault\": false,\n  \"createdAt\": \"1959-03-06T01:13:21.129Z\",\n  \"updatedAt\": \"1995-12-27T23:39:47.105Z\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "78376741-73a6-4b08-ae45-38d895b5ce77",
-          "name": "Update a Bucket",
-          "request": {
-            "name": "Update a Bucket",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "buckets",
-                ":bucketID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "bucketID",
-                  "description": "(Required) Bucket public ID (`bkt_...`)."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "PATCH",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
-            {
-              "id": "569e0a56-4200-45e4-9196-b1764bd017bd",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "buckets",
-                    ":bucketID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "bucketID",
-                      "description": "(Required) Bucket public ID (`bkt_...`)."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "PATCH",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
                   "options": {
                     "raw": {
+                      "headerFamily": "json",
                       "language": "json"
                     }
                   }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"bucketID\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"isDefault\": false,\n  \"createdAt\": \"1959-03-06T01:13:21.129Z\",\n  \"updatedAt\": \"1995-12-27T23:39:47.105Z\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "c4df63ec-c53c-4ed7-a668-599af45460a6",
-          "name": "Delete a Bucket",
-          "request": {
-            "name": "Delete a Bucket",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "buckets",
-                ":bucketID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "cascade",
-                  "value": "<boolean>",
-                  "description": "When `true`, delete the bucket even if it still contains entities\n(the entities are removed along with it). When omitted or `false`, the\nrequest is rejected with `409 Conflict` if the bucket is non-empty.\n\nThe default bucket can never be deleted regardless of this flag."
-                }
-              ],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "bucketID",
-                  "description": "(Required) Bucket public ID (`bkt_...`)."
-                }
-              ]
-            },
-            "method": "DELETE",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "a4862eb1-c196-4601-ac01-bad0e93125b3",
-              "name": "There is no content to send for this request, but the headers may be useful. ",
-              "originalRequest": {
+                },
                 "url": {
-                  "path": [
-                    "v3",
-                    "buckets",
-                    ":bucketID"
-                  ],
+                  "raw": "{{baseUrl}}/v3/buckets",
                   "host": [
                     "{{baseUrl}}"
                   ],
-                  "query": [
+                  "path": [
+                    "v3",
+                    "buckets"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "id": "547059b5-7b74-4326-a637-3056f961f166",
+                  "name": "The request has succeeded and a new resource has been created as a result.",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name\": \"<string>\",\n  \"description\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/buckets",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "buckets"
+                      ]
+                    }
+                  },
+                  "status": "Created",
+                  "code": 201,
+                  "_postman_previewlanguage": "json",
+                  "header": [
                     {
-                      "key": "cascade",
-                      "value": "<boolean>"
+                      "key": "Content-Type",
+                      "value": "application/json"
                     }
                   ],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "bucketID",
-                      "description": "(Required) Bucket public ID (`bkt_...`)."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  }
-                ],
-                "method": "DELETE",
-                "body": {}
-              },
-              "status": "No Content",
-              "code": 204,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "text/plain"
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"bucketID\": \"<string>\",\n  \"name\": \"<string>\",\n  \"description\": \"<string>\",\n  \"isDefault\": \"<boolean>\",\n  \"createdAt\": \"<dateTime>\",\n  \"updatedAt\": \"<dateTime>\"\n}",
+                  "createdAt": "2026-10-22T02:01:40.000Z",
+                  "updatedAt": "2026-10-22T02:01:40.000Z",
+                  "uid": "35240-547059b5-7b74-4326-a637-3056f961f166"
                 }
               ],
-              "body": "",
-              "cookie": [],
-              "_postman_previewlanguage": "text"
+              "createdAt": "2026-10-22T02:01:40.000Z",
+              "updatedAt": "2026-10-22T02:01:40.000Z",
+              "uid": "35240-7c45655f-91e9-4b5c-bef5-8982d23ff440"
+            },
+            {
+              "name": "List Buckets",
+              "id": "7033054d-84ab-4895-8fa6-9730a1cc09c2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v3/buckets?limit=<integer>&startingAfter=<string>&endingBefore=<string>&nameSubstring=<string>",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v3",
+                    "buckets"
+                  ],
+                  "query": [
+                    {
+                      "description": "Maximum number of buckets to return (default 50, max 200).",
+                      "key": "limit",
+                      "value": "<integer>"
+                    },
+                    {
+                      "description": "Cursor: return buckets whose `bucketID` sorts after this value.",
+                      "key": "startingAfter",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Cursor: return buckets whose `bucketID` sorts before this value.",
+                      "key": "endingBefore",
+                      "value": "<string>"
+                    },
+                    {
+                      "description": "Case-insensitive substring match on the bucket name.",
+                      "key": "nameSubstring",
+                      "value": "<string>"
+                    }
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "id": "24ad1685-6c48-44f4-b429-d05da4dc0092",
+                  "name": "The request has succeeded.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/buckets?limit=<integer>&startingAfter=<string>&endingBefore=<string>&nameSubstring=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "buckets"
+                      ],
+                      "query": [
+                        {
+                          "description": "Maximum number of buckets to return (default 50, max 200).",
+                          "key": "limit",
+                          "value": "<integer>"
+                        },
+                        {
+                          "description": "Cursor: return buckets whose `bucketID` sorts after this value.",
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Cursor: return buckets whose `bucketID` sorts before this value.",
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Case-insensitive substring match on the bucket name.",
+                          "key": "nameSubstring",
+                          "value": "<string>"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"buckets\": [\n    {\n      \"bucketID\": \"<string>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"isDefault\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    {\n      \"bucketID\": \"<string>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"isDefault\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    }\n  ],\n  \"totalCount\": \"<long>\"\n}",
+                  "createdAt": "2026-10-22T02:01:40.000Z",
+                  "updatedAt": "2026-10-22T02:01:40.000Z",
+                  "uid": "35240-24ad1685-6c48-44f4-b429-d05da4dc0092"
+                }
+              ],
+              "createdAt": "2026-10-22T02:01:40.000Z",
+              "updatedAt": "2026-10-22T02:01:40.000Z",
+              "uid": "35240-7033054d-84ab-4895-8fa6-9730a1cc09c2"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "c06c9f33-9d34-4b98-8f45-e14f22f4d7a7",
+          "createdAt": "2026-10-22T02:01:40.000Z",
+          "updatedAt": "2026-10-22T02:01:40.000Z",
+          "uid": "35240-c06c9f33-9d34-4b98-8f45-e14f22f4d7a7"
         }
       ],
-      "event": []
+      "id": "ea3a0895-9920-40d0-9244-dd10fb3186de",
+      "createdAt": "2026-10-22T02:01:40.000Z",
+      "updatedAt": "2026-10-22T02:01:40.000Z",
+      "uid": "35240-ea3a0895-9920-40d0-9244-dd10fb3186de"
     }
   ],
-  "event": [],
   "variable": [
     {
-      "type": "string",
-      "value": "https://api.bem.ai",
-      "key": "baseUrl"
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
     }
-  ],
-  "auth": {
-    "type": "apikey",
-    "apikey": [
-      {
-        "key": "key",
-        "value": "x-api-key"
-      },
-      {
-        "key": "value",
-        "value": "{{apiKey}}"
-      },
-      {
-        "key": "in",
-        "value": "header"
-      }
-    ]
-  },
-  "info": {
-    "_postman_id": "57188603-7bb6-4d5b-bde3-414e7ad0cc09",
-    "name": "Bem Buckets API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-      "type": "text/plain"
-    }
-  }
+  ]
 }

@@ -1,299 +1,303 @@
 {
+  "info": {
+    "_postman_id": "c429c1bc-76b9-4ac4-a42b-409ceaf3cd8d",
+    "name": "Bem Entity Bulk Seed API",
+    "description": "Seed the knowledge graph with a batch of customer-authored canonical\nentities in one request \u2014 their types, descriptions, synonyms, and\nper-entity attributes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:04.000Z",
+    "updatedAt": "2026-10-22T02:02:05.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-c429c1bc-76b9-4ac4-a42b-409ceaf3cd8d"
+  },
   "item": [
     {
-      "id": "6b8e7d3a-f92c-4078-8f83-c9a3529ed857",
-      "name": "Entity Bulk Seed",
-      "description": {
-        "content": "Seed the knowledge graph with a batch of customer-authored canonical\nentities in one request — their types, descriptions, synonyms, and\nper-entity attributes.\n\n- **`POST /v3/entities/bulk`** creates or merges each entity into a single\n  bucket (the optional `bucket` reference, else the account+environment\n  default). For each row the entity's `type` is resolved or created in\n  your taxonomy, the entity is upserted on its normalized canonical, and\n  any `synonyms` are attached as `customer_defined`. An entity that\n  already exists is **merged** (`onConflict: \"merge\"`): synonyms are added\n  additively, a longer `description` replaces the old one, and\n  `attributes` are merged with new keys winning.\n- Small batches (fewer than 100 entities) process **synchronously** and\n  return `200` with a per-row `results` array and a `summary`.\n- Larger batches process **asynchronously**: the call returns `202` with a\n  `seedJobID` and a `statusURL`. Poll **`GET /v3/entities/seed/{id}`**\n  until `status` is `completed` (or `failed`); the completed response\n  includes the per-row `results`.\n\nEach row's outcome is one of `created`, `merged-with`, or `rejected` (with\na `reason`, e.g. an attribute key not declared in the type's schema).",
-        "type": "text/plain"
-      },
+      "name": "v3",
       "item": [
         {
-          "id": "e51e4bd2-fe47-41b4-870f-23fc41ef628d",
-          "name": "Bulk Seed Entities",
-          "request": {
-            "name": "Bulk Seed Entities",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "entities",
-                "bulk"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "POST",
-            "auth": null,
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": \"<object>\"\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": \"<object>\"\n    }\n  ],\n  \"bucket\": \"<string>\",\n  \"onConflict\": \"<string>\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [
+          "name": "entities",
+          "item": [
             {
-              "id": "0a138088-8b1a-431b-a949-5a3fa8a43dd1",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "entities",
-                    "bulk"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
+              "name": "bulk",
+              "item": [
+                {
+                  "name": "Bulk Seed Entities",
+                  "id": "8125ab64-08bd-4170-a17a-5b4a8e3e712b",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
                   },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"Acme Corporation\",\n      \"type\": \"organization\",\n      \"description\": \"Industrial conglomerate\",\n      \"synonyms\": [\n        \"ACME\",\n        \"Acme Corp\"\n      ],\n      \"attributes\": {\n        \"headquarters\": \"Springfield\"\n      }\n    }\n  ],\n  \"onConflict\": \"merge\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"results\": [\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"merged-with\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    },\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    }\n  ],\n  \"summary\": {\n    \"created\": 6055,\n    \"merged\": 361,\n    \"rejected\": 2429\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            },
-            {
-              "id": "22605839-0e15-4e79-b4ad-4bbf7992110f",
-              "name": "The request has been accepted for processing, but processing has not yet completed.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "entities",
-                    "bulk"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    }\n  ],\n  \"bucket\": \"<string>\",\n  \"onConflict\": \"merge\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
                     },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "POST",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"Acme Corporation\",\n      \"type\": \"organization\",\n      \"description\": \"Industrial conglomerate\",\n      \"synonyms\": [\n        \"ACME\",\n        \"Acme Corp\"\n      ],\n      \"attributes\": {\n        \"headquarters\": \"Springfield\"\n      }\n    }\n  ],\n  \"onConflict\": \"merge\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/entities/bulk",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "entities",
+                        "bulk"
+                      ]
                     }
-                  }
-                }
-              },
-              "status": "Accepted",
-              "code": 202,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"seedJobID\": \"string\",\n  \"status\": \"string\",\n  \"statusURL\": \"string\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "30d3771d-6a00-43f1-837e-1eeeb3f3f225",
-          "name": "Get Seed Job Status",
-          "request": {
-            "name": "Get Seed Job Status",
-            "description": {},
-            "url": {
-              "path": [
-                "v3",
-                "entities",
-                "seed",
-                ":id"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "id",
-                  "description": "(Required) Seed job public ID (`esj_...`)."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "41e939bc-027d-4ac8-ac83-a1ebc69b5fa6",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "entities",
-                    "seed",
-                    ":id"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
+                  },
+                  "response": [
                     {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "id",
-                      "description": "(Required) Seed job public ID (`esj_...`)."
-                    }
-                  ]
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
+                      "id": "ca6b66b8-7b20-4271-ab39-0739a4dda316",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    }\n  ],\n  \"bucket\": \"<string>\",\n  \"onConflict\": \"merge\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/entities/bulk",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "entities",
+                            "bulk"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"results\": [\n    {\n      \"canonical\": \"<string>\",\n      \"outcome\": \"merged-with\",\n      \"entityID\": \"<string>\",\n      \"reason\": \"<string>\"\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"outcome\": \"rejected\",\n      \"entityID\": \"<string>\",\n      \"reason\": \"<string>\"\n    }\n  ],\n  \"summary\": {\n    \"created\": \"<integer>\",\n    \"merged\": \"<integer>\",\n    \"rejected\": \"<integer>\"\n  }\n}",
+                      "createdAt": "2026-10-22T02:02:05.000Z",
+                      "updatedAt": "2026-10-22T02:02:05.000Z",
+                      "uid": "35240-ca6b66b8-7b20-4271-ab39-0739a4dda316"
                     },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                    {
+                      "id": "444224df-f732-40f7-8d0c-c996326e5c18",
+                      "name": "The request has been accepted for processing, but processing has not yet completed.",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"entities\": [\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"type\": \"<string>\",\n      \"description\": \"<string>\",\n      \"synonyms\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"attributes\": {}\n    }\n  ],\n  \"bucket\": \"<string>\",\n  \"onConflict\": \"merge\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/entities/bulk",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "entities",
+                            "bulk"
+                          ]
+                        }
+                      },
+                      "status": "Accepted",
+                      "code": 202,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"seedJobID\": \"<string>\",\n  \"status\": \"<string>\",\n  \"statusURL\": \"<string>\"\n}",
+                      "createdAt": "2026-10-22T02:02:05.000Z",
+                      "updatedAt": "2026-10-22T02:02:05.000Z",
+                      "uid": "35240-444224df-f732-40f7-8d0c-c996326e5c18"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:05.000Z",
+                  "updatedAt": "2026-10-22T02:02:05.000Z",
+                  "uid": "35240-8125ab64-08bd-4170-a17a-5b4a8e3e712b"
                 }
               ],
-              "body": "{\n  \"seedJobID\": \"string\",\n  \"status\": \"completed\",\n  \"totalRows\": 7194,\n  \"createdCount\": 8718,\n  \"mergedCount\": 9988,\n  \"rejectedCount\": 331,\n  \"results\": [\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    },\n    {\n      \"canonical\": \"string\",\n      \"outcome\": \"created\",\n      \"entityID\": \"string\",\n      \"reason\": \"string\"\n    }\n  ],\n  \"error\": \"string\"\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "id": "a5e1ec3c-d519-4753-a8d5-5709b295d3b1",
+              "createdAt": "2026-10-22T02:02:05.000Z",
+              "updatedAt": "2026-10-22T02:02:05.000Z",
+              "uid": "35240-a5e1ec3c-d519-4753-a8d5-5709b295d3b1"
+            },
+            {
+              "name": "seed",
+              "item": [
+                {
+                  "name": "{id}",
+                  "item": [
+                    {
+                      "name": "Get Seed Job Status",
+                      "id": "01ddd01d-dd9e-40cd-9bdc-96fbff77797e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/entities/seed/:id",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "entities",
+                            "seed",
+                            ":id"
+                          ],
+                          "variable": [
+                            {
+                              "id": "2cc83d8b-a89d-4b4e-8800-11fbe79f51dc",
+                              "key": "id",
+                              "value": "<string>",
+                              "description": "(Required) Seed job public ID (`esj_...`)."
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "id": "9dcb5ea5-06fb-4fb1-9c44-fc63a4afddf6",
+                          "name": "The request has succeeded.",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/entities/seed/:id",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "entities",
+                                "seed",
+                                ":id"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "id"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"seedJobID\": \"<string>\",\n  \"status\": \"failed\",\n  \"totalRows\": \"<integer>\",\n  \"createdCount\": \"<integer>\",\n  \"mergedCount\": \"<integer>\",\n  \"rejectedCount\": \"<integer>\",\n  \"results\": [\n    {\n      \"canonical\": \"<string>\",\n      \"outcome\": \"rejected\",\n      \"entityID\": \"<string>\",\n      \"reason\": \"<string>\"\n    },\n    {\n      \"canonical\": \"<string>\",\n      \"outcome\": \"merged-with\",\n      \"entityID\": \"<string>\",\n      \"reason\": \"<string>\"\n    }\n  ],\n  \"error\": \"<string>\"\n}",
+                          "createdAt": "2026-10-22T02:02:05.000Z",
+                          "updatedAt": "2026-10-22T02:02:05.000Z",
+                          "uid": "35240-9dcb5ea5-06fb-4fb1-9c44-fc63a4afddf6"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:05.000Z",
+                      "updatedAt": "2026-10-22T02:02:05.000Z",
+                      "uid": "35240-01ddd01d-dd9e-40cd-9bdc-96fbff77797e"
+                    }
+                  ],
+                  "id": "7c8fe2ec-5526-4732-9a43-d6b952078b1e",
+                  "createdAt": "2026-10-22T02:02:05.000Z",
+                  "updatedAt": "2026-10-22T02:02:05.000Z",
+                  "uid": "35240-7c8fe2ec-5526-4732-9a43-d6b952078b1e"
+                }
+              ],
+              "id": "56ea0523-45ab-4032-83a7-27ce1282a649",
+              "createdAt": "2026-10-22T02:02:05.000Z",
+              "updatedAt": "2026-10-22T02:02:05.000Z",
+              "uid": "35240-56ea0523-45ab-4032-83a7-27ce1282a649"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "3f0c9fcc-1e23-4d89-89d6-19b170476e19",
+          "createdAt": "2026-10-22T02:02:05.000Z",
+          "updatedAt": "2026-10-22T02:02:05.000Z",
+          "uid": "35240-3f0c9fcc-1e23-4d89-89d6-19b170476e19"
         }
       ],
-      "event": []
+      "id": "824b9bc0-ffdf-4112-96e7-eaf1f525e995",
+      "createdAt": "2026-10-22T02:02:05.000Z",
+      "updatedAt": "2026-10-22T02:02:05.000Z",
+      "uid": "35240-824b9bc0-ffdf-4112-96e7-eaf1f525e995"
     }
   ],
-  "event": [],
   "variable": [
     {
-      "type": "string",
-      "value": "https://api.bem.ai",
-      "key": "baseUrl"
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
     }
-  ],
-  "auth": {
-    "type": "apikey",
-    "apikey": [
-      {
-        "key": "key",
-        "value": "x-api-key"
-      },
-      {
-        "key": "value",
-        "value": "{{apiKey}}"
-      },
-      {
-        "key": "in",
-        "value": "header"
-      }
-    ]
-  },
-  "info": {
-    "_postman_id": "0af10f15-3dc1-4045-ab32-5e56e132f540",
-    "name": "Bem Buckets Entity Bulk Seed API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-      "type": "text/plain"
-    }
-  }
+  ]
 }

@@ -1,0 +1,460 @@
+{
+  "info": {
+    "_postman_id": "60bf2635-f616-4282-a0e0-220a63044c56",
+    "name": "Bem Entity Type Reviewers API",
+    "description": "Reviewer assignments link users to the entity types they are responsible\nfor reviewing, scoped to an account+environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:17.000Z",
+    "updatedAt": "2026-10-22T02:02:17.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-60bf2635-f616-4282-a0e0-220a63044c56"
+  },
+  "item": [
+    {
+      "name": "v3",
+      "item": [
+        {
+          "name": "entity-types",
+          "item": [
+            {
+              "name": "{typeID}",
+              "item": [
+                {
+                  "name": "reviewers",
+                  "item": [
+                    {
+                      "name": "{userID}",
+                      "item": [
+                        {
+                          "name": "Remove a Reviewer",
+                          "id": "414c4abf-6fc2-410b-8e1f-bbf3267d7967",
+                          "protocolProfileBehavior": {
+                            "disableBodyPruning": true
+                          },
+                          "request": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers/:userID",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "entity-types",
+                                ":typeID",
+                                "reviewers",
+                                ":userID"
+                              ],
+                              "variable": [
+                                {
+                                  "id": "759b6260-4b6f-4d1c-9e13-258283176e1c",
+                                  "key": "typeID",
+                                  "value": "<string>",
+                                  "description": "(Required) Entity type public ID (`ety_...`)."
+                                },
+                                {
+                                  "id": "f4befc6f-43f4-413e-9e9f-42a86b9d01e3",
+                                  "key": "userID",
+                                  "value": "<string>",
+                                  "description": "(Required) Assigned user public ID (`usr_...`)."
+                                }
+                              ]
+                            }
+                          },
+                          "response": [
+                            {
+                              "id": "3b42d1fc-cdfc-4fd9-a5fe-59907c1f2333",
+                              "name": "There is no content to send for this request, but the headers may be useful. ",
+                              "originalRequest": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                  "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers/:userID",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "v3",
+                                    "entity-types",
+                                    ":typeID",
+                                    "reviewers",
+                                    ":userID"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "typeID"
+                                    },
+                                    {
+                                      "key": "userID"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "No Content",
+                              "code": 204,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "responseTime": null,
+                              "body": null,
+                              "createdAt": "2026-10-22T02:02:17.000Z",
+                              "updatedAt": "2026-10-22T02:02:17.000Z",
+                              "uid": "35240-3b42d1fc-cdfc-4fd9-a5fe-59907c1f2333"
+                            }
+                          ],
+                          "createdAt": "2026-10-22T02:02:17.000Z",
+                          "updatedAt": "2026-10-22T02:02:17.000Z",
+                          "uid": "35240-414c4abf-6fc2-410b-8e1f-bbf3267d7967"
+                        }
+                      ],
+                      "id": "d3e79fdb-fa09-4705-94f3-c7198d747588",
+                      "createdAt": "2026-10-22T02:02:17.000Z",
+                      "updatedAt": "2026-10-22T02:02:17.000Z",
+                      "uid": "35240-d3e79fdb-fa09-4705-94f3-c7198d747588"
+                    },
+                    {
+                      "name": "Assign a Reviewer",
+                      "id": "acb9b851-58f6-44c6-949e-312075cf1012",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"userID\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "entity-types",
+                            ":typeID",
+                            "reviewers"
+                          ],
+                          "variable": [
+                            {
+                              "id": "f00e405c-8ee2-46aa-8965-9bf365c3ac2e",
+                              "key": "typeID",
+                              "value": "<string>",
+                              "description": "(Required) Entity type public ID (`ety_...`)."
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "id": "5d689ebd-0944-4bd6-82be-df680e01cae8",
+                          "name": "The request has succeeded and a new resource has been created as a result.",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"userID\": \"<string>\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "entity-types",
+                                ":typeID",
+                                "reviewers"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "typeID"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Created",
+                          "code": 201,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"reviewerID\": \"<string>\",\n  \"userID\": \"<string>\",\n  \"email\": \"<string>\",\n  \"role\": \"<string>\",\n  \"createdAt\": \"<dateTime>\"\n}",
+                          "createdAt": "2026-10-22T02:02:17.000Z",
+                          "updatedAt": "2026-10-22T02:02:17.000Z",
+                          "uid": "35240-5d689ebd-0944-4bd6-82be-df680e01cae8"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:17.000Z",
+                      "updatedAt": "2026-10-22T02:02:17.000Z",
+                      "uid": "35240-acb9b851-58f6-44c6-949e-312075cf1012"
+                    },
+                    {
+                      "name": "List Reviewers",
+                      "id": "ca126124-56cf-4512-a276-30f5342aa172",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "entity-types",
+                            ":typeID",
+                            "reviewers"
+                          ],
+                          "variable": [
+                            {
+                              "id": "a6910053-e036-4f53-8cb5-a314d2680d05",
+                              "key": "typeID",
+                              "value": "<string>",
+                              "description": "(Required) Entity type public ID (`ety_...`)."
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "id": "c984b533-a36d-48e7-a310-40f88fab74b9",
+                          "name": "The request has succeeded.",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/entity-types/:typeID/reviewers",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "entity-types",
+                                ":typeID",
+                                "reviewers"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "typeID"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"reviewers\": [\n    {\n      \"reviewerID\": \"<string>\",\n      \"userID\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"reviewerID\": \"<string>\",\n      \"userID\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ]\n}",
+                          "createdAt": "2026-10-22T02:02:17.000Z",
+                          "updatedAt": "2026-10-22T02:02:17.000Z",
+                          "uid": "35240-c984b533-a36d-48e7-a310-40f88fab74b9"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:17.000Z",
+                      "updatedAt": "2026-10-22T02:02:17.000Z",
+                      "uid": "35240-ca126124-56cf-4512-a276-30f5342aa172"
+                    }
+                  ],
+                  "id": "790ab64e-4c59-4ec7-85a9-78a787e29709",
+                  "createdAt": "2026-10-22T02:02:17.000Z",
+                  "updatedAt": "2026-10-22T02:02:17.000Z",
+                  "uid": "35240-790ab64e-4c59-4ec7-85a9-78a787e29709"
+                }
+              ],
+              "id": "9e09c7ce-f3fb-4f3d-a30f-5585834bf8ad",
+              "createdAt": "2026-10-22T02:02:17.000Z",
+              "updatedAt": "2026-10-22T02:02:17.000Z",
+              "uid": "35240-9e09c7ce-f3fb-4f3d-a30f-5585834bf8ad"
+            }
+          ],
+          "id": "b7936481-ef5d-4d85-827b-e218d34d5799",
+          "createdAt": "2026-10-22T02:02:17.000Z",
+          "updatedAt": "2026-10-22T02:02:17.000Z",
+          "uid": "35240-b7936481-ef5d-4d85-827b-e218d34d5799"
+        },
+        {
+          "name": "users",
+          "item": [
+            {
+              "name": "{userID}",
+              "item": [
+                {
+                  "name": "reviewer-assignments",
+                  "item": [
+                    {
+                      "name": "List a User's Reviewer Assignments",
+                      "id": "bb307ef6-b6cd-4f2d-a6da-d6e5f6b249e6",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/users/:userID/reviewer-assignments",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "users",
+                            ":userID",
+                            "reviewer-assignments"
+                          ],
+                          "variable": [
+                            {
+                              "id": "76b1cdc6-d4fe-4cca-a2f3-33a0dc0d2072",
+                              "key": "userID",
+                              "value": "<string>",
+                              "description": "(Required) User public ID (`usr_...`)."
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "id": "16080b7e-12f6-4ca8-a6db-363c86998f17",
+                          "name": "The request has succeeded.",
+                          "originalRequest": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/v3/users/:userID/reviewer-assignments",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "v3",
+                                "users",
+                                ":userID",
+                                "reviewer-assignments"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userID"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "responseTime": null,
+                          "body": "{\n  \"assignments\": [\n    {\n      \"typeID\": \"<string>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"typeID\": \"<string>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ]\n}",
+                          "createdAt": "2026-10-22T02:02:17.000Z",
+                          "updatedAt": "2026-10-22T02:02:17.000Z",
+                          "uid": "35240-16080b7e-12f6-4ca8-a6db-363c86998f17"
+                        }
+                      ],
+                      "createdAt": "2026-10-22T02:02:17.000Z",
+                      "updatedAt": "2026-10-22T02:02:17.000Z",
+                      "uid": "35240-bb307ef6-b6cd-4f2d-a6da-d6e5f6b249e6"
+                    }
+                  ],
+                  "id": "cb24c975-cf6a-4094-87c7-358669a792ce",
+                  "createdAt": "2026-10-22T02:02:17.000Z",
+                  "updatedAt": "2026-10-22T02:02:17.000Z",
+                  "uid": "35240-cb24c975-cf6a-4094-87c7-358669a792ce"
+                }
+              ],
+              "id": "1483b166-9994-4349-a827-af104a69a8d9",
+              "createdAt": "2026-10-22T02:02:17.000Z",
+              "updatedAt": "2026-10-22T02:02:17.000Z",
+              "uid": "35240-1483b166-9994-4349-a827-af104a69a8d9"
+            }
+          ],
+          "id": "00d5d6af-da3d-4c0c-9bbe-feaa6e227912",
+          "createdAt": "2026-10-22T02:02:17.000Z",
+          "updatedAt": "2026-10-22T02:02:17.000Z",
+          "uid": "35240-00d5d6af-da3d-4c0c-9bbe-feaa6e227912"
+        }
+      ],
+      "id": "b68864d1-e52e-4324-8dbc-4e1830acf484",
+      "createdAt": "2026-10-22T02:02:17.000Z",
+      "updatedAt": "2026-10-22T02:02:17.000Z",
+      "uid": "35240-b68864d1-e52e-4324-8dbc-4e1830acf484"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
+    }
+  ]
+}

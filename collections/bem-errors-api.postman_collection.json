@@ -1,112 +1,137 @@
 {
+  "info": {
+    "_postman_id": "9ad0a3d5-d00d-4f61-a56b-c2a826ddcda8",
+    "name": "Bem Errors API",
+    "description": "Retrieve terminal error events from workflow calls.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "createdAt": "2026-10-22T02:02:25.000Z",
+    "updatedAt": "2026-10-22T02:02:25.000Z",
+    "lastUpdatedBy": "35240",
+    "uid": "35240-9ad0a3d5-d00d-4f61-a56b-c2a826ddcda8"
+  },
   "item": [
     {
-      "id": "06e86c19-aa1a-487e-9b52-c4b5ff4f8ad6",
-      "name": "Errors",
-      "description": {
-        "content": "Retrieve terminal error events from workflow calls.\n\nErrors are events produced by function steps that failed during processing. A single workflow\ncall may produce multiple error events if several steps fail independently.\n\nErrors and outputs from the same call are not mutually exclusive: a partially-completed\nworkflow may have both.\n\nUse `GET /v3/errors` to list errors across calls, or `GET /v3/errors/{eventID}` to retrieve\na specific error. To get errors scoped to a single call, filter by `callIDs`.",
-        "type": "text/plain"
-      },
+      "name": "v3",
       "item": [
         {
-          "id": "0f12c94d-6239-47dc-abcc-ae6aaf272eb2",
-          "name": "List Errors",
-          "request": {
-            "name": "List Errors",
-            "description": {
-              "content": "**List terminal error events.**\n\nReturns error events produced by failed function calls within workflow executions.\nNon-error output events are excluded; use `GET /v3/outputs` to retrieve those.\n\n## Filtering\n\nFilter by call, workflow, function, or reference ID. Multiple filters are ANDed together.",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "errors"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
+          "name": "errors",
+          "item": [
+            {
+              "name": "{eventID}",
+              "item": [
                 {
-                  "disabled": false,
-                  "key": "limit",
-                  "value": "50"
-                },
-                {
-                  "disabled": false,
-                  "key": "callIDs",
-                  "value": "<string>",
-                  "description": "Filter to errors from specific calls."
-                },
-                {
-                  "disabled": false,
-                  "key": "workflowIDs",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "workflowNames",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "functionIDs",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "functionNames",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "referenceIDs",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "referenceIDSubstring",
-                  "value": "<string>",
-                  "description": "Case-insensitive substring match against `referenceID`."
-                },
-                {
-                  "disabled": false,
-                  "key": "sortOrder",
-                  "value": "asc"
-                },
-                {
-                  "disabled": false,
-                  "key": "startingAfter",
-                  "value": "<string>"
-                },
-                {
-                  "disabled": false,
-                  "key": "endingBefore",
-                  "value": "<string>"
+                  "name": "Get an Error",
+                  "id": "d08caa28-c2d3-470e-ac71-2247c7aefd1d",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/errors/:eventID",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "errors",
+                        ":eventID"
+                      ],
+                      "variable": [
+                        {
+                          "id": "c893cfc3-98f4-4fbf-8939-594597d55f0d",
+                          "key": "eventID",
+                          "value": "<string>",
+                          "description": "(Required) The unique identifier of the error event."
+                        }
+                      ]
+                    },
+                    "description": "**Retrieve a single error event by ID.**\n\nReturns `404` if the event does not exist or if it is not an error event\n(use `GET /v3/outputs/{eventID}` for non-error events)."
+                  },
+                  "response": [
+                    {
+                      "id": "4b5bbca9-4f0a-4dde-8b18-e2c540ecd954",
+                      "name": "The request has succeeded.",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/v3/errors/:eventID",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "v3",
+                            "errors",
+                            ":eventID"
+                          ],
+                          "variable": [
+                            {
+                              "key": "eventID"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "responseTime": null,
+                      "body": "{\n  \"error\": {\n    \"eventID\": \"<string>\",\n    \"referenceID\": \"<string>\",\n    \"functionID\": \"<string>\",\n    \"functionName\": \"<string>\",\n    \"message\": \"<string>\",\n    \"functionCallTryNumber\": \"<integer>\",\n    \"createdAt\": \"<dateTime>\",\n    \"inboundEmail\": {\n      \"to\": \"<string>\",\n      \"from\": \"<string>\",\n      \"subject\": \"<string>\",\n      \"deliveredTo\": \"<string>\"\n    },\n    \"metadata\": {\n      \"durationFunctionToEventSeconds\": \"<number>\"\n    },\n    \"eventType\": \"error\",\n    \"functionCallID\": \"<string>\",\n    \"functionVersionNum\": \"<integer>\",\n    \"callID\": \"<string>\",\n    \"workflowID\": \"<string>\",\n    \"workflowName\": \"<string>\",\n    \"workflowVersionNum\": \"<integer>\",\n    \"kind\": \"<string>\"\n  }\n}",
+                      "createdAt": "2026-10-22T02:02:26.000Z",
+                      "updatedAt": "2026-10-22T02:02:26.000Z",
+                      "uid": "35240-4b5bbca9-4f0a-4dde-8b18-e2c540ecd954"
+                    }
+                  ],
+                  "createdAt": "2026-10-22T02:02:26.000Z",
+                  "updatedAt": "2026-10-22T02:02:26.000Z",
+                  "uid": "35240-d08caa28-c2d3-470e-ac71-2247c7aefd1d"
                 }
               ],
-              "variable": []
+              "id": "0acfbdd9-daa6-420a-a88b-72bd79bb0375",
+              "createdAt": "2026-10-22T02:02:26.000Z",
+              "updatedAt": "2026-10-22T02:02:26.000Z",
+              "uid": "35240-0acfbdd9-daa6-420a-a88b-72bd79bb0375"
             },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
             {
-              "id": "e647647f-d5ee-4b77-ae5a-09de9c46e631",
-              "name": "The request has succeeded.",
-              "originalRequest": {
+              "name": "List Errors",
+              "id": "b92bf66b-5966-4801-bcba-66b494facbeb",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
+                  "raw": "{{baseUrl}}/v3/errors?limit=50&callIDs=<string>&workflowIDs=<string>&workflowNames=<string>&functionIDs=<string>&functionNames=<string>&referenceIDs=<string>&referenceIDSubstring=<string>&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
                   "path": [
                     "v3",
                     "errors"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
                   ],
                   "query": [
                     {
@@ -114,6 +139,7 @@
                       "value": "50"
                     },
                     {
+                      "description": "Filter to errors from specific calls.",
                       "key": "callIDs",
                       "value": "<string>"
                     },
@@ -138,6 +164,7 @@
                       "value": "<string>"
                     },
                     {
+                      "description": "Case-insensitive substring match against `referenceID`.",
                       "key": "referenceIDSubstring",
                       "value": "<string>"
                     },
@@ -153,178 +180,119 @@
                       "key": "endingBefore",
                       "value": "<string>"
                     }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"errors\": [\n    {\n      \"eventID\": \"string\",\n      \"referenceID\": \"string\",\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"message\": \"string\",\n      \"functionCallTryNumber\": 4242,\n      \"createdAt\": \"2026-01-29T12:18:22.198Z\",\n      \"inboundEmail\": {\n        \"to\": \"string\",\n        \"from\": \"string\",\n        \"subject\": \"string\",\n        \"deliveredTo\": \"string\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": 2451.715852555223\n      },\n      \"eventType\": \"error\",\n      \"functionCallID\": \"string\",\n      \"functionVersionNum\": 5934,\n      \"callID\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"workflowVersionNum\": 4310,\n      \"kind\": \"string\"\n    },\n    {\n      \"eventID\": \"string\",\n      \"referenceID\": \"string\",\n      \"functionID\": \"string\",\n      \"functionName\": \"string\",\n      \"message\": \"string\",\n      \"functionCallTryNumber\": 2484,\n      \"createdAt\": \"1953-09-30T22:30:59.316Z\",\n      \"inboundEmail\": {\n        \"to\": \"string\",\n        \"from\": \"string\",\n        \"subject\": \"string\",\n        \"deliveredTo\": \"string\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": 657.8116249626531\n      },\n      \"eventType\": \"error\",\n      \"functionCallID\": \"string\",\n      \"functionVersionNum\": 4542,\n      \"callID\": \"string\",\n      \"workflowID\": \"string\",\n      \"workflowName\": \"string\",\n      \"workflowVersionNum\": 7908,\n      \"kind\": \"string\"\n    }\n  ],\n  \"totalCount\": 2057\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
-          "id": "68d2fadf-3a8c-4067-a638-d73774024f6b",
-          "name": "Get an Error",
-          "request": {
-            "name": "Get an Error",
-            "description": {
-              "content": "**Retrieve a single error event by ID.**\n\nReturns `404` if the event does not exist or if it is not an error event\n(use `GET /v3/outputs/{eventID}` for non-error events).",
-              "type": "text/plain"
-            },
-            "url": {
-              "path": [
-                "v3",
-                "errors",
-                ":eventID"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "disabled": false,
-                  "type": "any",
-                  "value": "<string>",
-                  "key": "eventID",
-                  "description": "(Required) The unique identifier of the error event."
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": null
-          },
-          "response": [
-            {
-              "id": "bdef62e8-b678-4272-b836-b7415e6db9e0",
-              "name": "The request has succeeded.",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "v3",
-                    "errors",
-                    ":eventID"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [],
-                  "variable": [
-                    {
-                      "disabled": false,
-                      "type": "any",
-                      "value": "<string>",
-                      "key": "eventID",
-                      "description": "(Required) The unique identifier of the error event."
-                    }
                   ]
                 },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: apikey",
-                      "type": "text/plain"
-                    },
-                    "key": "x-api-key",
-                    "value": "<API Key>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
+                "description": "**List terminal error events.**\n\nReturns error events produced by failed function calls within workflow executions.\nNon-error output events are excluded; use `GET /v3/outputs` to retrieve those.\n\n## Filtering\n\nFilter by call, workflow, function, or reference ID. Multiple filters are ANDed together."
               },
-              "status": "OK",
-              "code": 200,
-              "header": [
+              "response": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                  "id": "9d2975f0-3786-469e-a988-d1157914407a",
+                  "name": "The request has succeeded.",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/v3/errors?limit=50&callIDs=<string>&workflowIDs=<string>&workflowNames=<string>&functionIDs=<string>&functionNames=<string>&referenceIDs=<string>&referenceIDSubstring=<string>&sortOrder=asc&startingAfter=<string>&endingBefore=<string>",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "v3",
+                        "errors"
+                      ],
+                      "query": [
+                        {
+                          "key": "limit",
+                          "value": "50"
+                        },
+                        {
+                          "description": "Filter to errors from specific calls.",
+                          "key": "callIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "workflowIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "workflowNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "functionIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "functionNames",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "referenceIDs",
+                          "value": "<string>"
+                        },
+                        {
+                          "description": "Case-insensitive substring match against `referenceID`.",
+                          "key": "referenceIDSubstring",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "sortOrder",
+                          "value": "asc"
+                        },
+                        {
+                          "key": "startingAfter",
+                          "value": "<string>"
+                        },
+                        {
+                          "key": "endingBefore",
+                          "value": "<string>"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": "{\n  \"errors\": [\n    {\n      \"eventID\": \"<string>\",\n      \"referenceID\": \"<string>\",\n      \"functionID\": \"<string>\",\n      \"functionName\": \"<string>\",\n      \"message\": \"<string>\",\n      \"functionCallTryNumber\": \"<integer>\",\n      \"createdAt\": \"<dateTime>\",\n      \"inboundEmail\": {\n        \"to\": \"<string>\",\n        \"from\": \"<string>\",\n        \"subject\": \"<string>\",\n        \"deliveredTo\": \"<string>\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": \"<number>\"\n      },\n      \"eventType\": \"error\",\n      \"functionCallID\": \"<string>\",\n      \"functionVersionNum\": \"<integer>\",\n      \"callID\": \"<string>\",\n      \"workflowID\": \"<string>\",\n      \"workflowName\": \"<string>\",\n      \"workflowVersionNum\": \"<integer>\",\n      \"kind\": \"<string>\"\n    },\n    {\n      \"eventID\": \"<string>\",\n      \"referenceID\": \"<string>\",\n      \"functionID\": \"<string>\",\n      \"functionName\": \"<string>\",\n      \"message\": \"<string>\",\n      \"functionCallTryNumber\": \"<integer>\",\n      \"createdAt\": \"<dateTime>\",\n      \"inboundEmail\": {\n        \"to\": \"<string>\",\n        \"from\": \"<string>\",\n        \"subject\": \"<string>\",\n        \"deliveredTo\": \"<string>\"\n      },\n      \"metadata\": {\n        \"durationFunctionToEventSeconds\": \"<number>\"\n      },\n      \"eventType\": \"error\",\n      \"functionCallID\": \"<string>\",\n      \"functionVersionNum\": \"<integer>\",\n      \"callID\": \"<string>\",\n      \"workflowID\": \"<string>\",\n      \"workflowName\": \"<string>\",\n      \"workflowVersionNum\": \"<integer>\",\n      \"kind\": \"<string>\"\n    }\n  ],\n  \"totalCount\": \"<integer>\"\n}",
+                  "createdAt": "2026-10-22T02:02:26.000Z",
+                  "updatedAt": "2026-10-22T02:02:26.000Z",
+                  "uid": "35240-9d2975f0-3786-469e-a988-d1157914407a"
                 }
               ],
-              "body": "{\n  \"error\": {\n    \"eventID\": \"string\",\n    \"referenceID\": \"string\",\n    \"functionID\": \"string\",\n    \"functionName\": \"string\",\n    \"message\": \"string\",\n    \"functionCallTryNumber\": 3232,\n    \"createdAt\": \"1999-07-11T09:39:00.359Z\",\n    \"inboundEmail\": {\n      \"to\": \"string\",\n      \"from\": \"string\",\n      \"subject\": \"string\",\n      \"deliveredTo\": \"string\"\n    },\n    \"metadata\": {\n      \"durationFunctionToEventSeconds\": 2580.2613256665763\n    },\n    \"eventType\": \"error\",\n    \"functionCallID\": \"string\",\n    \"functionVersionNum\": 6638,\n    \"callID\": \"string\",\n    \"workflowID\": \"string\",\n    \"workflowName\": \"string\",\n    \"workflowVersionNum\": 8213,\n    \"kind\": \"string\"\n  }\n}",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
+              "createdAt": "2026-10-22T02:02:26.000Z",
+              "updatedAt": "2026-10-22T02:02:26.000Z",
+              "uid": "35240-b92bf66b-5966-4801-bcba-66b494facbeb"
             }
           ],
-          "event": [],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
+          "id": "0a1561fc-b593-49d6-90fa-8d9163918fc9",
+          "createdAt": "2026-10-22T02:02:26.000Z",
+          "updatedAt": "2026-10-22T02:02:26.000Z",
+          "uid": "35240-0a1561fc-b593-49d6-90fa-8d9163918fc9"
         }
       ],
-      "event": []
+      "id": "bf023101-22cf-41f4-9d72-3a4173fa4d0d",
+      "createdAt": "2026-10-22T02:02:26.000Z",
+      "updatedAt": "2026-10-22T02:02:26.000Z",
+      "uid": "35240-bf023101-22cf-41f4-9d72-3a4173fa4d0d"
     }
   ],
-  "event": [],
   "variable": [
     {
-      "type": "string",
-      "value": "https://api.bem.ai",
-      "key": "baseUrl"
+      "key": "baseUrl",
+      "value": "https://api.bem.ai"
     }
-  ],
-  "auth": {
-    "type": "apikey",
-    "apikey": [
-      {
-        "key": "key",
-        "value": "x-api-key"
-      },
-      {
-        "key": "value",
-        "value": "{{apiKey}}"
-      },
-      {
-        "key": "in",
-        "value": "header"
-      }
-    ]
-  },
-  "info": {
-    "_postman_id": "9e5fc432-644f-4761-92d8-8e8ff2d84491",
-    "name": "Bem Buckets Errors API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Buckets are named partitions of the knowledge graph within an\naccount+environment. Entities, mentions, and relations are scoped to a\nbucket so a single account+environment can host multiple isolated graphs\n— for example one per data source or workspace.\n\nEvery account+environment has exactly one **default** bucket, used by\nunscoped flows. The default bucket can be renamed but never deleted.\n\nUse these endpoints to create, list, fetch, rename, and delete buckets:\n\n- **`POST /v3/buckets`** creates a non-default bucket.\n- **`GET /v3/buckets`** lists buckets with cursor pagination\n  (`startingAfter` / `endingBefore` over `bucketID`).\n- **`PATCH /v3/buckets/{bucketID}`** updates `name` and/or `description`.\n- **`DELETE /v3/buckets/{bucketID}`** soft-deletes a bucket. A non-empty\n  bucket is rejected with `409 Conflict` unless `?cascade=true` is\n  passed; the default bucket can never be deleted.",
-      "type": "text/plain"
-    }
-  }
+  ]
 }
